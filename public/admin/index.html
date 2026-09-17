@@ -1,53 +1,52 @@
 <!doctype html>
-<html lang="uk">
+<html lang="ru">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>DEMI DEVILLE — Admin</title>
-  <link rel="stylesheet" href="/assets/css/admin.css?v=20260917-admin-v2">
+  <title>DEMI DEVILLE — Админ-панель</title>
+  <link rel="stylesheet" href="/assets/css/admin.css?v=20260917-admin-menu-v3">
 </head>
 <body>
   <section id="loginView" class="auth-screen">
     <form id="adminLogin" class="auth-card" autocomplete="on">
       <div class="auth-brand">DEMI DEVILLE</div>
-      <h1>Адмін-панель</h1>
-      <p class="muted">Увійдіть під обліковим записом адміністратора.</p>
+      <h1>Админ-панель</h1>
+      <p class="muted">Войдите под учётной записью администратора.</p>
       <div id="loginNotice" class="notice" aria-live="polite"></div>
       <label class="field">
-        <span>Email</span>
+        <span>Электронная почта</span>
         <input required type="email" name="email" autocomplete="username" value="admin@demideville.local">
       </label>
       <label class="field">
         <span>Пароль</span>
         <input required type="password" name="password" autocomplete="current-password" value="Admin123!">
       </label>
-      <button class="primary-btn wide" type="submit">Увійти</button>
+      <button class="primary-btn wide" type="submit">Войти</button>
     </form>
   </section>
 
   <div id="adminView" class="admin-app" hidden>
     <aside class="side-panel">
       <div class="side-brand">DEMI DEVILLE</div>
-      <div class="side-caption">ADMIN</div>
+      <div class="side-caption">АДМИН</div>
       <nav class="side-nav">
-        <button class="nav-item active" type="button">Головна сторінка</button>
+        <button class="nav-item active" type="button">Главная страница</button>
       </nav>
       <div class="side-bottom">
-        <a class="side-link" href="/" target="_blank" rel="noreferrer">Відкрити сайт ↗</a>
-        <button id="adminLogout" class="side-link side-button" type="button">Вийти</button>
+        <a class="side-link" href="/" target="_blank" rel="noreferrer">Открыть сайт ↗</a>
+        <button id="adminLogout" class="side-link side-button" type="button">Выйти</button>
       </div>
     </aside>
 
     <main class="workspace">
       <header class="workspace-head">
         <div>
-          <div class="eyebrow">Редактор сайту</div>
-          <h1>Головна сторінка</h1>
-          <p>На цьому етапі редагуємо тільки фон, затемнення та шрифт елементів окремо для ПК і телефону.</p>
+          <div class="eyebrow">Редактор сайта</div>
+          <h1>Главная страница</h1>
         </div>
         <div class="head-actions">
           <span id="adminUser" class="admin-user"></span>
-          <button id="saveTop" class="primary-btn" type="button">Зберегти</button>
+          <button id="saveTop" class="primary-btn" type="button">Сохранить</button>
         </div>
       </header>
 
@@ -58,9 +57,9 @@
           <div class="device-card-head">
             <div>
               <span class="device-badge">ПК</span>
-              <h2>Дизайн головної — комп'ютер</h2>
+              <h2>Главная страница — компьютер</h2>
             </div>
-            <span class="device-hint">Desktop</span>
+            <span class="device-hint">Компьютер</span>
           </div>
 
           <div class="device-layout">
@@ -77,17 +76,17 @@
               <div class="control-block">
                 <div class="control-title">Фон</div>
                 <label class="field">
-                  <span>Зображення для ПК</span>
+                  <span>Изображение для ПК</span>
                   <input id="heroDesktop" name="heroDesktop" type="text" placeholder="/assets/images/hero.jpg">
                 </label>
                 <label class="upload-btn">
                   <input id="heroDesktopFile" type="file" accept="image/*" data-upload-target="heroDesktop">
-                  <span>Завантажити новий фон</span>
+                  <span>Загрузить новый фон</span>
                 </label>
               </div>
 
               <div class="control-block">
-                <div class="control-title">Затемнення фону</div>
+                <div class="control-title">Затемнение фона</div>
                 <div class="range-row">
                   <input id="desktopOverlayRange" type="range" min="0" max="100" step="1" value="35">
                   <div class="number-wrap"><input id="homeDesktopOverlayOpacity" name="homeDesktopOverlayOpacity" type="number" min="0" max="100" step="1" value="35"><span>%</span></div>
@@ -95,20 +94,10 @@
               </div>
 
               <div class="control-block">
-                <div class="control-title">Шрифт елементів</div>
+                <div class="control-title">Шрифт элементов</div>
                 <label class="field">
-                  <span>Меню, кнопки та текстові елементи головної</span>
-                  <select id="homeDesktopFont" name="homeDesktopFont">
-                    <option value="">Поточний дизайн (без змін)</option>
-                    <option value="Arial, Helvetica, sans-serif">Arial</option>
-                    <option value="'DD Oswald','Arial Narrow',Arial,sans-serif">Oswald</option>
-                    <option value="'Benzin Regular','Benzin-Regular','Century Gothic','Trebuchet MS',Arial,sans-serif">Benzin Regular</option>
-                    <option value="'Benzin Semibold','Benzin-Semibold','Arial Black',Arial,sans-serif">Benzin Semibold</option>
-                    <option value="'Lucida Sans Typewriter','Lucida Console','Courier New',monospace">Lucida Typewriter</option>
-                    <option value="Impact, Haettenschweiler, 'Arial Narrow Bold', sans-serif">Impact</option>
-                    <option value="Georgia, 'Times New Roman', serif">Georgia</option>
-                    <option value="'Courier New', Courier, monospace">Courier New</option>
-                  </select>
+                  <span>Меню, кнопки и текстовые элементы главной страницы</span>
+                  <select id="homeDesktopFont" name="homeDesktopFont" class="font-select" data-default-label="Текущий дизайн"></select>
                 </label>
                 <div class="font-sample" id="desktopFontSample">SHOP · LOGIN · SUPPORT</div>
               </div>
@@ -120,9 +109,9 @@
           <div class="device-card-head">
             <div>
               <span class="device-badge">ТЕЛЕФОН</span>
-              <h2>Дизайн головної — телефон</h2>
+              <h2>Главная страница — телефон</h2>
             </div>
-            <span class="device-hint">Mobile</span>
+            <span class="device-hint">Телефон</span>
           </div>
 
           <div class="device-layout mobile-layout">
@@ -138,17 +127,17 @@
               <div class="control-block">
                 <div class="control-title">Фон</div>
                 <label class="field">
-                  <span>Зображення для телефону</span>
+                  <span>Изображение для телефона</span>
                   <input id="heroMobile" name="heroMobile" type="text" placeholder="/assets/images/hero-mobile.jpg">
                 </label>
                 <label class="upload-btn">
                   <input id="heroMobileFile" type="file" accept="image/*" data-upload-target="heroMobile">
-                  <span>Завантажити новий фон</span>
+                  <span>Загрузить новый фон</span>
                 </label>
               </div>
 
               <div class="control-block">
-                <div class="control-title">Затемнення фону</div>
+                <div class="control-title">Затемнение фона</div>
                 <div class="range-row">
                   <input id="mobileOverlayRange" type="range" min="0" max="100" step="1" value="35">
                   <div class="number-wrap"><input id="homeMobileOverlayOpacity" name="homeMobileOverlayOpacity" type="number" min="0" max="100" step="1" value="35"><span>%</span></div>
@@ -156,20 +145,10 @@
               </div>
 
               <div class="control-block">
-                <div class="control-title">Шрифт елементів</div>
+                <div class="control-title">Шрифт элементов</div>
                 <label class="field">
-                  <span>MENU, пункти меню, SUPPORT, вибір мови та інші текстові елементи</span>
-                  <select id="homeMobileFont" name="homeMobileFont">
-                    <option value="">Поточний дизайн (без змін)</option>
-                    <option value="Arial, Helvetica, sans-serif">Arial</option>
-                    <option value="'DD Oswald','Arial Narrow',Arial,sans-serif">Oswald</option>
-                    <option value="'Benzin Regular','Benzin-Regular','Century Gothic','Trebuchet MS',Arial,sans-serif">Benzin Regular</option>
-                    <option value="'Benzin Semibold','Benzin-Semibold','Arial Black',Arial,sans-serif">Benzin Semibold</option>
-                    <option value="'Lucida Sans Typewriter','Lucida Console','Courier New',monospace">Lucida Typewriter</option>
-                    <option value="Impact, Haettenschweiler, 'Arial Narrow Bold', sans-serif">Impact</option>
-                    <option value="Georgia, 'Times New Roman', serif">Georgia</option>
-                    <option value="'Courier New', Courier, monospace">Courier New</option>
-                  </select>
+                  <span>MENU, пункты меню, SUPPORT, выбор языка и другие текстовые элементы</span>
+                  <select id="homeMobileFont" name="homeMobileFont" class="font-select" data-default-label="Текущий дизайн"></select>
                 </label>
                 <div class="font-sample" id="mobileFontSample">MENU · SHOP ALL · SUPPORT</div>
               </div>
@@ -177,14 +156,78 @@
           </div>
         </section>
 
+        <section class="device-card menu-editor-card">
+          <div class="device-card-head">
+            <div>
+              <span class="device-badge">МЕНЮ</span>
+              <h2>Редактирование меню</h2>
+            </div>
+          </div>
+
+          <div class="menu-style-grid">
+            <div class="control-block">
+              <div class="control-title">Меню на ПК</div>
+              <label class="field">
+                <span>Шрифт</span>
+                <select id="menuDesktopFont" class="font-select" data-default-label="Текущий дизайн"></select>
+              </label>
+              <div class="inline-fields two-cols">
+                <label class="field"><span>Размер текста, px</span><input id="menuDesktopFontSize" type="number" min="8" max="80" step="1" placeholder="Текущий"></label>
+                <label class="field"><span>Жирность</span><select id="menuDesktopFontWeight" class="weight-select"></select></label>
+              </div>
+            </div>
+
+            <div class="control-block">
+              <div class="control-title">Меню на телефоне</div>
+              <label class="field">
+                <span>Шрифт</span>
+                <select id="menuMobileFont" class="font-select" data-default-label="Текущий дизайн"></select>
+              </label>
+              <div class="inline-fields two-cols">
+                <label class="field"><span>Размер текста, px</span><input id="menuMobileFontSize" type="number" min="8" max="80" step="1" placeholder="Текущий"></label>
+                <label class="field"><span>Жирность</span><select id="menuMobileFontWeight" class="weight-select"></select></label>
+              </div>
+            </div>
+
+            <div class="control-block underline-control">
+              <div class="control-title">Полоска при наведении</div>
+              <label class="field"><span>Цвет подчёркивания пунктов меню</span></label>
+              <div class="color-row">
+                <input id="menuUnderlineColor" type="color" value="#ffffff">
+                <input id="menuUnderlineColorText" type="text" value="#ffffff" maxlength="9">
+              </div>
+            </div>
+          </div>
+
+          <div class="menu-builder">
+            <div class="menu-builder-head">
+              <div>
+                <h3>Основные пункты и подпункты</h3>
+                <p>Можно изменить название и ссылку, добавить или удалить основной пункт и любой подпункт.</p>
+              </div>
+              <button id="addMenuGroup" class="secondary-btn" type="button">+ Добавить основной пункт</button>
+            </div>
+            <div id="menuGroupsEditor" class="menu-groups"></div>
+
+            <div class="menu-builder-head extra-head">
+              <div>
+                <h3>Дополнительные пункты мобильного меню</h3>
+                <p>Например: GALLERY и ABOUT.</p>
+              </div>
+              <button id="addMobileLink" class="secondary-btn" type="button">+ Добавить пункт</button>
+            </div>
+            <div id="mobileLinksEditor" class="mobile-links-editor"></div>
+          </div>
+        </section>
+
         <div class="form-actions">
-          <div class="save-note">Зміни застосуються на головній сторінці після збереження.</div>
-          <button class="primary-btn large" type="submit">Зберегти зміни</button>
+          <div class="save-note">Изменения применятся после сохранения.</div>
+          <button class="primary-btn large" type="submit">Сохранить изменения</button>
         </div>
       </form>
     </main>
   </div>
 
-  <script src="/assets/js/admin.js?v=20260917-admin-v2"></script>
+  <script src="/assets/js/admin.js?v=20260917-admin-menu-v3"></script>
 </body>
 </html>
