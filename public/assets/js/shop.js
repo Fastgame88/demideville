@@ -76,7 +76,7 @@
     const count=Math.max(1,pageItems.length);
     const desktopColumns=count<=5?count:Math.min(5,Math.ceil(count/2));
     const desktopRows=Math.max(1,Math.ceil(count/desktopColumns));
-    const desktopMedia=count===1?500:count===2?440:count===3?390:count<=5?340:desktopRows===2?295:255;
+    const desktopMedia=count===1?330:count===2?285:count===3?255:count<=5?230:desktopRows===2?210:190;
     grid.style.setProperty('--shop-columns',String(desktopColumns));
     grid.style.setProperty('--shop-rows',String(desktopRows));
     grid.style.setProperty('--shop-media-size',`${desktopMedia}px`);

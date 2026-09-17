@@ -1284,3 +1284,88 @@ body.product-detail-page #productImage{object-fit:contain!important;object-posit
   body.product-detail-page .product-customer-gallery{margin-bottom:16px!important}
   body.product-detail-page .product-info{margin-top:0!important;padding-top:0!important}
 }
+
+
+/* =========================================================
+   v7 — desktop multi-image strip visibility + tuned single-card size
+   + editable ABOUT rich text.
+   ========================================================= */
+@media (min-width:901px){
+  body.product-detail-page .product-visual{
+    position:absolute!important;
+    left:198px!important;
+    top:272px!important;
+    width:555px!important;
+    height:704px!important;
+    overflow:visible!important;
+    display:block!important;
+  }
+  body.product-detail-page #productImage{
+    position:absolute!important;
+    left:0!important;
+    top:0!important;
+    width:555px!important;
+    height:650px!important;
+    max-width:555px!important;
+    max-height:650px!important;
+    object-fit:contain!important;
+    object-position:center center!important;
+  }
+  body.product-detail-page .product-customer-gallery{
+    position:absolute!important;
+    left:575px!important;
+    top:18px!important;
+    width:82px!important;
+    min-width:82px!important;
+    display:flex!important;
+    visibility:visible!important;
+    opacity:1!important;
+    z-index:40!important;
+  }
+  body.product-detail-page .product-customer-thumbs{width:82px!important;max-width:82px!important;max-height:510px!important}
+  body.product-detail-page .product-customer-thumb{width:80px!important;min-width:80px!important;height:80px!important;min-height:80px!important;flex-basis:80px!important}
+
+  /* One item should stay visually close to the reference instead of becoming oversized. */
+  body.shop-page .product-grid[data-count="1"]{padding-left:20vw!important;padding-right:20vw!important}
+  body.shop-page .product-grid[data-count="1"] .product-card{max-width:620px!important}
+}
+
+/* Editable ABOUT content is used only after ABOUT is saved in the new admin editor. */
+body.about-page.about-rich-mode .about-design-canvas{position:relative!important}
+body.about-page.about-rich-mode .about-rich-content{
+  color:#111;
+  box-sizing:border-box;
+  overflow-wrap:anywhere;
+}
+@media (min-width:901px){
+  body.about-page.about-rich-mode .about-wrap{display:block!important}
+  body.about-page.about-rich-mode .about-design-canvas{
+    width:1920px!important;
+    min-height:1080px!important;
+    margin:0!important;
+    transform:scale(var(--gallery-header-scale-x,1),var(--gallery-header-scale-y,1))!important;
+    transform-origin:0 0!important;
+  }
+  body.about-page.about-rich-mode .about-rich-content{
+    position:absolute!important;
+    left:210px!important;
+    top:123px!important;
+    width:1500px!important;
+    padding:0!important;
+    font-size:28px!important;
+    line-height:1.38!important;
+    text-align:center!important;
+  }
+}
+@media (max-width:900px){
+  body.about-page.about-rich-mode .about-wrap{padding:86px 26px 110px!important}
+  body.about-page.about-rich-mode .about-design-canvas{width:100%!important;min-height:0!important}
+  body.about-page.about-rich-mode .about-rich-content{
+    position:static!important;
+    width:100%!important;
+    padding:0!important;
+    font-size:18px!important;
+    line-height:1.45!important;
+    text-align:center!important;
+  }
+}

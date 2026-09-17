@@ -7,6 +7,8 @@ let shopCategoriesDraft=[];
 let currentAdminTab='home';
 let productImagesDraft=[];
 let productSizesDraft=[];
+const DEFAULT_ABOUT_EN='About <strong>DEMI DEVILLE</strong> is a <em>PIONEERING DESIGN STUDIO BASED</em> in Paris, specializing in fashion, spatial design, and visual direction. <em>Established by Augustine</em> Oh &amp; Jude Lee, the <strong>studio redefines traditional</strong> design frameworks through methods of deconstruction, expansion, and reduction. <strong>By merging</strong> high fashion with a <strong>progressive design</strong> philosophy, DEMI DEVILLE delivers innovative, high-quality work that challenges visual conventions. <strong>The studio collaborates with a wide range of celebrities,</strong> artists, and brands, offering fresh design experiences that resonate with forward-thinking audiences around the world.';
+const DEFAULT_ABOUT_RU='DEMI DEVILLE — новаторская студия дизайна из Парижа. Мы работаем с модой, пространством и визуальным стилем. Основатели студии, Огюстин О и Джуд Ли, по-новому смотрят на привычные правила дизайна: разбирают формы, расширяют возможности и убирают лишнее. Мы объединяем высокую моду с современным подходом, создаём качественные проекты и сотрудничаем с артистами, брендами и творческими людьми по всему миру.';
 const $=(s,r=document)=>r.querySelector(s);
 const $$=(s,r=document)=>[...r.querySelectorAll(s)];
 const esc=v=>String(v??'').replace(/[&<>'"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;","'":"&#39;",'"':'&quot;'}[c]));
@@ -102,7 +104,7 @@ async function boot(){
     const me=await api('/api/auth/me');
     if(me.user.role!=='admin')throw new Error('Доступ разрешён только администратору');
     $('#adminUser').textContent=me.user.email;$('#loginView').style.display='none';$('#adminView').hidden=false;
-    const state=await api('/api/admin/state');adminState=state||{};settings=state.settings||{};productsDraft=Array.isArray(state.products)?state.products.map(clone):[];shopCategoriesDraft=normalizeShopCategories(settings.shopCategories);fillForm();fillShopEditor();switchAdminTab(currentAdminTab);
+    const state=await api('/api/admin/state');adminState=state||{};settings=state.settings||{};productsDraft=Array.isArray(state.products)?state.products.map(clone):[];shopCategoriesDraft=normalizeShopCategories(settings.shopCategories);fillForm();fillShopEditor();fillAboutEditor();switchAdminTab(currentAdminTab);
   }catch(e){token='';localStorage.removeItem('dd_token');showLogin(e.message)}
 }
 $('#adminLogin').addEventListener('submit',async e=>{
@@ -226,7 +228,7 @@ async function save(){
   try{setBusy(true);settings=await api('/api/admin/settings',{method:'PUT',body:JSON.stringify(payload())});fillForm();showNotice('Изменения сохранены.')}catch(e){showNotice(e.message,'error')}finally{setBusy(false)}
 }
 $('#homeSettingsForm').addEventListener('submit',async e=>{e.preventDefault();await save()});
-$('#saveTop').addEventListener('click',()=>currentAdminTab==='shop'?saveShopSettings():save());
+$('#saveTop').addEventListener('click',()=>currentAdminTab==='shop'?saveShopSettings():currentAdminTab==='about'?saveAboutSettings():save());
 
 function slugify(value){
   return String(value||'').trim().toLowerCase()
@@ -263,12 +265,13 @@ function fillShopEditor(){
   renderProductsAdmin();
 }
 function switchAdminTab(tab){
-  currentAdminTab=tab==='shop'?'shop':'home';
+  currentAdminTab=['home','shop','about'].includes(tab)?tab:'home';
   $$('#adminView [data-admin-tab]').forEach(btn=>btn.classList.toggle('active',btn.dataset.adminTab===currentAdminTab));
   $('#homeSettingsForm').hidden=currentAdminTab!=='home';
   $('#shopEditor').hidden=currentAdminTab!=='shop';
-  $('#workspaceTitle').textContent=currentAdminTab==='shop'?'Shop.html':'Главная страница';
-  $('#saveTop').textContent=currentAdminTab==='shop'?'Сохранить магазин':'Сохранить';
+  $('#aboutEditor').hidden=currentAdminTab!=='about';
+  $('#workspaceTitle').textContent=currentAdminTab==='shop'?'SHOP':currentAdminTab==='about'?'ABOUT':'Главная страница';
+  $('#saveTop').textContent=currentAdminTab==='shop'?'Сохранить магазин':currentAdminTab==='about'?'Сохранить ABOUT':'Сохранить';
 }
 $$('[data-admin-tab]').forEach(btn=>btn.addEventListener('click',()=>switchAdminTab(btn.dataset.adminTab)));
 
@@ -439,5 +442,52 @@ async function saveShopSettings(){
   }catch(err){showNotice(err.message,'error')}finally{setBusy(false)}
 }
 $('#saveShopSettings')?.addEventListener('click',saveShopSettings);
+
+
+function fillAboutEditor(){
+  const en=String(settings.aboutHtmlEn||settings.aboutHtml||DEFAULT_ABOUT_EN);
+  const ru=String(settings.aboutHtmlRu||DEFAULT_ABOUT_RU);
+  if($('#aboutHtmlEnEditor'))$('#aboutHtmlEnEditor').innerHTML=en;
+  if($('#aboutHtmlRuEditor'))$('#aboutHtmlRuEditor').innerHTML=ru;
+  selectValue($('#aboutBaseFont'),settings.aboutBaseFont||'');
+}
+function editorForToolbar(toolbar){return document.getElementById(toolbar?.dataset.richToolbar||'')}
+function selectionInside(editor){const sel=window.getSelection();if(!editor||!sel||!sel.rangeCount)return null;const range=sel.getRangeAt(0);return editor.contains(range.commonAncestorContainer)?range:null}
+function focusSavedSelection(editor){
+  const range=editor?editor._savedRange:null;if(!editor||!range)return false;
+  const sel=window.getSelection();sel.removeAllRanges();sel.addRange(range);editor.focus({preventScroll:true});return true;
+}
+function saveSelection(editor){const range=selectionInside(editor);if(range)editor._savedRange=range.cloneRange()}
+function applyInlineStyle(editor,property,value){
+  if(!focusSavedSelection(editor))return;
+  const sel=window.getSelection();if(!sel||!sel.rangeCount||sel.isCollapsed)return;
+  const range=sel.getRangeAt(0);const span=document.createElement('span');span.style[property]=value;
+  try{range.surroundContents(span)}catch{const frag=range.extractContents();span.appendChild(frag);range.insertNode(span)}
+  const next=document.createRange();next.selectNodeContents(span);sel.removeAllRanges();sel.addRange(next);editor._savedRange=next.cloneRange();
+}
+$$('.rich-editor').forEach(editor=>{
+  ['keyup','mouseup','touchend','focus'].forEach(evt=>editor.addEventListener(evt,()=>saveSelection(editor)));
+});
+$$('.rich-toolbar').forEach(toolbar=>{
+  const editor=editorForToolbar(toolbar);if(!editor)return;
+  toolbar.addEventListener('mousedown',e=>{if(!e.target.closest('select,input'))e.preventDefault()});
+  toolbar.addEventListener('click',e=>{
+    const command=e.target.closest('[data-rich-command]')?.dataset.richCommand;
+    if(command){focusSavedSelection(editor);document.execCommand(command,false,null);saveSelection(editor);return}
+    if(e.target.closest('[data-rich-clear]')){focusSavedSelection(editor);document.execCommand('removeFormat',false,null);saveSelection(editor)}
+  });
+  const font=toolbar.querySelector('.rich-font-select');font?.addEventListener('change',()=>{if(font.value)applyInlineStyle(editor,'fontFamily',font.value);font.value=''});
+  toolbar.querySelectorAll('[data-rich-style]').forEach(input=>input.addEventListener('input',()=>applyInlineStyle(editor,input.dataset.richStyle,input.value)));
+});
+
+async function saveAboutSettings(){
+  try{
+    setBusy(true);
+    const payload={aboutHtmlEn:$('#aboutHtmlEnEditor').innerHTML.trim()||DEFAULT_ABOUT_EN,aboutHtmlRu:$('#aboutHtmlRuEditor').innerHTML.trim()||DEFAULT_ABOUT_RU,aboutBaseFont:$('#aboutBaseFont').value};
+    settings=await api('/api/admin/settings',{method:'PUT',body:JSON.stringify(payload)});
+    fillAboutEditor();showNotice('Страница ABOUT сохранена.');
+  }catch(err){showNotice(err.message,'error')}finally{setBusy(false)}
+}
+$('#saveAboutSettings')?.addEventListener('click',saveAboutSettings);
 
 boot();
