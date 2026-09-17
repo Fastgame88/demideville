@@ -1,0 +1,151 @@
+{
+  "settings": {
+    "brand": "DEMI DEVILLE",
+    "heroTitle": "DEMI DEVILLE",
+    "heroDesktop": "/assets/images/hero.jpg",
+    "heroMobile": "/assets/images/hero-mobile.jpg",
+    "loginArt": "/assets/images/login-art.png",
+    "aboutHtml": "About <mark>DEMI DEVILLE</mark> is a <strong>PIONEERING DESIGN STUDIO BASED</strong> in Paris, specializing in fashion, spatial design, and visual direction.<br><em>Established by Augustine</em> Oh & Jude Lee, the <strong>studio redefines traditional</strong> design frameworks through methods of deconstruction, expansion, and reduction. <strong>By merging</strong> high fashion with a <strong>progressive design</strong> philosophy, DEMI DEVILLE delivers innovative, high-quality work that challenges visual conventions. <strong>The studio collaborates with a wide range of celebrities,</strong> artists, and brands, offering fresh design experiences that resonate with forward-thinking audiences around the world.",
+    "contact": "contact@demideville.example",
+    "instagram": "https://instagram.com/",
+    "supportText": "SUPPORT",
+    "baseFont": "Arial, Helvetica, sans-serif",
+    "displayFont": "Arial Black, Arial, Helvetica, sans-serif",
+    "condensedFont": "Impact, Haettenschweiler, Arial Narrow Bold, sans-serif",
+    "baseFontSize": 16,
+    "shopPageSize": 12,
+    "shipping": 30,
+    "currency": "$"
+  },
+  "products": [
+    {
+      "id": "invitation-tshirt",
+      "name": "Invitation T-Shirt - Black",
+      "price": 55,
+      "image": "/assets/images/product-tshirt.jpg",
+      "description": "Black invitation graphic T-shirt.",
+      "fabric": "Cotton blend",
+      "sizes": [
+        "XS",
+        "S",
+        "M",
+        "L",
+        "XL"
+      ],
+      "active": true,
+      "sort": 1
+    },
+    {
+      "id": "human-uniform",
+      "name": "Human Uniform Longsleeve Black&White",
+      "price": 90,
+      "image": "/assets/images/product-longsleeve.jpg",
+      "description": "Human Uniform long sleeve with striped sleeves and graphic details.",
+      "fabric": "Cotton jersey",
+      "sizes": [
+        "XS",
+        "S",
+        "M",
+        "L",
+        "XL"
+      ],
+      "active": true,
+      "sort": 2
+    },
+    {
+      "id": "lobby-hoody",
+      "name": "Lobby Hoody Black&White",
+      "price": 140,
+      "image": "/assets/images/product-hoodie.jpg",
+      "description": "Oversized black and white lobby hoodie.",
+      "fabric": "Heavy cotton fleece",
+      "sizes": [
+        "S",
+        "M",
+        "L",
+        "XL"
+      ],
+      "active": true,
+      "sort": 3
+    },
+    {
+      "id": "inside-jeans",
+      "name": "Inside Jeans- Black Black",
+      "price": 140,
+      "image": "/assets/images/product-jeans.jpg",
+      "description": "Black jeans with contrast inside-out pocket details.",
+      "fabric": "Denim",
+      "sizes": [
+        "XS",
+        "S",
+        "M",
+        "L",
+        "XL"
+      ],
+      "active": true,
+      "sort": 4
+    },
+    {
+      "id": "rrrr",
+      "name": "rrr",
+      "price": 0,
+      "sort": 5,
+      "image": "/uploads/1789408738913-ChatGPT-Image-7----.-2026--.--10_06_28--2-.png",
+      "sizes": [
+        "S",
+        "M",
+        "L"
+      ],
+      "fabric": "",
+      "active": true,
+      "description": ""
+    },
+    {
+      "id": "rrrr",
+      "name": "rere",
+      "price": 0,
+      "sort": 6,
+      "image": "/uploads/1789408754296-01_schwabenland_water_only.gif",
+      "sizes": [
+        "S",
+        "M",
+        "L"
+      ],
+      "fabric": "",
+      "active": true,
+      "description": ""
+    }
+  ],
+  "gallery": [
+    {
+      "id": "gallery-1",
+      "image": "/assets/images/gallery.jpg",
+      "caption": "Always up to date: unsigned1",
+      "sort": 1,
+      "active": true
+    }
+  ],
+  "sections": [],
+  "users": [
+    {
+      "id": "c0a02acb-0018-4a51-a534-f2d98fa12ae0",
+      "name": "Administrator",
+      "email": "admin@demideville.local",
+      "passwordHash": "9b32d650690a55836f8568b8d3a7ca6c:ffa724a6064c3e21544e6d938a9839be6426b0c23aa2f7df72980020a0fca0d8844bba7d144e446f2305e841bd2d26cb6338d6a16ac0a13a19c44f3b973a91ee",
+      "role": "admin",
+      "newsletter": false,
+      "createdAt": "2026-09-14T13:51:26.269Z"
+    },
+    {
+      "id": "a05f14fe-47f9-48c6-913f-92aca297e15c",
+      "name": "Ann",
+      "email": "arrin@demideville.local",
+      "passwordHash": "9c737ac3d5bf898ef3c8345368ad3bc6:281fc017028ec18656f3cbae64dbb3736b5769ebbb1e4e9a3626990434bc189ec316671566238ce9622c4cac6bc3dc3fc8dc4062bdba8b26a482833d771e3451",
+      "role": "customer",
+      "newsletter": false,
+      "createdAt": "2026-09-14T20:43:12.500Z"
+    }
+  ],
+  "sessions": [],
+  "orders": []
+}

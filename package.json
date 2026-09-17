@@ -1,0 +1,8 @@
+{
+  "name": "demi-deville-store",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Pixel-matched fashion storefront with registration, cart, checkout and CMS admin panel.",
+  "main": "server.js",
+  "scripts": {"start":"node server.js","dev":"node server.js"}
+}

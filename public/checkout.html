@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Checkout — DEMI DEVILLE</title>
+  <link rel="stylesheet" href="/assets/css/styles.css?v=20260916-checkout-header-support-review-v4"><link rel="stylesheet" href="/assets/css/shared-chrome.css"><link rel="stylesheet" href="/assets/css/mobile-reference.css">
+</head>
+<body class="checkout-page">
+  <header id="desktopHeader" class="site-header">
+    <div class="nav-side"><a href="/shop.html">SHOP</a><a href="/gallery.html">GALLERY</a><a href="/about.html">ABOUT</a></div>
+    <a class="brand" data-brand href="/">DEMI DEVILLE</a>
+    <a class="cart-link global-cart-icon" href="/cart.html" aria-label="Cart"></a>
+    <div class="nav-side right"><a href="#" target="_blank" rel="noreferrer">INSTAGRAM</a><a href="#">CONTACT</a><a href="/login.html">LOGIN</a></div>
+  </header>
+  <div id="mobileHeader" class="mobile-header"></div>
+  <div id="mobileMenu" class="mobile-menu"></div>
+
+  <div id="checkoutStage" class="checkout-stage">
+    <main class="checkout-wrap">
+      <section class="checkout-left">
+        <button id="mobileOrderToggle" class="mobile-order-toggle" type="button" aria-controls="orderSide" aria-expanded="false"><span>Order summary</span><span id="mobileOrderTotal"></span></button>
+        <div class="pay-methods" aria-label="Payment method">
+          <button type="button" class="pay-chip" data-pay="PayPal">PayPal</button>
+          <button type="button" class="pay-chip" data-pay="ApplePay">ApplePay</button>
+          <button type="button" class="pay-chip" data-pay="GooglePay">GooglePay</button>
+          <button type="button" class="pay-chip" data-pay="Crypto payment">Crypto payment</button>
+          <button type="button" class="pay-chip active" data-pay="Card payment">Card payment</button>
+        </div>
+
+        <form id="checkoutForm" class="checkout-form">
+          <div class="checkout-section-title">Kontakt</div>
+          <input required name="email" type="email" placeholder="e-mail">
+          <label class="checkbox-line email-news-line"><input type="checkbox"><span>Email me with news and offers</span></label>
+
+          <div class="checkout-section-title delivery-title">Delivery</div>
+          <label class="country-field">
+            <span class="country-label">coutry/region</span>
+            <select name="country">
+              <option>Poland</option><option>Ukraine</option><option>Germany</option><option>France</option><option>United States</option>
+            </select>
+          </label>
+
+          <div class="form-row name-row">
+            <input required name="firstName" placeholder="First Name">
+            <input required name="lastName" placeholder="First Name">
+          </div>
+          <input required name="address" placeholder="Address">
+          <input name="apartment" placeholder="Apartment, suite, etc. (optional)">
+          <div class="form-row postal-row">
+            <input required name="postalCode" placeholder="Postal Code">
+            <input required name="city" placeholder="City">
+          </div>
+          <input required name="phone" placeholder="+...  Phone">
+
+          <label class="checkbox-line save-line"><input type="checkbox"><span>Save this information for next time</span></label>
+          <label class="checkbox-line sms-line"><input type="checkbox" checked><span>Text me with news and offers</span></label>
+          <p class="fineprint">By signing up via text, you agree to receive recurring automated marketing messages, including cart reminders, at the phone number provided. Consent is not a condition of purchase. Reply STOP to unsubscribe. Reply HELP for help. Message frequency varies. Msg &amp; data rates may apply. View our <u>Privacy policy</u> and <u>Terms of service</u></p>
+
+          <button class="btn-black review-btn" type="submit" style="display:block">Review order</button>
+          <div id="orderSuccess" class="order-success"></div>
+        </form>
+      </section>
+
+      <aside id="orderSide" class="order-side">
+        <div id="orderList" class="order-list"></div>
+        <div class="discount">
+          <input id="discountCode" placeholder="Discount Code">
+          <button id="discountApply" type="button">Apply</button>
+        </div>
+        <div class="sum-row"><span>Subtotal</span><span id="subtotal"></span></div>
+        <div class="sum-row"><span>Shipping</span><span id="shipping"></span></div>
+        <div class="sum-row sum-total"><span>Total</span><span id="grandTotal"></span></div>
+      </aside>
+    </main>
+
+  </div>
+
+  
+
+  <script src="/assets/js/i18n.js"></script><script src="/assets/js/common.js"></script>
+  <script src="/assets/js/checkout.js?v=20260916-checkout-edge-v2"></script>
+</body>
+</html>

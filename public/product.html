@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Product — DEMI DEVILLE</title>
+  <link rel="stylesheet" href="/assets/css/styles.css"><link rel="stylesheet" href="/assets/css/shared-chrome.css"><link rel="stylesheet" href="/assets/css/mobile-reference.css">
+</head>
+<body class="gallery-page product-detail-page">
+  <header id="desktopHeader" class="site-header"></header>
+  <div id="mobileHeader" class="mobile-header"></div>
+  <div id="mobileMenu" class="mobile-menu"></div>
+
+  <div id="productPageShell" class="product-page-shell">
+    <main id="productPage" class="product-page">
+      <section class="product-visual">
+        <img id="productImage" alt="">
+      </section>
+
+      <section class="product-info">
+        <h1 id="productName"></h1>
+        <div id="productPrice" class="big-price"></div>
+        <hr class="rule">
+
+        <div class="field-label">SIZE*</div>
+        <div id="sizePicker" class="size-picker">
+          <button id="sizeToggle" class="size-toggle" type="button" aria-haspopup="listbox" aria-expanded="false">Select your size</button>
+          <div id="sizeMenu" class="size-menu" role="listbox" aria-hidden="true"></div>
+          <select id="sizeSelect" class="size-select-native" aria-hidden="true" tabindex="-1"></select>
+        </div>
+
+        <button id="addToBag" class="btn-black" type="button">Add To Bag</button>
+        <button id="buyNow" class="btn-black" type="button">Buy Now</button>
+
+        <div class="accordion">
+          <div class="acc-item" data-accordion="description">
+            <button class="acc-trigger" type="button" aria-expanded="false">DESCRIPTION</button>
+            <div id="detailsText" class="acc-content"></div>
+          </div>
+          <div class="acc-item" data-accordion="fabric">
+            <button class="acc-trigger" type="button" aria-expanded="false">FABRIC</button>
+            <div id="fabricText" class="acc-content"></div>
+          </div>
+          <div class="acc-item" data-accordion="size">
+            <button class="acc-trigger" type="button" aria-expanded="false">SIZE</button>
+            <div id="sizeInfoText" class="acc-content">Choose the size above. Fit information can be edited from the admin panel.</div>
+          </div>
+          <div class="acc-item" data-accordion="delivery">
+            <button class="acc-trigger" type="button" aria-expanded="false">DELIVERY AND EXCHANGES / REFUND</button>
+            <div id="deliveryText" class="acc-content">Shipping and returns policy can be customized in the admin panel.</div>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  
+
+  <script src="/assets/js/i18n.js"></script><script src="/assets/js/common.js"></script>
+  <script src="/assets/js/product.js?v=20260916-add-to-cart-toast-v2"></script>
+</body>
+</html>
