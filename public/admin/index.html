@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>DEMI DEVILLE — Админ-панель</title>
-  <link rel="stylesheet" href="/assets/css/admin.css?v=20260917-v12">
+  <link rel="stylesheet" href="/assets/css/admin.css?v=20260917-v17-support-orders">
 </head>
 <body>
   <section id="loginView" class="auth-screen">
@@ -35,6 +35,8 @@
         <button class="nav-item" type="button" data-admin-tab="gallery">ГАЛЕРЕЯ</button>
         <button class="nav-item" type="button" data-admin-tab="instagram">INSTAGRAM</button>
         <button class="nav-item" type="button" data-admin-tab="contact">КОНТАКТЫ</button>
+        <button class="nav-item" type="button" data-admin-tab="support">ПОДДЕРЖКА</button>
+        <button class="nav-item" type="button" data-admin-tab="orders">ЗАКАЗЫ</button>
         <button class="nav-item" type="button" data-admin-tab="clients">КЛИЕНТЫ</button>
         <button class="nav-item" type="button" data-admin-tab="payment">ОПЛАТА</button>
       </nav>
@@ -344,6 +346,70 @@
         </section>
       </section>
 
+      <section id="supportEditor" class="editor-form" hidden>
+        <section class="device-card">
+          <div class="device-card-head">
+            <div><span class="device-badge">ПОДДЕРЖКА</span><h2>Кнопка и окно SUPPORT</h2></div>
+            <a class="secondary-btn" href="/" target="_blank" rel="noreferrer">Открыть сайт ↗</a>
+          </div>
+          <div class="support-admin-grid">
+            <section class="support-admin-block">
+              <h3>Тексты</h3>
+              <div class="form-grid two">
+                <label class="field"><span>Текст кнопки EN</span><input id="supportButtonTextEn"></label>
+                <label class="field"><span>Текст кнопки RU</span><input id="supportButtonTextRu"></label>
+                <label class="field"><span>Заголовок окна EN</span><input id="supportTitleEn"></label>
+                <label class="field"><span>Заголовок окна RU</span><input id="supportTitleRu"></label>
+                <label class="field span-2"><span>Сообщение в окне EN</span><input id="supportGreetingEn"></label>
+                <label class="field span-2"><span>Сообщение в окне RU</span><input id="supportGreetingRu"></label>
+                <label class="field"><span>Поле Email EN</span><input id="supportEmailPlaceholderEn"></label>
+                <label class="field"><span>Поле Email RU</span><input id="supportEmailPlaceholderRu"></label>
+                <label class="field"><span>Поле сообщения EN</span><input id="supportMessagePlaceholderEn"></label>
+                <label class="field"><span>Поле сообщения RU</span><input id="supportMessagePlaceholderRu"></label>
+                <label class="field"><span>Кнопка отправки EN</span><input id="supportSendTextEn"></label>
+                <label class="field"><span>Кнопка отправки RU</span><input id="supportSendTextRu"></label>
+              </div>
+            </section>
+            <section class="support-admin-block">
+              <h3>Цвета и фон</h3>
+              <div class="support-color-grid">
+                <label class="field"><span>Фон кнопки SUPPORT</span><input id="supportButtonBackground" type="color"></label>
+                <label class="field"><span>Цвет текста кнопки</span><input id="supportButtonColor" type="color"></label>
+                <label class="field"><span>Фон окна</span><input id="supportWindowBackground" type="color"></label>
+                <label class="field"><span>Фон полей</span><input id="supportFieldBackground" type="color"></label>
+                <label class="field"><span>Текст в полях</span><input id="supportFieldColor" type="color"></label>
+              </div>
+            </section>
+            <section class="support-admin-block">
+              <h3>Шрифты</h3>
+              <div class="form-grid two">
+                <label class="field"><span>Шрифт кнопки SUPPORT</span><select id="supportButtonFont" class="font-select" data-default-label="Текущий дизайн"></select></label>
+                <label class="field"><span>Шрифт окна, полей и сообщений</span><select id="supportContentFont" class="font-select" data-default-label="Текущий дизайн"></select></label>
+              </div>
+            </section>
+            <section class="support-admin-preview">
+              <div class="support-preview-window" id="supportAdminPreview">
+                <div class="support-preview-brand">DEMI DEVILLE</div>
+                <div class="support-preview-title" id="supportPreviewTitle">START A CHAT</div>
+                <div class="support-preview-greeting" id="supportPreviewGreeting">Thanks for stopping by! How can I help you?</div>
+                <div class="support-preview-field" id="supportPreviewEmail">YOUR EMAIL</div>
+                <div class="support-preview-field message" id="supportPreviewMessage">HOW CAN WE HELP?</div>
+                <div class="support-preview-send" id="supportPreviewSend">SEND</div>
+              </div>
+              <div class="support-preview-button" id="supportPreviewButton">SUPPORT</div>
+            </section>
+          </div>
+        </section>
+      </section>
+
+      <section id="ordersEditor" class="editor-form" hidden>
+        <section class="device-card">
+          <div class="device-card-head"><div><span class="device-badge">ЗАКАЗЫ</span><h2>Заказы клиентов</h2></div></div>
+          <div class="orders-admin-head">Все оформленные заказы, контактные данные, товары, оплата и статус.</div>
+          <div id="ordersAdminList" class="orders-admin-list"></div>
+        </section>
+      </section>
+
       <section id="clientsEditor" class="editor-form" hidden>
         <section class="device-card">
           <div class="device-card-head"><div><span class="device-badge">КЛИЕНТЫ</span><h2>Зарегистрированные клиенты</h2></div></div>
@@ -434,6 +500,6 @@
     </section>
   </div>
 
-  <script src="/assets/js/admin.js?v=20260917-v15"></script>
+  <script src="/assets/js/admin.js?v=20260917-v17-support-orders"></script>
 </body>
 </html>

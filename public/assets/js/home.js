@@ -5,6 +5,7 @@
   const menuConfig=window.ddGetMenuConfig?window.ddGetMenuConfig(s):{groups:[],mobileLinks:[]};
   if(currentUser){const loginGroup=(menuConfig.groups||[]).find(g=>g.id==='login');if(loginGroup){loginGroup.labelEn='ACCOUNT';loginGroup.labelRu='АККАУНТ';loginGroup.href='/account.html';loginGroup.items=(loginGroup.items||[]).map(item=>item.id==='register'?{...item,enabled:false}:item.id==='account'?{...item,href:'/account.html',showMobile:true}:item)}}
   window.ddApplyMenuRuntimeStyles?.(s);
+  window.ddApplySupportRuntimeStyles?.(s);
   const clampPct=(value,fallback=35)=>{const n=Number(value);return Number.isFinite(n)?Math.max(0,Math.min(100,n)):fallback};
   const legacyOverlay=clampPct(s.homeOverlayOpacity,35);
   const desktopOverlay=clampPct(s.homeDesktopOverlayOpacity,legacyOverlay);
@@ -48,9 +49,10 @@
   const syncHero=()=>{if(!hero)return;const next=window.matchMedia('(max-width:900px)').matches?mobileHero:desktopHero;if(hero.getAttribute('src')!==next)hero.setAttribute('src',next)};
   syncHero();addEventListener('resize',syncHero,{passive:true});
 
+  const enSupport=window.ddSupportCopy?.(s,'en')||{},ruSupport=window.ddSupportCopy?.(s,'ru')||{};
   const dict={
-    en:{support:'SUPPORT',sendMessage:'SEND A MESSAGE',startChat:'START A CHAT',greeting:'Thanks for stopping by! How can I help you?',yourEmail:'YOUR EMAIL',yourMessage:'HOW CAN WE HELP?',send:'SEND',sending:'SENDING…',sent:'THANK YOU. YOUR MESSAGE HAS BEEN SENT.',sendError:'PLEASE CHECK YOUR EMAIL AND MESSAGE.'},
-    ru:{support:'ПОДДЕРЖКА',sendMessage:'ОТПРАВИТЬ СООБЩЕНИЕ',startChat:'НАЧАТЬ ЧАТ',greeting:'Спасибо, что заглянули! Чем я могу помочь?',yourEmail:'ВАША ПОЧТА',yourMessage:'ЧЕМ МЫ МОЖЕМ ПОМОЧЬ?',send:'ОТПРАВИТЬ',sending:'ОТПРАВКА…',sent:'СПАСИБО. СООБЩЕНИЕ ОТПРАВЛЕНО.',sendError:'ПРОВЕРЬТЕ ПОЧТУ И ТЕКСТ СООБЩЕНИЯ.'}
+    en:{support:enSupport.button||'SUPPORT',sendMessage:enSupport.title||'START A CHAT',startChat:enSupport.title||'START A CHAT',greeting:enSupport.greeting||'Thanks for stopping by! How can I help you?',yourEmail:enSupport.email||'YOUR EMAIL',yourMessage:enSupport.message||'HOW CAN WE HELP?',send:enSupport.send||'SEND',sending:'SENDING…',sent:'THANK YOU. YOUR MESSAGE HAS BEEN SENT.',sendError:'PLEASE CHECK YOUR EMAIL AND MESSAGE.'},
+    ru:{support:ruSupport.button||'ПОДДЕРЖКА',sendMessage:ruSupport.title||'НАЧАТЬ ЧАТ',startChat:ruSupport.title||'НАЧАТЬ ЧАТ',greeting:ruSupport.greeting||'Спасибо, что заглянули! Чем я могу помочь?',yourEmail:ruSupport.email||'ВАША ПОЧТА',yourMessage:ruSupport.message||'ЧЕМ МЫ МОЖЕМ ПОМОЧЬ?',send:ruSupport.send||'ОТПРАВИТЬ',sending:'ОТПРАВКА…',sent:'СПАСИБО. СООБЩЕНИЕ ОТПРАВЛЕНО.',sendError:'ПРОВЕРЬТЕ ПОЧТУ И ТЕКСТ СООБЩЕНИЯ.'}
   };
   let lang=new URLSearchParams(location.search).get('lang')||localStorage.getItem('demi-lang')||((navigator.language||'').toLowerCase().startsWith('ru')?'ru':'en');
   if(!dict[lang])lang='en';
