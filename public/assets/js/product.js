@@ -28,7 +28,7 @@
     const visual=$('.product-visual');
     let activeImage=0;
     const gallery=document.createElement('div');gallery.className='product-customer-gallery';
-    gallery.innerHTML=`<button class="product-gallery-arrow product-gallery-prev" type="button" aria-label="${lang==='ru'?'Предыдущее фото':'Previous image'}"></button><div class="product-customer-thumbs">${images.map((url,i)=>`<button class="product-customer-thumb${i===0?' is-active':''}" type="button" data-product-image="${i}" aria-label="${lang==='ru'?'Фото':'Image'} ${i+1}"><img src="${esc(displayImage(url))}" alt=""></button>`).join('')}</div><button class="product-gallery-arrow product-gallery-next" type="button" aria-label="${lang==='ru'?'Следующее фото':'Next image'}"></button>`;
+    gallery.innerHTML=`<div class="product-customer-thumbs">${images.map((url,i)=>`<button class="product-customer-thumb${i===0?' is-active':''}" type="button" data-product-image="${i}" aria-label="${lang==='ru'?'Фото':'Image'} ${i+1}"><img src="${esc(displayImage(url))}" alt=""></button>`).join('')}</div>`;
     visual.appendChild(gallery);
     const thumbs=$('.product-customer-thumbs',gallery);
     const showImage=index=>{
@@ -41,8 +41,6 @@
       e.preventDefault();e.stopPropagation();
       const thumb=e.target.closest('[data-product-image]');
       if(thumb)return showImage(Number(thumb.dataset.productImage));
-      if(e.target.closest('.product-gallery-prev'))return showImage(activeImage-1);
-      if(e.target.closest('.product-gallery-next'))return showImage(activeImage+1);
     });
   }
 

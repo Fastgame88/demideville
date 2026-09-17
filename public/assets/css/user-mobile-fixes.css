@@ -1601,3 +1601,36 @@ body.gallery-page .gallery-media img{
 .account-main{max-width:1200px;margin:0 auto}.account-heading-row{display:flex;align-items:center;justify-content:space-between;gap:18px;margin-bottom:30px}.account-heading-row h1{font:800 42px/1 Arial,sans-serif;margin:0}.account-outline-btn{border:1px solid #111;background:#fff;color:#111;height:42px;padding:0 18px;font-weight:800;cursor:pointer}.account-section{border-top:1px solid #111;padding:22px 0 30px}.account-section h2{font:800 17px/1.2 Arial,sans-serif;margin:0 0 18px}.account-profile{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}.account-profile>div{border:1px solid #d9d9d9;padding:16px;display:flex;flex-direction:column;gap:7px}.account-profile span,.account-order-meta{font-size:12px;color:#666}.account-coupons{display:flex;gap:10px;flex-wrap:wrap}.account-coupon{border:1px solid #111;padding:13px 16px;display:flex;gap:24px;align-items:center}.account-coupon span{font-weight:800}.account-orders{display:flex;flex-direction:column;gap:12px}.account-order{border:1px solid #d9d9d9;padding:15px}.account-order-head,.account-order-meta{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap}.account-order-head{font-weight:800}.account-order-meta{margin-top:7px}.account-order-items{display:flex;flex-direction:column;gap:4px;margin-top:12px;font-size:13px}.account-empty{color:#777;margin:0}
 @media(max-width:900px){.contact-page-main,.account-main{padding:92px 22px 110px}.contact-card{text-align:left}.contact-lines{align-items:flex-start}.account-heading-row h1{font-size:30px}.account-profile{grid-template-columns:1fr}}
 .discount-status{min-height:14px;margin:4px 0 2px;font-size:11px;line-height:1.2}.discount-status.ok{color:#176b2d}.discount-status.error{color:#a51414}
+
+
+/* =========================================================
+   v10 — requested gallery/cart-summary cleanup
+   - no previous/next arrow buttons around product thumbnails
+   - checkout summary rows always stay below product cards
+   ========================================================= */
+body.product-detail-page .product-gallery-arrow{
+  display:none!important;
+}
+
+@media (min-width:901px){
+  /* checkout.html has discountStatus between the coupon block and totals.
+     Anchor each row explicitly so Shipping/price can never sit on a product card. */
+  body.checkout-page #discountStatus + .sum-row{
+    top:492px!important;
+  }
+  body.checkout-page #discountRow{
+    top:523px!important;
+  }
+  body.checkout-page #discountRow + .sum-row{
+    top:523px!important;
+  }
+  body.checkout-page #discountRow:not([hidden]) + .sum-row{
+    top:554px!important;
+  }
+  body.checkout-page #discountRow + .sum-row + .sum-total{
+    top:574px!important;
+  }
+  body.checkout-page #discountRow:not([hidden]) + .sum-row + .sum-total{
+    top:605px!important;
+  }
+}
