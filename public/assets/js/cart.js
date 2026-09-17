@@ -46,7 +46,7 @@
     cartSet(cart);
     document.body.classList.toggle('cart-is-empty',!cart.length);
     if(!cart.length){
-      box.innerHTML='<div class="empty-cart">Your bag is empty.</div>';
+      box.innerHTML=`<div class="empty-cart">${document.documentElement.lang==='ru'?'Ваша корзина пуста.':'Your bag is empty.'}</div>`;
       $('#cartTotal').textContent=money(0,curr);
       return;
     }

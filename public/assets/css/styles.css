@@ -7138,4 +7138,153 @@ html[lang="ru"] .about-copy-ru{display:block;font-family:"Arial Narrow",Arial,sa
   }
   body.checkout-page #checkoutForm .review-btn{top:567px!important}
 }
-\n\n/* v13 — Terms & Policies page */\n.legal-page{max-width:1080px;margin:0 auto;padding:120px 34px 120px;color:#111}\n.legal-copy{font-family:Arial,Helvetica,sans-serif;font-size:16px;line-height:1.58}\n.legal-copy.is-hidden{display:none!important}\n.legal-copy h1{margin:0 0 8px;font-family:var(--display);font-size:34px;line-height:1.1}\n.legal-copy .legal-updated{margin:0 0 36px;color:#666;font-size:13px}\n.legal-copy h2{margin:30px 0 10px;font-family:var(--display);font-size:20px;line-height:1.25}\n.legal-copy p{margin:0 0 12px}\n.legal-copy a{color:inherit;text-decoration:underline;text-underline-offset:2px}\n@media (max-width:900px){\n  .legal-page{padding:24px 20px 96px}\n  .legal-copy{font-size:14px;line-height:1.5}\n  .legal-copy h1{font-size:24px}\n  .legal-copy .legal-updated{margin-bottom:24px}\n  .legal-copy h2{font-size:16px;margin-top:24px}\n}\n
+
+
+/* v13 — Terms & Policies page */
+.legal-page{max-width:1080px;margin:0 auto;padding:120px 34px 120px;color:#111}
+.legal-copy{font-family:Arial,Helvetica,sans-serif;font-size:16px;line-height:1.58}
+.legal-copy.is-hidden{display:none!important}
+.legal-copy h1{margin:0 0 8px;font-family:var(--display);font-size:34px;line-height:1.1}
+.legal-copy .legal-updated{margin:0 0 36px;color:#666;font-size:13px}
+.legal-copy h2{margin:30px 0 10px;font-family:var(--display);font-size:20px;line-height:1.25}
+.legal-copy p{margin:0 0 12px}
+.legal-copy a{color:inherit;text-decoration:underline;text-underline-offset:2px}
+@media (max-width:900px){
+  .legal-page{padding:24px 20px 96px}
+  .legal-copy{font-size:14px;line-height:1.5}
+  .legal-copy h1{font-size:24px}
+  .legal-copy .legal-updated{margin-bottom:24px}
+  .legal-copy h2{font-size:16px;margin-top:24px}
+}
+
+
+/* =========================================================
+   v14 — separate legal pages, safe header spacing, centered empty bag
+   ========================================================= */
+body.terms-page,
+body.privacy-page{
+  min-height:100vh;
+  background:#fff;
+  color:#111;
+}
+body.terms-page .legal-page,
+body.privacy-page .legal-page{
+  box-sizing:border-box;
+  width:min(1180px,calc(100% - 64px));
+  max-width:none;
+  margin:0 auto;
+  padding:118px 0 120px;
+}
+body.terms-page .legal-copy,
+body.privacy-page .legal-copy{
+  font-family:Arial,Helvetica,sans-serif;
+  font-size:16px;
+  line-height:1.55;
+}
+body.terms-page .legal-copy h1,
+body.privacy-page .legal-copy h1{
+  margin:0 0 12px;
+  font-family:var(--display);
+  font-size:36px;
+  line-height:1.08;
+}
+body.terms-page .legal-copy .legal-updated,
+body.privacy-page .legal-copy .legal-updated{
+  margin:0 0 34px;
+  color:#555;
+  font-size:13px;
+}
+body.terms-page .legal-copy h2,
+body.privacy-page .legal-copy h2{
+  margin:30px 0 10px;
+  font-family:var(--display);
+  font-size:21px;
+  line-height:1.25;
+}
+body.terms-page .legal-copy p,
+body.privacy-page .legal-copy p{margin:0 0 12px}
+body.terms-page .legal-copy ul,
+body.privacy-page .legal-copy ul{margin:8px 0 14px 22px;padding:0}
+body.terms-page .legal-copy li,
+body.privacy-page .legal-copy li{margin:5px 0}
+body.terms-page .legal-copy a,
+body.privacy-page .legal-copy a{color:inherit;text-decoration:underline;text-underline-offset:2px}
+body.terms-page .legal-copy.is-hidden,
+body.privacy-page .legal-copy.is-hidden{display:none!important}
+body.shop-page .shop-legal-links{
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  gap:10px;
+  margin-top:12px;
+  white-space:nowrap;
+}
+body.shop-page .shop-legal-links a{
+  color:#111;
+  text-decoration:none;
+  font:400 12px/16px Arial,sans-serif;
+}
+body.shop-page .shop-legal-links .legal-separator{font:400 12px/16px Arial,sans-serif}
+body.cart-page.cart-is-empty .cart-summary{display:none!important}
+body.cart-page.cart-is-empty .cart-wrap{
+  display:block!important;
+  width:100%!important;
+  min-height:calc(100vh - 88px)!important;
+  padding:0!important;
+}
+body.cart-page.cart-is-empty .cart-items{
+  display:flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+  width:100%!important;
+  min-height:calc(100vh - 88px)!important;
+  margin:0!important;
+  padding:0!important;
+}
+body.cart-page.cart-is-empty .empty-cart{
+  position:static!important;
+  width:auto!important;
+  margin:0!important;
+  padding:0!important;
+  transform:none!important;
+  text-align:center!important;
+}
+@media (max-width:900px){
+  body.terms-page .legal-page,
+  body.privacy-page .legal-page{
+    width:100%;
+    margin:0;
+    padding:88px 20px 108px;
+  }
+  body.terms-page .legal-copy,
+  body.privacy-page .legal-copy{font-size:14px;line-height:1.5}
+  body.terms-page .legal-copy h1,
+  body.privacy-page .legal-copy h1{font-size:25px;line-height:1.12}
+  body.terms-page .legal-copy h2,
+  body.privacy-page .legal-copy h2{font-size:17px;margin-top:24px}
+  body.shop-page .shop-footer .shop-page-indicator{display:none!important}
+  body.shop-page .shop-page-number,
+  body.shop-page .shop-page-number:nth-child(n){background:none!important;border:0!important;box-shadow:none!important;text-decoration:none!important}
+  body.shop-page .shop-page-number::before{content:none!important;display:none!important}
+  body.shop-page .shop-page-number.is-active::after{
+    content:""!important;
+    display:block!important;
+    position:absolute!important;
+    left:50%!important;
+    bottom:-3px!important;
+    width:20px!important;
+    height:2px!important;
+    background:#111!important;
+    transform:translateX(-50%)!important;
+    pointer-events:none!important;
+  }
+  body.shop-page .shop-legal-links{gap:7px;margin-top:12px}
+  body.shop-page .shop-legal-links a,
+  body.shop-page .shop-legal-links .legal-separator{font:400 10px/14px var(--mobile-copy,"Arial Narrow",Arial,sans-serif)!important}
+  body.cart-page.cart-is-empty .cart-wrap,
+  body.cart-page.cart-is-empty .cart-items{min-height:calc(100dvh - 64px)!important}
+  body.cart-page.cart-is-empty .empty-cart{
+    font:400 18px/1.3 var(--mobile-copy,"Arial Narrow",Arial,sans-serif)!important;
+    text-align:center!important;
+  }
+}

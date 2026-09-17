@@ -1369,7 +1369,9 @@ body.about-page.about-rich-mode .about-rich-content{
     text-align:center!important;
   }
 }
-\n\n/* =========================================================
+
+
+/* =========================================================
    v8 — desktop gallery strip placement + stable SHOP rows + gallery rotation
    ========================================================= */
 @media (min-width:901px){
@@ -1717,4 +1719,70 @@ body.shop-page .shop-terms{margin-top:15px!important}
   body.checkout-page .pay-methods.dynamic-payments.pay-count-4 .pay-chip{grid-column:span 3!important}
   body.checkout-page .pay-methods.dynamic-payments.pay-count-5 .pay-chip:nth-child(n+4){grid-column:span 3!important}
 }
-\n\n/* =========================================================\n   v13 — category pager single underline, approved ABOUT mobile art, centered empty bag\n   ========================================================= */\n/* Use exactly one active-page underline on every SHOP/category view. */\nhtml body.shop-page .shop-footer .shop-page-indicator{display:none!important}\nhtml body.shop-page .shop-page-number{border:0!important;border-bottom:0!important;box-shadow:none!important;text-decoration:none!important}\nhtml body.shop-page .shop-page-number::before{content:none!important;display:none!important}\nhtml body.shop-page .shop-page-number.is-active::after{\n  content:""!important;display:block!important;position:absolute!important;left:50%!important;\n  bottom:-5px!important;width:22px!important;height:2px!important;background:#111!important;\n  transform:translateX(-50%)!important;pointer-events:none!important;\n}\nhtml body.shop-page .shop-terms{display:block!important;text-decoration:none!important;color:#111!important}\n@media (max-width:900px){\n  html body.shop-page .shop-page-number.is-active::after{bottom:-4px!important;width:20px!important}\n  html body.shop-page .shop-terms{margin-top:17px!important}\n\n  /* The supplied mobile ABOUT reference is used as the approved typography artwork. */\n  html[lang="en"] body.about-page .about-wrap{padding:10px 8px 96px!important}\n  html[lang="en"] body.about-page .about-design-canvas{width:100%!important;margin:0!important;padding:0!important}\n  html[lang="en"] body.about-page .about-mobile-approved{\n    display:block!important;width:100%!important;max-width:410px!important;height:auto!important;\n    margin:0 auto!important;padding:0!important;object-fit:contain!important;\n  }\n  html[lang="en"] body.about-page .about-copy-mobile{\n    position:absolute!important;width:1px!important;height:1px!important;overflow:hidden!important;\n    clip:rect(0 0 0 0)!important;clip-path:inset(50%)!important;white-space:nowrap!important;\n  }\n  html[lang="ru"] body.about-page .about-mobile-approved{display:none!important}\n\n  /* Empty bag message sits in the visual center instead of inheriting card-grid offsets. */\n  html body.cart-page.cart-is-empty .cart-items{display:block!important;width:100%!important}\n  html body.cart-page.cart-is-empty .empty-cart{\n    position:fixed!important;z-index:25!important;left:50%!important;top:50%!important;\n    width:min(86vw,420px)!important;margin:0!important;padding:0!important;\n    transform:translate(-50%,-50%)!important;text-align:center!important;\n    font:400 20px/1.25 "Arial Narrow",Arial,sans-serif!important;\n  }\n}\n@media (min-width:901px){\n  body.about-page .about-mobile-approved{display:none!important}\n}\n
+
+
+/* =========================================================
+   v13 — category pager single underline, approved ABOUT mobile art, centered empty bag
+   ========================================================= */
+/* Use exactly one active-page underline on every SHOP/category view. */
+html body.shop-page .shop-footer .shop-page-indicator{display:none!important}
+html body.shop-page .shop-page-number{border:0!important;border-bottom:0!important;box-shadow:none!important;text-decoration:none!important}
+html body.shop-page .shop-page-number::before{content:none!important;display:none!important}
+html body.shop-page .shop-page-number.is-active::after{
+  content:""!important;display:block!important;position:absolute!important;left:50%!important;
+  bottom:-5px!important;width:22px!important;height:2px!important;background:#111!important;
+  transform:translateX(-50%)!important;pointer-events:none!important;
+}
+html body.shop-page .shop-terms{display:block!important;text-decoration:none!important;color:#111!important}
+@media (max-width:900px){
+  html body.shop-page .shop-page-number.is-active::after{bottom:-4px!important;width:20px!important}
+  html body.shop-page .shop-terms{margin-top:17px!important}
+
+  /* The supplied mobile ABOUT reference is used as the approved typography artwork. */
+  html[lang="en"] body.about-page .about-wrap{padding:10px 8px 96px!important}
+  html[lang="en"] body.about-page .about-design-canvas{width:100%!important;margin:0!important;padding:0!important}
+  html[lang="en"] body.about-page .about-mobile-approved{
+    display:block!important;width:100%!important;max-width:410px!important;height:auto!important;
+    margin:0 auto!important;padding:0!important;object-fit:contain!important;
+  }
+  html[lang="en"] body.about-page .about-copy-mobile{
+    position:absolute!important;width:1px!important;height:1px!important;overflow:hidden!important;
+    clip:rect(0 0 0 0)!important;clip-path:inset(50%)!important;white-space:nowrap!important;
+  }
+  html[lang="ru"] body.about-page .about-mobile-approved{display:none!important}
+
+  /* Empty bag message sits in the visual center instead of inheriting card-grid offsets. */
+  html body.cart-page.cart-is-empty .cart-items{display:block!important;width:100%!important}
+  html body.cart-page.cart-is-empty .empty-cart{
+    position:fixed!important;z-index:25!important;left:50%!important;top:50%!important;
+    width:min(86vw,420px)!important;margin:0!important;padding:0!important;
+    transform:translate(-50%,-50%)!important;text-align:center!important;
+    font:400 20px/1.25 "Arial Narrow",Arial,sans-serif!important;
+  }
+}
+@media (min-width:901px){
+  body.about-page .about-mobile-approved{display:none!important}
+}
+
+
+/* v14 — one mobile page underline only + centered empty bag */
+@media (max-width:900px){
+  html body.shop-page .shop-footer .shop-page-indicator{display:none!important;opacity:0!important}
+  html body.shop-page .shop-page-number{background:none!important;border:0!important;box-shadow:none!important;text-decoration:none!important}
+  html body.shop-page .shop-page-number::before{content:none!important;display:none!important}
+  html body.shop-page .shop-page-number.is-active::after{
+    content:""!important;display:block!important;position:absolute!important;left:50%!important;
+    bottom:-3px!important;width:20px!important;height:2px!important;background:#111!important;
+    transform:translateX(-50%)!important;pointer-events:none!important;
+  }
+  html body.cart-page.cart-is-empty .cart-summary{display:none!important}
+  html body.cart-page.cart-is-empty .cart-wrap,
+  html body.cart-page.cart-is-empty .cart-items{
+    display:flex!important;align-items:center!important;justify-content:center!important;
+    width:100%!important;min-height:calc(100dvh - 64px)!important;margin:0!important;padding:0!important;
+  }
+  html body.cart-page.cart-is-empty .empty-cart{
+    position:static!important;left:auto!important;top:auto!important;width:auto!important;
+    margin:0!important;padding:0!important;transform:none!important;text-align:center!important;
+  }
+}
