@@ -181,35 +181,6 @@ window.ddGetMenuConfig=getMenuConfig;
 window.ddMenuLabel=menuLabel;
 window.ddBuildMobileMenuHtml=buildMobileMenuHtml;
 window.ddApplyMenuRuntimeStyles=applyMenuRuntimeStyles;
-function supportCopy(settings={},lang=menuLang()){
-  const ru=lang==='ru';return {
-    button:String(settings[ru?'supportButtonTextRu':'supportButtonTextEn']||(!ru&&settings.supportText)|| (ru?'ПОДДЕРЖКА':'SUPPORT')),
-    title:String(settings[ru?'supportTitleRu':'supportTitleEn']||(ru?'НАЧАТЬ ЧАТ':'START A CHAT')),
-    greeting:String(settings[ru?'supportGreetingRu':'supportGreetingEn']||(ru?'Спасибо, что заглянули! Чем я могу помочь?':'Thanks for stopping by! How can I help you?')),
-    email:String(settings[ru?'supportEmailPlaceholderRu':'supportEmailPlaceholderEn']||(ru?'ВАША ПОЧТА':'YOUR EMAIL')),
-    message:String(settings[ru?'supportMessagePlaceholderRu':'supportMessagePlaceholderEn']||(ru?'ЧЕМ МЫ МОЖЕМ ПОМОЧЬ?':'HOW CAN WE HELP?')),
-    send:String(settings[ru?'supportSendTextRu':'supportSendTextEn']||(ru?'ОТПРАВИТЬ':'SEND'))
-  };
-}
-function applySupportRuntimeStyles(settings={}){
-  let style=document.getElementById('dd-support-runtime-style');if(!style){style=document.createElement('style');style.id='dd-support-runtime-style';document.head.appendChild(style)}
-  const buttonBg=safeCssColor(settings.supportButtonBackground||'#050505','#050505'),buttonColor=safeCssColor(settings.supportButtonColor||'#ffffff','#ffffff'),windowBg=safeCssColor(settings.supportWindowBackground||'#ffffff','#ffffff'),fieldBg=safeCssColor(settings.supportFieldBackground||'#000000','#000000'),fieldColor=safeCssColor(settings.supportFieldColor||'#ffffff','#ffffff');
-  const buttonFont=safeCssFont(settings.supportButtonFont||'Arial, Helvetica, sans-serif'),contentFont=safeCssFont(settings.supportContentFont||'Arial, Helvetica, sans-serif');
-  style.textContent=`
-    .home .home-support-btn,body.shared-chrome-page>#sharedSupportOpen.shared-support-button{background:${buttonBg}!important;color:${buttonColor}!important;font-family:${buttonFont}!important}
-    .home #supportLayer .support-panel,body.shared-chrome-page>#sharedSupportLayer .shared-support-window .support-panel,.home #supportLayer .support-chat-body,body.shared-chrome-page>#sharedSupportLayer .shared-support-window .support-chat-body{background-color:${windowBg}!important}
-    .home #supportLayer .support-form-heading,.home #supportLayer .support-mobile-intro,.home #supportLayer .support-form-input,.home #supportLayer .support-form-message,.home #supportLayer .support-form-submit,body.shared-chrome-page>#sharedSupportLayer .support-form-heading,body.shared-chrome-page>#sharedSupportLayer .support-mobile-intro,body.shared-chrome-page>#sharedSupportLayer .support-form-input,body.shared-chrome-page>#sharedSupportLayer .support-form-message,body.shared-chrome-page>#sharedSupportLayer .support-form-submit{font-family:${contentFont}!important}
-    .home #supportLayer .support-form-heading,.home #supportLayer .support-form-input,.home #supportLayer .support-form-message,.home #supportLayer .support-form-submit,body.shared-chrome-page>#sharedSupportLayer .support-form-heading,body.shared-chrome-page>#sharedSupportLayer .support-form-input,body.shared-chrome-page>#sharedSupportLayer .support-form-message,body.shared-chrome-page>#sharedSupportLayer .support-form-submit{background:${fieldBg}!important;color:${fieldColor}!important}
-    .home #supportLayer .support-form-input::placeholder,.home #supportLayer .support-form-message::placeholder,body.shared-chrome-page>#sharedSupportLayer .support-form-input::placeholder,body.shared-chrome-page>#sharedSupportLayer .support-form-message::placeholder{color:${fieldColor}!important;opacity:1!important}
-    .home #supportLayer .support-mobile-intro,body.shared-chrome-page>#sharedSupportLayer .support-mobile-intro{display:block!important;background:${fieldBg}!important;color:${fieldColor}!important}
-    @media(min-width:901px){
-      .home #supportLayer .support-mobile-intro,body.shared-chrome-page>#sharedSupportLayer .support-mobile-intro{position:absolute!important;left:12px!important;right:12px!important;top:96px!important;min-height:48px!important;padding:9px 11px!important;font-size:14px!important;line-height:1.2!important}
-      .home #supportLayer .support-form,body.shared-chrome-page>#sharedSupportLayer .support-form{top:156px!important;gap:8px!important}
-      body.shared-chrome-page>#sharedSupportLayer .shared-support-window .support-form-input{margin:0!important}
-    }
-  `;
-}
-window.ddSupportCopy=supportCopy;window.ddApplySupportRuntimeStyles=applySupportRuntimeStyles;
 
 function normalizeCartSize(v){
   return String(v??'').trim().replace(/\s+/g,' ').toUpperCase();
@@ -271,7 +242,6 @@ async function renderChrome({home=false}={}){
     if(loginGroup){loginGroup.labelEn='ACCOUNT';loginGroup.labelRu='АККАУНТ';loginGroup.href='/account.html';loginGroup.items=(loginGroup.items||[]).map(item=>item.id==='register'?{...item,enabled:false}:item.id==='account'?{...item,href:'/account.html',showMobile:true}:item)}
   }
   applyMenuRuntimeStyles(s);
-  applySupportRuntimeStyles(s);
   document.documentElement.style.setProperty('--font',s.baseFont||'Arial, Helvetica, sans-serif');
   document.documentElement.style.setProperty('--display',s.displayFont||'Arial Black, Arial, sans-serif');
   document.documentElement.style.setProperty('--condensed',s.condensedFont||'Impact, Arial Narrow, sans-serif');
@@ -333,22 +303,21 @@ function mountSharedChrome(site,menu=getMenuConfig(site.settings||{}),currentUse
 
   $$('#shopSupportOpen, #supportOpen, [data-support], #shopSupportLayer, #supportLayer').forEach(el=>el.remove());
   const tr=text=>window.ddTranslate?.(text)||text;
-  const copy=supportCopy(site.settings||{},lang);
   const shell=document.createElement('div');
   shell.className='shared-support-root';
-  shell.innerHTML=`<button id="sharedSupportOpen" class="support-btn shared-support-button" type="button">${esc(copy.button)}</button>
+  shell.innerHTML=`<button id="sharedSupportOpen" class="support-btn shared-support-button" type="button">${tr('SUPPORT')}</button>
     <div id="sharedSupportLayer" class="support-layer shared-support-layer" aria-hidden="true">
       <div class="support-window shared-support-window" role="dialog" aria-label="DEMI DEVILLE support">
         <button id="sharedSupportClose" class="support-close" type="button" aria-label="${tr('Close support')}">×</button>
         <div class="support-panel">
           <div class="support-brand">DEMI DEVILLE</div>
           <div class="support-chat-body support-email-body">
-            <div class="support-start support-form-heading">${esc(copy.title)}</div>
-            <div class="support-mobile-intro">${esc(copy.greeting)}</div>
+            <div class="support-start support-form-heading"><span class="support-desktop-copy">${tr('SEND A MESSAGE')}</span><span class="support-mobile-copy">${tr('START A CHAT')}</span></div>
+            <div class="support-mobile-intro">${tr('Thanks for stopping by! How can I help you?')}</div>
             <form id="sharedSupportForm" class="support-form" novalidate>
-              <input id="sharedSupportEmail" class="support-form-input" name="email" type="email" autocomplete="email" required placeholder="${esc(copy.email)}">
-              <textarea id="sharedSupportMessage" class="support-form-message" name="message" required placeholder="${esc(copy.message)}"></textarea>
-              <button id="sharedSupportSubmit" class="support-form-submit" type="submit">${esc(copy.send)}</button>
+              <input id="sharedSupportEmail" class="support-form-input" name="email" type="email" autocomplete="email" required placeholder="${tr('YOUR EMAIL')}">
+              <textarea id="sharedSupportMessage" class="support-form-message" name="message" required placeholder="${tr('HOW CAN WE HELP?')}"></textarea>
+              <button id="sharedSupportSubmit" class="support-form-submit" type="submit">${tr('SEND')}</button>
               <div id="sharedSupportStatus" class="support-form-status" aria-live="polite"></div>
             </form>
           </div>
@@ -371,7 +340,7 @@ function mountSharedChrome(site,menu=getMenuConfig(site.settings||{}),currentUse
     submit.disabled=true;submit.textContent=tr('SENDING…');
     try{const r=await fetch('/api/support',{method:'POST',headers:{'Content-Type':'application/json',...authHeaders()},body:JSON.stringify({email,message,lang:document.documentElement.lang==='ru'?'ru':'en'})});if(!r.ok)throw new Error('Support request failed');status.textContent=tr('THANK YOU. YOUR MESSAGE HAS BEEN SENT.');form.reset();if(currentUser?.email&&supportEmail)supportEmail.value=currentUser.email}
     catch{const contact=site.settings?.contact||'';if(contact){location.href=`mailto:${encodeURIComponent(contact)}?reply-to=${encodeURIComponent(email)}&subject=${encodeURIComponent('DEMI DEVILLE support')}&body=${encodeURIComponent(`From: ${email}\n\n${message}`)}`;status.textContent=tr('THANK YOU. YOUR MESSAGE HAS BEEN SENT.')}else{status.textContent=error;status.classList.add('error')}}
-    finally{submit.disabled=false;submit.textContent=copy.send}
+    finally{submit.disabled=false;submit.textContent=tr('SEND')}
   });
   const fit=()=>{if(innerWidth<=900)return;const h=window.visualViewport?.height||innerHeight;const sx=innerWidth/1920,sy=h/1080,s=Math.min(sx,sy);document.body.style.setProperty('--shared-chrome-x',sx);document.body.style.setProperty('--shared-chrome-y',sy);document.body.style.setProperty('--shared-chrome-y-inverse',1/sy);document.body.style.setProperty('--shared-support-scale',s);document.body.style.setProperty('--shared-support-right',`${22*s}px`);document.body.style.setProperty('--shared-support-bottom',`${25*s}px`)};
   fit();addEventListener('resize',fit,{passive:true});window.visualViewport?.addEventListener('resize',fit,{passive:true});

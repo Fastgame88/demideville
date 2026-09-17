@@ -114,7 +114,7 @@ async function boot(){
     const me=await api('/api/auth/me');
     if(me.user.role!=='admin')throw new Error('Доступ разрешён только администратору');
     $('#adminUser').textContent=me.user.email;$('#loginView').hidden=true;$('#loginView').style.display='none';$('#adminView').hidden=false;window.scrollTo(0,0);
-    const state=await api('/api/admin/state');adminState=state||{};settings=state.settings||{};productsDraft=Array.isArray(state.products)?state.products.map(clone):[];galleryDraft=Array.isArray(state.gallery)?state.gallery.map(clone):[];shopCategoriesDraft=normalizeShopCategories(settings.shopCategories);paymentMethodsDraft=normalizePaymentMethods(settings.paymentMethods);fillForm();fillShopEditor();fillGalleryEditor();fillExternalEditors();fillSupportEditor();renderOrdersAdmin();renderClientsAdmin();renderPaymentEditor();switchAdminTab(currentAdminTab);
+    const state=await api('/api/admin/state');adminState=state||{};settings=state.settings||{};productsDraft=Array.isArray(state.products)?state.products.map(clone):[];galleryDraft=Array.isArray(state.gallery)?state.gallery.map(clone):[];shopCategoriesDraft=normalizeShopCategories(settings.shopCategories);paymentMethodsDraft=normalizePaymentMethods(settings.paymentMethods);fillForm();fillShopEditor();fillGalleryEditor();fillExternalEditors();renderClientsAdmin();renderPaymentEditor();switchAdminTab(currentAdminTab);
   }catch(e){token='';showLogin(e.message)}
 }
 $('#adminLogin').addEventListener('submit',async e=>{
@@ -238,7 +238,7 @@ async function save(){
   try{setBusy(true);settings=await api('/api/admin/settings',{method:'PUT',body:JSON.stringify(payload())});fillForm();showNotice('Изменения сохранены.')}catch(e){showNotice(e.message,'error')}finally{setBusy(false)}
 }
 $('#homeSettingsForm').addEventListener('submit',async e=>{e.preventDefault();await save()});
-$('#saveTop').addEventListener('click',()=>currentAdminTab==='shop'?saveShopSettings():currentAdminTab==='gallery'?saveGallerySettings():currentAdminTab==='instagram'?saveInstagramSettings():currentAdminTab==='contact'?saveContactSettings():currentAdminTab==='support'?saveSupportSettings():currentAdminTab==='payment'?savePaymentSettings():(currentAdminTab==='clients'||currentAdminTab==='orders')?Promise.resolve():save());
+$('#saveTop').addEventListener('click',()=>currentAdminTab==='shop'?saveShopSettings():currentAdminTab==='gallery'?saveGallerySettings():currentAdminTab==='instagram'?saveInstagramSettings():currentAdminTab==='contact'?saveContactSettings():currentAdminTab==='payment'?savePaymentSettings():currentAdminTab==='clients'?Promise.resolve():save());
 
 function slugify(value){
   return String(value||'').trim().toLowerCase()
@@ -278,7 +278,7 @@ function fillShopEditor(){
   renderProductsAdmin();
 }
 function switchAdminTab(tab){
-  const allowed=['home','shop','gallery','instagram','contact','support','orders','clients','payment'];
+  const allowed=['home','shop','gallery','instagram','contact','clients','payment'];
   currentAdminTab=allowed.includes(tab)?tab:'home';
   $$('#adminView [data-admin-tab]').forEach(btn=>btn.classList.toggle('active',btn.dataset.adminTab===currentAdminTab));
   $('#homeSettingsForm').hidden=currentAdminTab!=='home';
@@ -286,16 +286,13 @@ function switchAdminTab(tab){
   $('#galleryEditor').hidden=currentAdminTab!=='gallery';
   $('#instagramEditor').hidden=currentAdminTab!=='instagram';
   $('#contactEditor').hidden=currentAdminTab!=='contact';
-  $('#supportEditor').hidden=currentAdminTab!=='support';
-  $('#ordersEditor').hidden=currentAdminTab!=='orders';
   $('#clientsEditor').hidden=currentAdminTab!=='clients';
   $('#paymentEditor').hidden=currentAdminTab!=='payment';
-  const titles={home:'Главная страница',shop:'SHOP',gallery:'Галерея',instagram:'Instagram',contact:'Контакты',support:'Поддержка',orders:'Заказы',clients:'Клиенты',payment:'Оплата'};
+  const titles={home:'Главная страница',shop:'SHOP',gallery:'Галерея',instagram:'Instagram',contact:'Контакты',clients:'Клиенты',payment:'Оплата'};
   $('#workspaceTitle').textContent=titles[currentAdminTab]||'Главная страница';
-  const saveTop=$('#saveTop');saveTop.hidden=currentAdminTab==='clients'||currentAdminTab==='orders';
-  saveTop.textContent=currentAdminTab==='shop'?'Сохранить магазин':currentAdminTab==='gallery'?'Сохранить галерею':currentAdminTab==='instagram'?'Сохранить Instagram':currentAdminTab==='contact'?'Сохранить контакты':currentAdminTab==='support'?'Сохранить поддержку':currentAdminTab==='payment'?'Сохранить оплату':'Сохранить';
+  const saveTop=$('#saveTop');saveTop.hidden=currentAdminTab==='clients';
+  saveTop.textContent=currentAdminTab==='shop'?'Сохранить магазин':currentAdminTab==='gallery'?'Сохранить галерею':currentAdminTab==='instagram'?'Сохранить Instagram':currentAdminTab==='contact'?'Сохранить контакты':currentAdminTab==='payment'?'Сохранить оплату':'Сохранить';
   if(currentAdminTab==='clients')renderClientsAdmin();
-  if(currentAdminTab==='orders')renderOrdersAdmin();
 }
 $$('[data-admin-tab]').forEach(btn=>btn.addEventListener('click',()=>switchAdminTab(btn.dataset.adminTab)));
 
@@ -594,47 +591,6 @@ async function saveInstagramSettings(){
 async function saveContactSettings(){
   try{setBusy(true);const payload={contactTitleEn:$('#contactTitleEn').value.trim(),contactTitleRu:$('#contactTitleRu').value.trim(),contactTextEn:$('#contactTextEn').value.trim(),contactTextRu:$('#contactTextRu').value.trim(),contact:$('#contactEmailAdmin').value.trim(),contactPhone:$('#contactPhoneAdmin').value.trim(),contactAddressEn:$('#contactAddressEn').value.trim(),contactAddressRu:$('#contactAddressRu').value.trim()};settings=await api('/api/admin/settings',{method:'PUT',body:JSON.stringify(payload)});fillExternalEditors();showNotice('Страница контактов сохранена.')}catch(err){showNotice(err.message,'error')}finally{setBusy(false)}
 }
-function supportSetting(id,fallback=''){const el=$(id);if(!el)return;el.value=settings[id.slice(1)]||fallback}
-function fillSupportEditor(){
-  supportSetting('#supportButtonTextEn',settings.supportText||'SUPPORT');supportSetting('#supportButtonTextRu','ПОДДЕРЖКА');
-  supportSetting('#supportTitleEn','START A CHAT');supportSetting('#supportTitleRu','НАЧАТЬ ЧАТ');
-  supportSetting('#supportGreetingEn','Thanks for stopping by! How can I help you?');supportSetting('#supportGreetingRu','Спасибо, что заглянули! Чем я могу помочь?');
-  supportSetting('#supportEmailPlaceholderEn','YOUR EMAIL');supportSetting('#supportEmailPlaceholderRu','ВАША ПОЧТА');
-  supportSetting('#supportMessagePlaceholderEn','HOW CAN WE HELP?');supportSetting('#supportMessagePlaceholderRu','ЧЕМ МЫ МОЖЕМ ПОМОЧЬ?');
-  supportSetting('#supportSendTextEn','SEND');supportSetting('#supportSendTextRu','ОТПРАВИТЬ');
-  supportSetting('#supportButtonBackground','#050505');supportSetting('#supportButtonColor','#ffffff');supportSetting('#supportWindowBackground','#ffffff');supportSetting('#supportFieldBackground','#000000');supportSetting('#supportFieldColor','#ffffff');
-  selectValue($('#supportButtonFont'),settings.supportButtonFont||'');selectValue($('#supportContentFont'),settings.supportContentFont||'');
-  updateSupportPreview();
-}
-function updateSupportPreview(){
-  const get=(id,fb='')=>$(id)?.value||fb;const preview=$('#supportAdminPreview'),button=$('#supportPreviewButton');if(!preview||!button)return;
-  $('#supportPreviewTitle').textContent=get('#supportTitleEn','START A CHAT');$('#supportPreviewGreeting').textContent=get('#supportGreetingEn','Thanks for stopping by! How can I help you?');$('#supportPreviewEmail').textContent=get('#supportEmailPlaceholderEn','YOUR EMAIL');$('#supportPreviewMessage').textContent=get('#supportMessagePlaceholderEn','HOW CAN WE HELP?');$('#supportPreviewSend').textContent=get('#supportSendTextEn','SEND');button.textContent=get('#supportButtonTextEn','SUPPORT');
-  const contentFont=get('#supportContentFont','Arial, Helvetica, sans-serif'),buttonFont=get('#supportButtonFont','Arial, Helvetica, sans-serif');
-  preview.style.background=get('#supportWindowBackground','#ffffff');preview.style.fontFamily=contentFont;button.style.background=get('#supportButtonBackground','#050505');button.style.color=get('#supportButtonColor','#ffffff');button.style.fontFamily=buttonFont;
-  $$('#supportAdminPreview .support-preview-field,#supportAdminPreview .support-preview-send').forEach(el=>{el.style.background=get('#supportFieldBackground','#000000');el.style.color=get('#supportFieldColor','#ffffff')});
-}
-$('#supportEditor')?.addEventListener('input',updateSupportPreview);
-async function saveSupportSettings(){
-  const ids=['supportButtonTextEn','supportButtonTextRu','supportTitleEn','supportTitleRu','supportGreetingEn','supportGreetingRu','supportEmailPlaceholderEn','supportEmailPlaceholderRu','supportMessagePlaceholderEn','supportMessagePlaceholderRu','supportSendTextEn','supportSendTextRu','supportButtonBackground','supportButtonColor','supportWindowBackground','supportFieldBackground','supportFieldColor','supportButtonFont','supportContentFont'];
-  const body={};ids.forEach(id=>body[id]=$(`#${id}`)?.value?.trim?.()||'');body.supportText=body.supportButtonTextEn||'SUPPORT';
-  try{setBusy(true);settings=await api('/api/admin/settings',{method:'PUT',body:JSON.stringify(body)});fillSupportEditor();showNotice('Настройки поддержки сохранены.')}catch(err){showNotice(err.message,'error')}finally{setBusy(false)}
-}
-
-const ORDER_STATUSES=['new','confirmed','processing','shipped','completed','cancelled'];
-function renderOrdersAdmin(){
-  const box=$('#ordersAdminList');if(!box)return;const orders=Array.isArray(adminState.orders)?adminState.orders:[];
-  if(!orders.length){box.innerHTML='<div class="empty-admin-list">Заказов пока нет.</div>';return}
-  box.innerHTML=orders.map(o=>{
-    const customer=o.customer||{};const items=(o.items||[]).map(i=>`<div class="order-admin-item"><img src="${esc(i.image||'')}" alt=""><div><strong>${esc(i.nameRu||i.name||'Товар')}</strong><span>${esc(i.size||'—')} · ${Number(i.qty)||1} шт. · ${adminMoney(i.price,settings.currency||'$')}</span></div></div>`).join('');
-    const date=o.createdAt?new Date(o.createdAt).toLocaleString('ru-RU'):'';const statusOptions=ORDER_STATUSES.map(st=>`<option value="${st}" ${String(o.status||'new')===st?'selected':''}>${st}</option>`).join('');
-    return `<article class="order-admin-card" data-order-id="${esc(o.id)}"><div class="order-admin-top"><div><div class="order-admin-number">${esc(o.number||o.id)}</div><div class="order-admin-date">${esc(date)}</div></div><div class="order-admin-total">${adminMoney(o.total,settings.currency||'$')}</div></div><div class="order-admin-meta"><span><b>Email:</b> ${esc(o.email||'—')}</span><span><b>Имя:</b> ${esc(customer.firstName||customer.name||'—')} ${esc(customer.lastName||'')}</span><span><b>Телефон:</b> ${esc(customer.phone||'—')}</span><span><b>Оплата:</b> ${esc(o.paymentMethod||'—')}</span>${o.couponCode?`<span><b>Купон:</b> ${esc(o.couponCode)} (−${adminMoney(o.discount,settings.currency||'$')})</span>`:''}</div><div class="order-admin-items">${items||'<div class="client-empty">Нет товаров.</div>'}</div><div class="order-admin-bottom"><label class="field"><span>Статус</span><select data-order-status>${statusOptions}</select></label><button class="secondary-btn" type="button" data-save-order-status>Сохранить статус</button></div></article>`;
-  }).join('');
-}
-$('#ordersAdminList')?.addEventListener('click',async e=>{
-  const btn=e.target.closest('[data-save-order-status]');if(!btn)return;const card=btn.closest('[data-order-id]');const status=card?.querySelector('[data-order-status]')?.value;if(!card||!status)return;
-  try{const updated=await api(`/api/admin/orders/${encodeURIComponent(card.dataset.orderId)}`,{method:'PUT',body:JSON.stringify({status})});adminState.orders=(adminState.orders||[]).map(o=>String(o.id)===String(updated.id)?updated:o);renderOrdersAdmin();renderClientsAdmin();showNotice('Статус заказа сохранён.')}catch(err){showNotice(err.message,'error')}
-});
-
 function renderClientsAdmin(){
   const box=$('#clientsAdminList');if(!box)return;
   const users=(Array.isArray(adminState.users)?adminState.users:[]).filter(u=>u.role!=='admin');
