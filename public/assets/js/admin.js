@@ -5,6 +5,7 @@ let adminState={};
 let productsDraft=[];
 let shopCategoriesDraft=[];
 let currentAdminTab='home';
+let galleryDraft=[];
 let productImagesDraft=[];
 let productSizesDraft=[];
 const DEFAULT_ABOUT_EN='About <strong>DEMI DEVILLE</strong> is a <em>PIONEERING DESIGN STUDIO BASED</em> in Paris, specializing in fashion, spatial design, and visual direction. <em>Established by Augustine</em> Oh &amp; Jude Lee, the <strong>studio redefines traditional</strong> design frameworks through methods of deconstruction, expansion, and reduction. <strong>By merging</strong> high fashion with a <strong>progressive design</strong> philosophy, DEMI DEVILLE delivers innovative, high-quality work that challenges visual conventions. <strong>The studio collaborates with a wide range of celebrities,</strong> artists, and brands, offering fresh design experiences that resonate with forward-thinking audiences around the world.';
@@ -88,7 +89,7 @@ function clampPercent(value,fallback=35){const n=Number(value);return Number.isF
 function clampNumber(value,min,max,fallback=0){const n=Number(value);return Number.isFinite(n)?Math.max(min,Math.min(max,n)):fallback}
 function cssImage(url){return url?`url(${JSON.stringify(String(url))})`:'none'}
 function setBusy(busy){$$('.primary-btn').forEach(b=>{if(b.id==='saveTop'||b.type==='submit')b.disabled=busy})}
-function showLogin(message=''){ $('#adminView').hidden=true;$('#loginView').style.display='grid';if(message)showNotice(message,'error','#loginNotice') }
+function showLogin(message=''){const admin=$('#adminView'),login=$('#loginView');if(admin)admin.hidden=true;if(login){login.hidden=false;login.style.display='grid'}window.scrollTo(0,0);if(message)showNotice(message,'error','#loginNotice')}
 function populateFonts(){
   $$('.font-select').forEach(select=>{
     const current=select.value;select.innerHTML=`<option value="">${esc(select.dataset.defaultLabel||'Текущий дизайн')}</option>`+FONT_OPTIONS.map(([name,value])=>`<option value="${esc(value)}">${esc(name)}</option>`).join('');
@@ -103,8 +104,8 @@ async function boot(){
   try{
     const me=await api('/api/auth/me');
     if(me.user.role!=='admin')throw new Error('Доступ разрешён только администратору');
-    $('#adminUser').textContent=me.user.email;$('#loginView').style.display='none';$('#adminView').hidden=false;
-    const state=await api('/api/admin/state');adminState=state||{};settings=state.settings||{};productsDraft=Array.isArray(state.products)?state.products.map(clone):[];shopCategoriesDraft=normalizeShopCategories(settings.shopCategories);fillForm();fillShopEditor();fillAboutEditor();switchAdminTab(currentAdminTab);
+    $('#adminUser').textContent=me.user.email;$('#loginView').hidden=true;$('#loginView').style.display='none';$('#adminView').hidden=false;window.scrollTo(0,0);
+    const state=await api('/api/admin/state');adminState=state||{};settings=state.settings||{};productsDraft=Array.isArray(state.products)?state.products.map(clone):[];galleryDraft=Array.isArray(state.gallery)?state.gallery.map(clone):[];shopCategoriesDraft=normalizeShopCategories(settings.shopCategories);fillForm();fillShopEditor();fillGalleryEditor();switchAdminTab(currentAdminTab);
   }catch(e){token='';localStorage.removeItem('dd_token');showLogin(e.message)}
 }
 $('#adminLogin').addEventListener('submit',async e=>{
@@ -228,7 +229,7 @@ async function save(){
   try{setBusy(true);settings=await api('/api/admin/settings',{method:'PUT',body:JSON.stringify(payload())});fillForm();showNotice('Изменения сохранены.')}catch(e){showNotice(e.message,'error')}finally{setBusy(false)}
 }
 $('#homeSettingsForm').addEventListener('submit',async e=>{e.preventDefault();await save()});
-$('#saveTop').addEventListener('click',()=>currentAdminTab==='shop'?saveShopSettings():currentAdminTab==='about'?saveAboutSettings():save());
+$('#saveTop').addEventListener('click',()=>currentAdminTab==='shop'?saveShopSettings():currentAdminTab==='gallery'?saveGallerySettings():save());
 
 function slugify(value){
   return String(value||'').trim().toLowerCase()
@@ -265,13 +266,13 @@ function fillShopEditor(){
   renderProductsAdmin();
 }
 function switchAdminTab(tab){
-  currentAdminTab=['home','shop','about'].includes(tab)?tab:'home';
+  currentAdminTab=['home','shop','gallery'].includes(tab)?tab:'home';
   $$('#adminView [data-admin-tab]').forEach(btn=>btn.classList.toggle('active',btn.dataset.adminTab===currentAdminTab));
   $('#homeSettingsForm').hidden=currentAdminTab!=='home';
   $('#shopEditor').hidden=currentAdminTab!=='shop';
-  $('#aboutEditor').hidden=currentAdminTab!=='about';
-  $('#workspaceTitle').textContent=currentAdminTab==='shop'?'SHOP':currentAdminTab==='about'?'ABOUT':'Главная страница';
-  $('#saveTop').textContent=currentAdminTab==='shop'?'Сохранить магазин':currentAdminTab==='about'?'Сохранить ABOUT':'Сохранить';
+  $('#galleryEditor').hidden=currentAdminTab!=='gallery';
+  $('#workspaceTitle').textContent=currentAdminTab==='shop'?'SHOP':currentAdminTab==='gallery'?'Галерея':'Главная страница';
+  $('#saveTop').textContent=currentAdminTab==='shop'?'Сохранить магазин':currentAdminTab==='gallery'?'Сохранить галерею':'Сохранить';
 }
 $$('[data-admin-tab]').forEach(btn=>btn.addEventListener('click',()=>switchAdminTab(btn.dataset.adminTab)));
 
@@ -444,50 +445,99 @@ async function saveShopSettings(){
 $('#saveShopSettings')?.addEventListener('click',saveShopSettings);
 
 
-function fillAboutEditor(){
-  const en=String(settings.aboutHtmlEn||settings.aboutHtml||DEFAULT_ABOUT_EN);
-  const ru=String(settings.aboutHtmlRu||DEFAULT_ABOUT_RU);
-  if($('#aboutHtmlEnEditor'))$('#aboutHtmlEnEditor').innerHTML=en;
-  if($('#aboutHtmlRuEditor'))$('#aboutHtmlRuEditor').innerHTML=ru;
-  selectValue($('#aboutBaseFont'),settings.aboutBaseFont||'');
+function galleryFontOptions(current=''){
+  return `<option value="">Текущий дизайн</option>`+FONT_OPTIONS.map(([name,value])=>`<option value="${esc(value)}" ${value===current?'selected':''}>${esc(name)}</option>`).join('');
 }
-function editorForToolbar(toolbar){return document.getElementById(toolbar?.dataset.richToolbar||'')}
-function selectionInside(editor){const sel=window.getSelection();if(!editor||!sel||!sel.rangeCount)return null;const range=sel.getRangeAt(0);return editor.contains(range.commonAncestorContainer)?range:null}
-function focusSavedSelection(editor){
-  const range=editor?editor._savedRange:null;if(!editor||!range)return false;
-  const sel=window.getSelection();sel.removeAllRanges();sel.addRange(range);editor.focus({preventScroll:true});return true;
+function galleryItemNormalized(item,index){
+  const rotation=((Math.round(Number(item?.rotation)||0)%360)+360)%360;
+  return {
+    id:String(item?.id||uid('gallery')),
+    image:String(item?.image||''),
+    caption:String(item?.caption||''),
+    captionRu:String(item?.captionRu||''),
+    captionFont:String(item?.captionFont||''),
+    rotation:[0,90,180,270].includes(rotation)?rotation:0,
+    active:item?.active!==false,
+    sort:Number.isFinite(Number(item?.sort))?Number(item.sort):index+1
+  };
 }
-function saveSelection(editor){const range=selectionInside(editor);if(range)editor._savedRange=range.cloneRange()}
-function applyInlineStyle(editor,property,value){
-  if(!focusSavedSelection(editor))return;
-  const sel=window.getSelection();if(!sel||!sel.rangeCount||sel.isCollapsed)return;
-  const range=sel.getRangeAt(0);const span=document.createElement('span');span.style[property]=value;
-  try{range.surroundContents(span)}catch{const frag=range.extractContents();span.appendChild(frag);range.insertNode(span)}
-  const next=document.createRange();next.selectNodeContents(span);sel.removeAllRanges();sel.addRange(next);editor._savedRange=next.cloneRange();
+function fillGalleryEditor(){
+  galleryDraft=(Array.isArray(galleryDraft)?galleryDraft:[]).map(galleryItemNormalized).sort((a,b)=>(Number(a.sort)||0)-(Number(b.sort)||0));
+  renderGalleryAdmin();
 }
-$$('.rich-editor').forEach(editor=>{
-  ['keyup','mouseup','touchend','focus'].forEach(evt=>editor.addEventListener(evt,()=>saveSelection(editor)));
+function renderGalleryAdmin(){
+  const box=$('#galleryAdminList');if(!box)return;
+  if(!galleryDraft.length){box.innerHTML='<div class="empty-admin-list">В галерее пока нет изображений.</div>';return}
+  box.innerHTML=galleryDraft.map((g,i)=>`<article class="gallery-admin-item${g.active===false?' is-hidden-gallery':''}" data-gallery-index="${i}">
+    <div class="gallery-admin-preview"><img src="${esc(g.image)}" alt="" style="transform:rotate(${Number(g.rotation)||0}deg)"></div>
+    <div class="gallery-admin-fields">
+      <label class="field"><span>Описание / подпись EN</span><textarea data-gallery-field="caption" rows="3">${esc(g.caption)}</textarea></label>
+      <label class="field"><span>Описание / подпись RU</span><textarea data-gallery-field="captionRu" rows="3">${esc(g.captionRu)}</textarea></label>
+      <div class="gallery-inline-fields">
+        <label class="field"><span>Шрифт подписи</span><select data-gallery-field="captionFont">${galleryFontOptions(g.captionFont)}</select></label>
+        <label class="field"><span>Порядок</span><input data-gallery-field="sort" type="number" min="0" step="1" value="${esc(g.sort)}"></label>
+      </div>
+      <label class="check-control"><input data-gallery-field="active" type="checkbox" ${g.active!==false?'checked':''}> Показывать на сайте</label>
+    </div>
+    <div class="gallery-admin-actions">
+      <button class="secondary-btn small" type="button" data-gallery-action="rotate-left">↺ Повернуть влево</button>
+      <button class="secondary-btn small" type="button" data-gallery-action="rotate-right">↻ Повернуть вправо</button>
+      <button class="danger-btn" type="button" data-gallery-action="delete">Удалить</button>
+    </div>
+  </article>`).join('');
+}
+$('#galleryAdminList')?.addEventListener('input',e=>{
+  const row=e.target.closest('[data-gallery-index]');const field=e.target.dataset.galleryField;if(!row||!field)return;
+  const item=galleryDraft[Number(row.dataset.galleryIndex)];if(!item)return;
+  item[field]=e.target.type==='checkbox'?e.target.checked:(field==='sort'?Number(e.target.value)||0:e.target.value);
 });
-$$('.rich-toolbar').forEach(toolbar=>{
-  const editor=editorForToolbar(toolbar);if(!editor)return;
-  toolbar.addEventListener('mousedown',e=>{if(!e.target.closest('select,input'))e.preventDefault()});
-  toolbar.addEventListener('click',e=>{
-    const command=e.target.closest('[data-rich-command]')?.dataset.richCommand;
-    if(command){focusSavedSelection(editor);document.execCommand(command,false,null);saveSelection(editor);return}
-    if(e.target.closest('[data-rich-clear]')){focusSavedSelection(editor);document.execCommand('removeFormat',false,null);saveSelection(editor)}
-  });
-  const font=toolbar.querySelector('.rich-font-select');font?.addEventListener('change',()=>{if(font.value)applyInlineStyle(editor,'fontFamily',font.value);font.value=''});
-  toolbar.querySelectorAll('[data-rich-style]').forEach(input=>input.addEventListener('input',()=>applyInlineStyle(editor,input.dataset.richStyle,input.value)));
+$('#galleryAdminList')?.addEventListener('change',e=>{
+  const row=e.target.closest('[data-gallery-index]');const field=e.target.dataset.galleryField;if(!row||!field)return;
+  const item=galleryDraft[Number(row.dataset.galleryIndex)];if(!item)return;
+  item[field]=e.target.type==='checkbox'?e.target.checked:(field==='sort'?Number(e.target.value)||0:e.target.value);
 });
-
-async function saveAboutSettings(){
+$('#galleryAdminList')?.addEventListener('click',e=>{
+  const btn=e.target.closest('[data-gallery-action]');if(!btn)return;
+  const row=btn.closest('[data-gallery-index]');const i=Number(row?.dataset.galleryIndex);const item=galleryDraft[i];if(!item)return;
+  const action=btn.dataset.galleryAction;
+  if(action==='delete'){
+    if(!confirm('Удалить это изображение из галереи?'))return;
+    galleryDraft.splice(i,1);renderGalleryAdmin();return;
+  }
+  if(action==='rotate-left')item.rotation=((Number(item.rotation)||0)+270)%360;
+  if(action==='rotate-right')item.rotation=((Number(item.rotation)||0)+90)%360;
+  renderGalleryAdmin();
+});
+async function uploadGalleryFile(file){
+  const dataUrl=await new Promise((resolve,reject)=>{const r=new FileReader();r.onload=()=>resolve(r.result);r.onerror=reject;r.readAsDataURL(file)});
+  return api('/api/admin/upload',{method:'POST',body:JSON.stringify({dataUrl,filename:file.name})});
+}
+$('#galleryImagesUpload')?.addEventListener('change',async e=>{
+  const files=[...(e.target.files||[])];if(!files.length)return;
+  try{
+    e.target.disabled=true;let nextSort=galleryDraft.reduce((m,x)=>Math.max(m,Number(x.sort)||0),0)+1;
+    for(const file of files){const out=await uploadGalleryFile(file);galleryDraft.push(galleryItemNormalized({id:uid('gallery'),image:out.url,caption:'',captionRu:'',captionFont:'',rotation:0,active:true,sort:nextSort++},galleryDraft.length))}
+    renderGalleryAdmin();showNotice('Фотографии загружены. Нажмите «Сохранить галерею».');
+  }catch(err){showNotice(err.message,'error')}finally{e.target.disabled=false;e.target.value=''}
+});
+async function saveGallerySettings(){
   try{
     setBusy(true);
-    const payload={aboutHtmlEn:$('#aboutHtmlEnEditor').innerHTML.trim()||DEFAULT_ABOUT_EN,aboutHtmlRu:$('#aboutHtmlRuEditor').innerHTML.trim()||DEFAULT_ABOUT_RU,aboutBaseFont:$('#aboutBaseFont').value};
-    settings=await api('/api/admin/settings',{method:'PUT',body:JSON.stringify(payload)});
-    fillAboutEditor();showNotice('Страница ABOUT сохранена.');
+    const original=new Map((Array.isArray(adminState.gallery)?adminState.gallery:[]).map(x=>[String(x.id),x]));
+    const saved=[];
+    for(let i=0;i<galleryDraft.length;i++){
+      const item=galleryItemNormalized(galleryDraft[i],i);
+      if(!item.image)continue;
+      const body=JSON.stringify(item);
+      const result=original.has(String(item.id))
+        ?await api(`/api/admin/gallery/${encodeURIComponent(item.id)}`,{method:'PUT',body})
+        :await api('/api/admin/gallery',{method:'POST',body});
+      saved.push(result);original.delete(String(item.id));
+    }
+    for(const id of original.keys())await api(`/api/admin/gallery/${encodeURIComponent(id)}`,{method:'DELETE'});
+    galleryDraft=saved.map(clone);adminState.gallery=saved.map(clone);fillGalleryEditor();showNotice('Галерея сохранена.');
   }catch(err){showNotice(err.message,'error')}finally{setBusy(false)}
 }
-$('#saveAboutSettings')?.addEventListener('click',saveAboutSettings);
+$('#saveGallerySettings')?.addEventListener('click',saveGallerySettings);
 
 boot();

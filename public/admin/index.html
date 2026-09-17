@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>DEMI DEVILLE — Админ-панель</title>
-  <link rel="stylesheet" href="/assets/css/admin.css?v=20260917-about-v7">
+  <link rel="stylesheet" href="/assets/css/admin.css?v=20260917-gallery-v8">
 </head>
 <body>
   <section id="loginView" class="auth-screen">
@@ -32,7 +32,7 @@
       <nav class="side-nav">
         <button class="nav-item active" type="button" data-admin-tab="home">Главная страница</button>
         <button class="nav-item" type="button" data-admin-tab="shop">SHOP</button>
-        <button class="nav-item" type="button" data-admin-tab="about">ABOUT</button>
+        <button class="nav-item" type="button" data-admin-tab="gallery">ГАЛЕРЕЯ</button>
       </nav>
       <div class="side-bottom">
         <a class="side-link" href="/" target="_blank" rel="noreferrer">Открыть сайт ↗</a>
@@ -277,65 +277,28 @@
         </div>
       </section>
 
-      <section id="aboutEditor" class="editor-form about-editor" hidden>
-        <section class="device-card about-settings-card">
+      <section id="galleryEditor" class="editor-form gallery-editor-admin" hidden>
+        <section class="device-card gallery-admin-card">
           <div class="device-card-head">
             <div>
-              <span class="device-badge">ABOUT</span>
-              <h2>Редактирование страницы ABOUT</h2>
+              <span class="device-badge">ГАЛЕРЕЯ</span>
+              <h2>Редактирование галереи</h2>
             </div>
-            <a class="secondary-btn shop-open-link" href="/about.html" target="_blank" rel="noreferrer">Открыть ABOUT ↗</a>
+            <a class="secondary-btn shop-open-link" href="/gallery.html" target="_blank" rel="noreferrer">Открыть галерею ↗</a>
           </div>
-
-          <div class="about-base-controls">
-            <label class="field">
-              <span>Базовый шрифт страницы</span>
-              <select id="aboutBaseFont" class="font-select" data-default-label="Текущий дизайн"></select>
+          <div class="gallery-admin-toolbar">
+            <label class="upload-btn gallery-upload-btn">
+              <input id="galleryImagesUpload" type="file" accept="image/*" multiple>
+              <span>+ Добавить фотографии</span>
             </label>
+            <div class="gallery-admin-help">Для каждого изображения можно задать описание EN/RU, шрифт подписи, порядок, видимость и поворот.</div>
           </div>
+          <div id="galleryAdminList" class="gallery-admin-list"></div>
         </section>
 
-        <section class="device-card about-language-card">
-          <div class="device-card-head">
-            <div>
-              <span class="device-badge">EN</span>
-              <h2>Текст ABOUT — английский</h2>
-            </div>
-          </div>
-          <div class="rich-toolbar" data-rich-toolbar="aboutHtmlEnEditor">
-            <button type="button" data-rich-command="bold" title="Жирный"><b>B</b></button>
-            <button type="button" data-rich-command="italic" title="Курсив"><i>I</i></button>
-            <button type="button" data-rich-command="underline" title="Подчёркивание"><u>U</u></button>
-            <label class="toolbar-field font-tool"><span>Шрифт выделенного текста</span><select class="font-select rich-font-select" data-default-label="Выберите шрифт"></select></label>
-            <label class="toolbar-field color-tool"><span>Цвет текста</span><input class="rich-color" type="color" value="#000000" data-rich-style="color"></label>
-            <label class="toolbar-field color-tool"><span>Заливка слова</span><input class="rich-color" type="color" value="#ffffff" data-rich-style="backgroundColor"></label>
-            <button type="button" data-rich-clear>Очистить формат</button>
-          </div>
-          <div id="aboutHtmlEnEditor" class="rich-editor" contenteditable="true" spellcheck="true"></div>
-        </section>
-
-        <section class="device-card about-language-card">
-          <div class="device-card-head">
-            <div>
-              <span class="device-badge">RU</span>
-              <h2>Текст ABOUT — русский</h2>
-            </div>
-          </div>
-          <div class="rich-toolbar" data-rich-toolbar="aboutHtmlRuEditor">
-            <button type="button" data-rich-command="bold" title="Жирный"><b>B</b></button>
-            <button type="button" data-rich-command="italic" title="Курсив"><i>I</i></button>
-            <button type="button" data-rich-command="underline" title="Подчёркивание"><u>U</u></button>
-            <label class="toolbar-field font-tool"><span>Шрифт выделенного текста</span><select class="font-select rich-font-select" data-default-label="Выберите шрифт"></select></label>
-            <label class="toolbar-field color-tool"><span>Цвет текста</span><input class="rich-color" type="color" value="#000000" data-rich-style="color"></label>
-            <label class="toolbar-field color-tool"><span>Заливка слова</span><input class="rich-color" type="color" value="#ffffff" data-rich-style="backgroundColor"></label>
-            <button type="button" data-rich-clear>Очистить формат</button>
-          </div>
-          <div id="aboutHtmlRuEditor" class="rich-editor" contenteditable="true" spellcheck="true"></div>
-        </section>
-
-        <div class="form-actions about-actions">
-          <div class="save-note">Можно выделить отдельные слова или фразы и применить к ним свой шрифт, жирность, подчёркивание, цвет или заливку.</div>
-          <button id="saveAboutSettings" class="primary-btn large" type="button">Сохранить ABOUT</button>
+        <div class="form-actions gallery-actions">
+          <div class="save-note">Все изменения галереи применятся после сохранения.</div>
+          <button id="saveGallerySettings" class="primary-btn large" type="button">Сохранить галерею</button>
         </div>
       </section>
 
@@ -403,6 +366,6 @@
     </section>
   </div>
 
-  <script src="/assets/js/admin.js?v=20260917-about-v7"></script>
+  <script src="/assets/js/admin.js?v=20260917-gallery-v8"></script>
 </body>
 </html>

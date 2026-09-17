@@ -74,12 +74,18 @@
        The footer stays pinned to the bottom; low-count pages use larger
        product artwork instead of leaving a large unused field. */
     const count=Math.max(1,pageItems.length);
-    const desktopColumns=count<=5?count:Math.min(5,Math.ceil(count/2));
-    const desktopRows=Math.max(1,Math.ceil(count/desktopColumns));
-    const desktopMedia=count===1?330:count===2?285:count===3?255:count<=5?230:desktopRows===2?210:190;
+    /* Desktop keeps the approved three-card row geometry. Up to six products are
+       arranged as 3 + 3; one or two products stay in the first row. If the admin
+       selects more than six per page, the amount of columns grows only enough to
+       keep the storefront in two rows. */
+    const desktopColumns=count<=6?3:Math.ceil(count/2);
+    const desktopRows=2;
+    const desktopMedia=desktopColumns<=3?305:Math.max(175,305-(desktopColumns-3)*28);
+    const desktopCardWidth=desktopColumns<=3?355:Math.max(210,Math.floor((1780-(desktopColumns-1)*48)/desktopColumns));
     grid.style.setProperty('--shop-columns',String(desktopColumns));
     grid.style.setProperty('--shop-rows',String(desktopRows));
     grid.style.setProperty('--shop-media-size',`${desktopMedia}px`);
+    grid.style.setProperty('--shop-card-width',`${desktopCardWidth}px`);
 
     if(!pageItems.length){
       grid.innerHTML=`<p class="shop-empty">${lang==='ru'?'В этом разделе пока нет товаров.':'No products in this category yet.'}</p>`;

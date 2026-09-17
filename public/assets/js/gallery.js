@@ -1,25 +1,20 @@
 (async()=>{
   await renderChrome();
   const site=await SITE;
-  $('#galleryList').innerHTML=(site.gallery||[]).map(g=>`<figure class="gallery-item"><img src="${esc(g.image)}" alt="${esc(g.caption||'Gallery image')}"><figcaption class="gallery-caption">${esc(g.caption||'')}</figcaption></figure>`).join('')||'<p>No gallery items.</p>';
+  const lang=document.documentElement.lang==='ru'?'ru':'en';
+  const items=(site.gallery||[]).filter(g=>g.active!==false).sort((a,b)=>(Number(a.sort)||0)-(Number(b.sort)||0));
+  $('#galleryList').innerHTML=items.map(g=>{
+    const caption=lang==='ru'?(g.captionRu||g.caption||''):(g.caption||'');
+    const rotation=((Number(g.rotation)||0)%360+360)%360;
+    const font=g.captionFont?`font-family:${esc(g.captionFont)};`:'';
+    return `<figure class="gallery-item"><div class="gallery-media"><img src="${esc(g.image)}" alt="${esc(caption||'Gallery image')}" style="--gallery-rotation:${rotation}deg"></div><figcaption class="gallery-caption" style="${font}">${esc(caption)}</figcaption></figure>`;
+  }).join('')||`<p>${lang==='ru'?'В галерее пока нет изображений.':'No gallery items.'}</p>`;
 
-  /* Header and support are provided by renderChrome() in common.js. */
-
-  /* Use the exact same 1920×1080 chrome scaling as LOGIN. */
   const fitChrome=()=>{
-    if(window.innerWidth<=900){
-      document.body.style.removeProperty('--gallery-header-scale-x');
-      document.body.style.removeProperty('--gallery-header-scale-y');
-      return;
-    }
+    if(window.innerWidth<=900){document.body.style.removeProperty('--gallery-header-scale-x');document.body.style.removeProperty('--gallery-header-scale-y');return}
     const h=(window.visualViewport&&window.visualViewport.height)||window.innerHeight;
-    const sx=window.innerWidth/1920;
-    const sy=h/1080;
-    const s=Math.min(sx,sy);
-    document.body.style.setProperty('--gallery-header-scale-x',String(sx));
-    document.body.style.setProperty('--gallery-header-scale-y',String(sy));
+    document.body.style.setProperty('--gallery-header-scale-x',String(window.innerWidth/1920));
+    document.body.style.setProperty('--gallery-header-scale-y',String(h/1080));
   };
-  fitChrome();
-  window.addEventListener('resize',fitChrome,{passive:true});
-  window.visualViewport?.addEventListener('resize',fitChrome,{passive:true});
+  fitChrome();window.addEventListener('resize',fitChrome,{passive:true});window.visualViewport?.addEventListener('resize',fitChrome,{passive:true});
 })();
