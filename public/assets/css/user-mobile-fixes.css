@@ -42,7 +42,7 @@
     min-height:347px!important;
     max-height:calc(100dvh - 30px)!important;
     padding:32px 2px 16px!important;
-    background:rgba(171,171,171,.77)!important;
+    background:rgba(154,154,154,.92)!important;
     backdrop-filter:none!important;
     overflow-x:hidden!important;
   }
@@ -699,7 +699,7 @@
   body.shared-chrome-page #mobileMenu.mobile-menu{
     top:18px!important;left:7px!important;width:min(58.2vw,252px)!important;
     min-height:347px!important;max-height:calc(100dvh - 30px)!important;
-    padding:32px 2px 16px!important;background:rgba(171,171,171,.77)!important;
+    padding:32px 2px 16px!important;background:rgba(154,154,154,.92)!important;
     overflow-x:hidden!important;overflow-y:auto!important;
   }
   .home #homeMobileMenu .home-mobile-menu-nav,
@@ -747,7 +747,7 @@
     margin:0!important;
     padding:47px 2px 14px!important;
     overflow:hidden!important;
-    background:rgba(171,171,171,.77)!important;
+    background:rgba(154,154,154,.92)!important;
   }
 
   /* On inner pages the menu background must continue behind MENU / the logo instead of being cut off by the white header. */
@@ -837,7 +837,7 @@
   body.checkout-page.mobile-order-open .order-side{
     display:block!important;
     margin-top:0!important;
-    padding-top:6px!important;
+    padding-top:7px!important;
   }
   body.checkout-page .order-list{
     margin:0!important;
@@ -849,18 +849,18 @@
   body.checkout-page .pay-methods{
     order:2!important;
     position:static!important;
-    margin:12px auto 0!important;
+    margin:7px auto 0!important;
     padding:0!important;
   }
   body.checkout-page.mobile-order-open .pay-methods{
-    margin-top:12px!important;
+    margin-top:7px!important;
   }
   body.checkout-page #checkoutForm.checkout-form{
     order:3!important;
     position:static!important;
     height:auto!important;
     min-height:0!important;
-    margin:12px auto 0!important;
+    margin:7px auto 0!important;
     padding:0!important;
   }
 }
@@ -870,4 +870,72 @@ body.shared-chrome-page>#desktopHeader .global-cart-icon:not(.has-items){
   display:none!important;
   visibility:hidden!important;
   pointer-events:none!important;
+}
+
+
+/* 2026-09-17 — requested mobile polish: support, coupon apply, cart remove. */
+@media (max-width:900px){
+  /* SUPPORT has exactly the same mobile box on home and all inner pages. */
+  .home .home-tools .home-support-btn,
+  body.shared-chrome-page>#sharedSupportOpen.shared-support-button{
+    right:8px!important;
+    bottom:10px!important;
+    width:84px!important;
+    min-width:84px!important;
+    max-width:84px!important;
+    height:28px!important;
+    min-height:28px!important;
+    max-height:28px!important;
+    margin:0!important;
+    padding:0 5px!important;
+    box-sizing:border-box!important;
+    transform:none!important;
+    font:700 11px/28px Arial,sans-serif!important;
+    letter-spacing:-.25px!important;
+  }
+  html[lang="ru"] body.shared-chrome-page>#sharedSupportOpen.shared-support-button{
+    font-size:11px!important;
+    line-height:28px!important;
+  }
+
+  /* Coupon action must stay inside its button even for the longer RU label. */
+  body.checkout-page .discount{
+    grid-template-columns:minmax(0,1fr) 66px!important;
+  }
+  body.checkout-page .discount button{
+    min-width:66px!important;
+    padding:0 2px!important;
+    overflow:hidden!important;
+    white-space:nowrap!important;
+    text-overflow:clip!important;
+    font-size:10px!important;
+    line-height:26px!important;
+    text-align:center!important;
+  }
+  html[lang="ru"] body.checkout-page .discount button{
+    font-size:9px!important;
+    letter-spacing:-.15px!important;
+  }
+
+  /* Remove button: top-left square, same footprint as the black quantity square. */
+  body.cart-page .cart-card-remove{
+    left:0!important;
+    right:auto!important;
+    top:0!important;
+    width:29px!important;
+    min-width:29px!important;
+    height:28px!important;
+    min-height:28px!important;
+    margin:0!important;
+    padding:0!important;
+    border:0!important;
+    border-radius:0!important;
+    background:#050505!important;
+    color:#fff!important;
+    font:400 23px/28px Arial,sans-serif!important;
+    text-align:center!important;
+    text-decoration:none!important;
+    cursor:pointer!important;
+    z-index:8!important;
+  }
 }

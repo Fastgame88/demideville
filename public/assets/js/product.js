@@ -163,12 +163,21 @@
       return false;
     },true);
   }
-  $('#buyNow').onclick=()=>{
-    if(chosen()){
+  const buyNowBtn=$('#buyNow');
+  if(buyNowBtn){
+    buyNowBtn.onclick=null;
+    buyNowBtn.addEventListener('click',(event)=>{
+      event.preventDefault();
+      event.stopPropagation();
+      event.stopImmediatePropagation();
+
+      if(!chosen()) return false;
+
       addToCart(p.id,sel.value,1);
       location.href='/checkout.html';
-    }
-  };
+      return false;
+    },true);
+  }
 
   /* All information sections are closed by default and can be opened independently. */
   $$('.acc-item').forEach(item=>{
