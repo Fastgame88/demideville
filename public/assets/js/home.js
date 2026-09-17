@@ -41,8 +41,14 @@
     if(!mobileMenu) return;
     mobileMenu.classList.toggle('open',open);
     mobileMenu.setAttribute('aria-hidden',String(!open));
+    document.body.classList.toggle('mobile-menu-open',open);
   };
   menuOpen?.addEventListener('click',()=>setMenu(!mobileMenu?.classList.contains('open')));
+  document.addEventListener('pointerdown',e=>{
+    if(!mobileMenu?.classList.contains('open')) return;
+    if(mobileMenu.contains(e.target)||menuOpen?.contains(e.target)) return;
+    setMenu(false);
+  });
 
   const contact=s.contact||'contact@demideville.example';
   const serviceEmailLink=document.getElementById('serviceEmailLink');
@@ -94,7 +100,9 @@
     clearTimeout(hideTimer);
     setSupport(false);
   });
-  document.addEventListener('keydown',e=>{if(e.key==='Escape')setSupport(false)});
+  document.addEventListener('keydown',e=>{
+    if(e.key==='Escape'){setMenu(false);setSupport(false)}
+  });
 
   supportForm?.addEventListener('submit',async e=>{
     e.preventDefault();

@@ -54,6 +54,7 @@
         <div class="cart-card-copy">
           <div class="cart-card-name">${esc(p.name)}</div>
           <div class="cart-card-price">${money(p.price,curr)}</div>
+          <div class="cart-card-size">${esc(x.size||'')}</div>
           <div class="cart-card-quantity">
             <button class="cart-qty-btn" type="button" data-cart-dec="${i}" aria-label="Decrease quantity">−</button>
             <input class="cart-qty-input" data-cart-qty="${i}" type="number" min="1" max="99" value="${qty}" aria-label="Quantity">

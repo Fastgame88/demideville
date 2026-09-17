@@ -56,9 +56,12 @@ function updateCartCount(){
     }
   });
 
-  $$('.global-cart-icon').forEach(el=>{
+  $$('.global-cart-icon, .mobile-cart').forEach(el=>{
     el.classList.toggle('has-items',n>0);
     el.setAttribute('aria-label',n?`Cart (${n})`:'Cart');
+    el.setAttribute('aria-hidden',String(n===0));
+    if(n===0) el.setAttribute('tabindex','-1');
+    else el.removeAttribute('tabindex');
   });
 }
 async function renderChrome({home=false}={}){
@@ -77,7 +80,25 @@ async function renderChrome({home=false}={}){
   const mobile=$('#mobileHeader');
   if(mobile){mobile.classList.toggle('transparent',home);mobile.innerHTML=`<button class="mobile-menu-btn" aria-label="Menu">MENU</button><a class="brand" href="/" data-brand>${esc(s.brand||'DEMI DEVILLE')}</a><a class="mobile-cart" href="/cart.html">${home?'':'🛒'}<span data-cart-count></span></a>`;}
   const mm=$('#mobileMenu');
-  if(mm){const sectionLinks=(site.sections||[]).map(x=>`<a href="/section.html?slug=${encodeURIComponent(x.slug)}">${esc(x.title)}</a>`).join('');const tr=text=>window.ddTranslate?.(text)||text;mm.innerHTML=`<div class="mobile-menu-top"><span class="brand">DEMI DEVILLE</span><button class="mobile-menu-close" aria-label="${esc(tr('Close support'))}">×</button></div><nav><a href="/shop.html">${esc(tr('SHOP ALL'))}</a><a href="/shop.html?category=jackets-coats">${esc(tr('JACKETS & COATS'))}</a><a href="/shop.html?category=jeans-pants-shorts">${esc(tr('JEANS, PANTS & SHORTS'))}</a><a href="/shop.html?category=tops">${esc(tr('TOPS'))}</a><a href="/shop.html?category=bags-accessories">${esc(tr('BAGS & ACCESSORIES'))}</a><span class="mobile-menu-gap" aria-hidden="true"></span><a href="/gallery.html">${esc(tr('GALLERY'))}</a><a href="/about.html">${esc(tr('ABOUT'))}</a>${sectionLinks}<span class="mobile-menu-gap small" aria-hidden="true"></span><a class="mobile-login-link" href="/login.html">${esc(tr('LOGIN'))}</a><a href="/cart.html">${esc(tr('CART'))}</a><a href="/login.html#register">${esc(tr('REGISTER'))}</a></nav><div class="small-links"><a href="${esc(s.instagram||'#')}" target="_blank">INSTAGRAM</a><a href="mailto:${esc(s.contact||'')}">${esc(tr('CONTACT'))}</a></div>`;$('.mobile-menu-btn')?.addEventListener('click',()=>mm.classList.add('open'));$('.mobile-menu-close',mm)?.addEventListener('click',()=>mm.classList.remove('open'));}
+  if(mm){
+    const sectionLinks=(site.sections||[]).map(x=>`<a href="/section.html?slug=${encodeURIComponent(x.slug)}">${esc(x.title)}</a>`).join('');
+    const tr=text=>window.ddTranslate?.(text)||text;
+    mm.innerHTML=`<div class="mobile-menu-top"><span class="brand">DEMI DEVILLE</span><button class="mobile-menu-close" aria-label="${esc(tr('Close support'))}">×</button></div><nav><a href="/shop.html">${esc(tr('SHOP ALL'))}</a><a href="/shop.html?category=jackets-coats">${esc(tr('JACKETS & COATS'))}</a><a href="/shop.html?category=jeans-pants-shorts">${esc(tr('JEANS, PANTS & SHORTS'))}</a><a href="/shop.html?category=tops">${esc(tr('TOPS'))}</a><a href="/shop.html?category=bags-accessories">${esc(tr('BAGS & ACCESSORIES'))}</a><span class="mobile-menu-gap" aria-hidden="true"></span><a href="/gallery.html">${esc(tr('GALLERY'))}</a><a href="/about.html">${esc(tr('ABOUT'))}</a>${sectionLinks}<span class="mobile-menu-gap small" aria-hidden="true"></span><a class="mobile-login-link" href="/login.html">${esc(tr('LOGIN'))}</a><a href="/cart.html">${esc(tr('CART'))}</a><a href="/login.html#register">${esc(tr('REGISTER'))}</a></nav><div class="small-links"><a href="${esc(s.instagram||'#')}" target="_blank">INSTAGRAM</a><a href="mailto:${esc(s.contact||'')}">${esc(tr('CONTACT'))}</a></div>`;
+    const menuButton=$('.mobile-menu-btn');
+    const setMobileMenu=open=>{
+      mm.classList.toggle('open',open);
+      mm.setAttribute('aria-hidden',String(!open));
+      document.body.classList.toggle('mobile-menu-open',open);
+    };
+    menuButton?.addEventListener('click',()=>setMobileMenu(!mm.classList.contains('open')));
+    $('.mobile-menu-close',mm)?.addEventListener('click',()=>setMobileMenu(false));
+    document.addEventListener('pointerdown',e=>{
+      if(!mm.classList.contains('open')) return;
+      if(mm.contains(e.target)||menuButton?.contains(e.target)) return;
+      setMobileMenu(false);
+    });
+    document.addEventListener('keydown',e=>{if(e.key==='Escape')setMobileMenu(false)});
+  }
   updateCartCount();
   if(!home) mountSharedChrome(site);
 }

@@ -1,0 +1,681 @@
+/* 2026-09-17 — user-requested MOBILE corrections only.
+   Keep desktop layouts and unrelated storefront styling untouched. */
+
+/* Cart icon exists only while the bag has products. */
+.global-cart-icon:not(.has-items),
+.mobile-cart:not(.has-items){display:none!important}
+.cart-card-size{display:none}
+
+@media (max-width:900px){
+  /* ---------- shared mobile header/menu ---------- */
+  body.shared-chrome-page #mobileHeader.mobile-header{
+    height:58px!important;
+    padding:18px 8px 0!important;
+  }
+  body.shared-chrome-page #mobileHeader .mobile-menu-btn,
+  .home #homeMenuOpen.home-mobile-menu-button{
+    font:400 17px/22px "DD Oswald","Arial Narrow",Arial,sans-serif!important;
+    letter-spacing:0!important;
+  }
+  body.shared-chrome-page #mobileHeader .brand,
+  .home #mobileBrand.home-mobile-brand{
+    top:19px!important;
+    width:min(50vw,216px)!important;
+    height:19px!important;
+    max-width:none!important;
+    max-height:none!important;
+    background-size:100% auto!important;
+  }
+  body.shared-chrome-page #mobileHeader .mobile-cart{
+    right:9px!important;
+    top:15px!important;
+    width:22px!important;
+    height:26px!important;
+    background-size:22px 25px!important;
+  }
+
+  .home #homeMobileMenu.home-mobile-menu,
+  body.shared-chrome-page #mobileMenu.mobile-menu{
+    top:18px!important;
+    left:7px!important;
+    width:min(58.2vw,252px)!important;
+    min-height:347px!important;
+    max-height:calc(100dvh - 30px)!important;
+    padding:32px 2px 16px!important;
+    background:rgba(171,171,171,.62)!important;
+    backdrop-filter:none!important;
+    overflow-x:hidden!important;
+  }
+  body.shared-chrome-page #mobileMenu nav a,
+  .home #homeMobileMenu .home-mobile-menu-nav a{
+    font:400 clamp(15px,4vw,17px)/1.43 Arial,sans-serif!important;
+    letter-spacing:-.035em!important;
+  }
+  body.shared-chrome-page #mobileMenu nav .mobile-menu-gap,
+  .home #homeMobileMenu .home-mobile-menu-gap{height:25px!important}
+  body.shared-chrome-page #mobileMenu nav .mobile-menu-gap.small,
+  .home #homeMobileMenu .home-mobile-menu-gap.small{height:18px!important}
+  body.shared-chrome-page #mobileMenu nav .mobile-login-link,
+  .home #homeMobileMenu .menu-label-dark{color:#000!important}
+  body.mobile-menu-open .home #homeMenuOpen.home-mobile-menu-button{color:#000!important}
+
+  /* ---------- requested darker mobile home background ---------- */
+  .home:after{
+    background:rgba(0,0,0,.16)!important;
+    pointer-events:none!important;
+  }
+  .home .home-mobile-header{z-index:730!important}
+  .home #homeMobileMenu{z-index:720!important}
+  .home .home-tools{z-index:740!important}
+  .home #supportLayer{z-index:750!important}
+
+  /* ---------- SUPPORT + language sizing ---------- */
+  .home .home-tools{
+    right:8px!important;
+    bottom:10px!important;
+    gap:6px!important;
+    align-items:flex-end!important;
+  }
+  .home .home-tools .home-support-btn,
+  body.shared-chrome-page>#sharedSupportOpen.shared-support-button{
+    width:84px!important;
+    min-width:84px!important;
+    height:28px!important;
+    padding:0 5px!important;
+    font:700 11px/28px Arial,sans-serif!important;
+    letter-spacing:-.25px!important;
+  }
+  .home .home-tools .lang-toggle{
+    width:70px!important;
+    min-width:70px!important;
+    height:28px!important;
+    padding:0 5px!important;
+    font:600 10px/28px Arial,sans-serif!important;
+    letter-spacing:0!important;
+  }
+  html[lang="ru"] body.shared-chrome-page>#sharedSupportOpen.shared-support-button{
+    font-size:9px!important;
+  }
+
+  /* One SHOP-style support window for HOME and every shared storefront page. */
+  .home #supportLayer .support-window,
+  body.shared-chrome-page>#sharedSupportLayer .shared-support-window,
+  body.shared-chrome-page>#sharedSupportLayer.open .shared-support-window{
+    right:7px!important;
+    bottom:10px!important;
+    width:min(334px,calc(100vw - 57px))!important;
+    height:min(490px,calc(100dvh - 78px))!important;
+    max-height:none!important;
+    transform:none!important;
+    transform-origin:right bottom!important;
+  }
+  .home #supportLayer .support-panel,
+  body.shared-chrome-page>#sharedSupportLayer .shared-support-window .support-panel{
+    position:absolute!important;
+    inset:0!important;
+    width:100%!important;
+    height:100%!important;
+    border:1px solid #111!important;
+    overflow:hidden!important;
+  }
+  .home #supportLayer .support-close,
+  body.shared-chrome-page>#sharedSupportLayer .shared-support-window .support-close{
+    left:-42px!important;
+    top:-42px!important;
+    width:42px!important;
+    height:42px!important;
+    border:1px solid #111!important;
+    font:300 39px/35px Arial,sans-serif!important;
+    padding:0 0 5px!important;
+  }
+  .home #supportLayer .support-brand,
+  body.shared-chrome-page>#sharedSupportLayer .shared-support-window .support-brand{
+    width:92%!important;
+    height:52px!important;
+    margin:6px auto 0!important;
+    padding:0!important;
+    background-size:100% auto!important;
+    background-position:center!important;
+  }
+  .home #supportLayer .support-chat-body,
+  body.shared-chrome-page>#sharedSupportLayer .shared-support-window .support-chat-body{
+    position:absolute!important;
+    left:0!important;
+    right:0!important;
+    top:58px!important;
+    bottom:0!important;
+    height:auto!important;
+    padding:11px 10px 10px!important;
+    background-size:45px 47px!important;
+  }
+  .home #supportLayer .support-form-heading,
+  body.shared-chrome-page>#sharedSupportLayer .shared-support-window .support-form-heading{
+    width:61%!important;
+    height:66px!important;
+    margin:2px auto 0!important;
+    border-radius:4px!important;
+    font-size:12px!important;
+  }
+  .home #supportLayer .support-mobile-intro,
+  body.shared-chrome-page>#sharedSupportLayer .shared-support-window .support-mobile-intro{
+    left:10px!important;
+    top:91px!important;
+    width:75%!important;
+    min-height:48px!important;
+    padding:8px!important;
+    font:400 13px/1.18 "DD Oswald","Arial Narrow",Arial,sans-serif!important;
+  }
+  .home #supportLayer .support-form,
+  body.shared-chrome-page>#sharedSupportLayer .shared-support-window .support-form{
+    left:10px!important;
+    right:10px!important;
+    top:151px!important;
+    bottom:9px!important;
+    gap:8px!important;
+  }
+  .home #supportLayer .support-form-input,
+  body.shared-chrome-page>#sharedSupportLayer .shared-support-window .support-form-input{
+    height:34px!important;
+    margin:0!important;
+    padding:6px 8px!important;
+    font-size:11px!important;
+  }
+  .home #supportLayer .support-form-message,
+  body.shared-chrome-page>#sharedSupportLayer .shared-support-window .support-form-message{
+    height:96px!important;
+    margin:0!important;
+    padding:7px 8px!important;
+    font-size:11px!important;
+  }
+  .home #supportLayer .support-form-submit,
+  body.shared-chrome-page>#sharedSupportLayer .shared-support-window .support-form-submit{
+    height:38px!important;
+    margin-top:auto!important;
+    font-size:12px!important;
+  }
+  .home #supportLayer .support-form-status,
+  body.shared-chrome-page>#sharedSupportLayer .shared-support-window .support-form-status{
+    min-height:20px!important;
+    font-size:9px!important;
+  }
+
+  /* ---------- ABOUT: match supplied mobile composition ---------- */
+  body.about-page .about-wrap{
+    width:100%!important;
+    margin:0!important;
+    padding:20px 15px 80px!important;
+  }
+  body.about-page .about-design-canvas{
+    width:100%!important;
+    height:auto!important;
+    transform:none!important;
+  }
+  body.about-page .about-copy-art{display:none!important}
+  body.about-page .about-copy-mobile{
+    display:block!important;
+    width:100%!important;
+    max-width:400px!important;
+    margin:0 auto!important;
+    padding:0!important;
+    text-align:center!important;
+    color:#111!important;
+    font:400 clamp(13px,3.35vw,14.5px)/1.19 "DD Oswald","Arial Narrow",Arial,sans-serif!important;
+    letter-spacing:-.02em!important;
+  }
+  body.about-page .about-copy-mobile strong{
+    font-family:Arial,sans-serif!important;
+    font-size:1.02em!important;
+    font-weight:800!important;
+  }
+  body.about-page .about-copy-mobile strong:first-of-type{
+    display:inline!important;
+    padding:0 3px 1px!important;
+    background:#050505!important;
+    color:#fff!important;
+    font-size:1.08em!important;
+    line-height:1!important;
+  }
+  body.about-page .about-copy-mobile em{
+    font-style:normal!important;
+    text-decoration:none!important;
+  }
+  body.about-page .about-copy-mobile em:first-of-type{
+    font-family:Arial,sans-serif!important;
+    font-weight:800!important;
+    text-transform:uppercase!important;
+  }
+  body.about-page .about-copy-mobile em:nth-of-type(2){
+    font-family:cursive!important;
+    font-weight:700!important;
+    font-size:1.08em!important;
+    text-decoration:underline!important;
+    text-underline-offset:1px!important;
+    text-transform:none!important;
+  }
+
+  /* ---------- CART: supplied mobile card scale/placement ---------- */
+  body.cart-page .cart-wrap{
+    width:100%!important;
+    margin:0!important;
+    padding:16px 25px 78px!important;
+  }
+  body.cart-page .cart-items{
+    display:flex!important;
+    flex-direction:column!important;
+    align-items:flex-start!important;
+    gap:28px!important;
+    width:100%!important;
+  }
+  body.cart-page .cart-card{
+    display:grid!important;
+    grid-template-columns:42% minmax(0,1fr)!important;
+    width:min(59vw,255px)!important;
+    height:130px!important;
+    min-height:130px!important;
+    margin:0!important;
+    padding:9px 7px!important;
+    background:#dedede!important;
+    overflow:visible!important;
+  }
+  body.cart-page .cart-card-media{
+    width:100%!important;
+    height:112px!important;
+  }
+  body.cart-page .cart-card-media img{
+    width:100%!important;
+    height:100%!important;
+    object-fit:contain!important;
+  }
+  body.cart-page .cart-card-copy{
+    position:relative!important;
+    width:100%!important;
+    height:112px!important;
+    padding:2px 2px 0 5px!important;
+  }
+  body.cart-page .cart-card-name,
+  body.cart-page .cart-card-price{
+    font:400 11px/1.25 "DD Oswald","Arial Narrow",Arial,sans-serif!important;
+    letter-spacing:-.02em!important;
+    overflow-wrap:anywhere!important;
+  }
+  body.cart-page .cart-card-price{margin-top:5px!important}
+  body.cart-page .cart-card-size{
+    display:block!important;
+    position:absolute!important;
+    right:7px!important;
+    bottom:32px!important;
+    font:700 21px/1 Arial,sans-serif!important;
+    color:#050505!important;
+  }
+  body.cart-page .cart-card-quantity{
+    position:absolute!important;
+    right:2px!important;
+    bottom:-1px!important;
+    width:29px!important;
+    height:28px!important;
+    margin:0!important;
+  }
+  body.cart-page .cart-qty-btn{display:none!important}
+  body.cart-page .cart-card-quantity input{
+    display:block!important;
+    width:29px!important;
+    height:28px!important;
+    margin:0!important;
+    padding:0!important;
+    border:0!important;
+    border-radius:0!important;
+    appearance:textfield!important;
+    background:#050505!important;
+    color:#fff!important;
+    text-align:center!important;
+    font:700 18px/28px Arial,sans-serif!important;
+  }
+  body.cart-page .cart-card-quantity input::-webkit-inner-spin-button,
+  body.cart-page .cart-card-quantity input::-webkit-outer-spin-button{appearance:none!important;margin:0!important}
+  body.cart-page .cart-card-qty{display:none!important}
+  body.cart-page .cart-card-remove{
+    position:absolute!important;
+    right:-1px!important;
+    top:-2px!important;
+    width:16px!important;
+    height:16px!important;
+    padding:0!important;
+    border:0!important;
+    background:transparent!important;
+    color:#777!important;
+    font:400 15px/16px Arial,sans-serif!important;
+    text-decoration:none!important;
+  }
+  body.cart-page .cart-summary{
+    display:flex!important;
+    flex-direction:column!important;
+    align-items:center!important;
+    width:100%!important;
+    margin:28px 0 0!important;
+    padding:0!important;
+    border:0!important;
+  }
+  body.cart-page .checkout-btn{
+    width:128px!important;
+    min-width:128px!important;
+    height:34px!important;
+    margin:0 auto 24px!important;
+    padding:0 9px!important;
+    font:600 16px/34px Arial,sans-serif!important;
+  }
+  body.cart-page .total-row{
+    display:grid!important;
+    grid-template-columns:1fr 1fr!important;
+    width:100%!important;
+    min-height:40px!important;
+    margin:0!important;
+    border-top:1px solid #111!important;
+    font:600 18px/40px Arial,sans-serif!important;
+    text-align:center!important;
+  }
+  body.cart-page .total-row span{
+    padding:0!important;
+    text-align:center!important;
+  }
+  body.cart-page .total-row span+span{
+    border-left:1px solid #111!important;
+    padding:0!important;
+  }
+
+  /* ---------- CHECKOUT: no empty gap; supplied closed/open summary ---------- */
+  body.checkout-page{overflow-y:auto!important}
+  body.checkout-page .checkout-stage{
+    position:static!important;
+    width:100%!important;
+    height:auto!important;
+    min-height:0!important;
+    transform:none!important;
+    overflow:visible!important;
+  }
+  body.checkout-page .checkout-wrap{
+    position:static!important;
+    display:flex!important;
+    flex-direction:column!important;
+    width:100%!important;
+    height:auto!important;
+    min-height:0!important;
+    margin:0!important;
+    padding:27px 0 82px!important;
+    overflow:visible!important;
+  }
+  body.checkout-page .checkout-left{display:contents!important}
+  body.checkout-page .mobile-order-toggle{
+    order:0!important;
+    display:flex!important;
+    justify-content:space-between!important;
+    align-items:center!important;
+    width:min(77vw,333px)!important;
+    height:28px!important;
+    margin:0 auto 13px!important;
+    padding:0 15px!important;
+    border:1px solid #111!important;
+    background:#fff!important;
+    color:#111!important;
+    font:400 12px/26px "DD Oswald","Arial Narrow",Arial,sans-serif!important;
+  }
+  body.checkout-page .mobile-order-toggle span:first-child::after{font-size:8px!important}
+  body.checkout-page .order-side{
+    order:1!important;
+    display:none!important;
+    position:static!important;
+    width:min(77vw,333px)!important;
+    height:auto!important;
+    margin:0 auto 14px!important;
+    padding:0!important;
+  }
+  body.checkout-page.mobile-order-open .order-side{display:block!important}
+  body.checkout-page .order-list{
+    position:static!important;
+    width:100%!important;
+    height:auto!important;
+    max-height:none!important;
+    margin:0!important;
+    padding:0!important;
+    overflow:visible!important;
+  }
+  body.checkout-page .order-line{
+    position:relative!important;
+    display:grid!important;
+    grid-template-columns:40% minmax(0,1fr)!important;
+    gap:9px!important;
+    width:100%!important;
+    height:74px!important;
+    min-height:74px!important;
+    margin:0 0 8px!important;
+    padding:0!important;
+    align-items:start!important;
+  }
+  body.checkout-page .order-thumb{
+    position:relative!important;
+    width:100%!important;
+    height:74px!important;
+    margin:0!important;
+    background:#ddd!important;
+  }
+  body.checkout-page .order-thumb img{
+    width:100%!important;
+    height:100%!important;
+    object-fit:contain!important;
+  }
+  body.checkout-page .order-qty-stack{
+    position:absolute!important;
+    right:0!important;
+    top:0!important;
+    display:flex!important;
+    flex-direction:column!important;
+    align-items:center!important;
+    width:25px!important;
+  }
+  body.checkout-page .qty-badge{
+    display:flex!important;
+    align-items:center!important;
+    justify-content:center!important;
+    width:24px!important;
+    height:23px!important;
+    margin:0!important;
+    padding:0!important;
+    background:#000!important;
+    color:#fff!important;
+    font:700 15px/23px Arial,sans-serif!important;
+  }
+  body.checkout-page .size-badge{
+    margin-top:2px!important;
+    font:700 10px/13px Arial,sans-serif!important;
+    color:#111!important;
+  }
+  body.checkout-page .order-meta{
+    width:100%!important;
+    padding:8px 0 0!important;
+    font:400 11px/1.3 "DD Oswald","Arial Narrow",Arial,sans-serif!important;
+    overflow-wrap:anywhere!important;
+  }
+  body.checkout-page .discount{
+    position:static!important;
+    display:grid!important;
+    grid-template-columns:1fr 51px!important;
+    width:74%!important;
+    height:28px!important;
+    margin:9px 0 8px!important;
+  }
+  body.checkout-page .discount input,
+  body.checkout-page .discount button{
+    width:100%!important;
+    min-width:0!important;
+    height:28px!important;
+    margin:0!important;
+    padding:0 6px!important;
+    border:1px solid #111!important;
+    background:#fff!important;
+    font:400 11px/26px "DD Oswald","Arial Narrow",Arial,sans-serif!important;
+  }
+  body.checkout-page .sum-row{
+    position:static!important;
+    display:flex!important;
+    justify-content:space-between!important;
+    width:68%!important;
+    height:auto!important;
+    margin:1px 0 0 4%!important;
+    padding:0!important;
+    font:400 12px/1.25 "DD Oswald","Arial Narrow",Arial,sans-serif!important;
+  }
+  body.checkout-page .sum-total{
+    margin-top:8px!important;
+    font:600 17px/1.2 Arial,sans-serif!important;
+  }
+  body.checkout-page .pay-methods{
+    order:2!important;
+    position:static!important;
+    display:grid!important;
+    grid-template-columns:repeat(6,minmax(0,1fr))!important;
+    gap:5px!important;
+    width:min(77vw,333px)!important;
+    height:auto!important;
+    margin:0 auto 14px!important;
+    padding:0!important;
+  }
+  body.checkout-page .pay-chip,
+  body.checkout-page .pay-chip:nth-child(n){
+    position:static!important;
+    grid-column:span 2!important;
+    width:100%!important;
+    height:28px!important;
+    padding:0 2px!important;
+    border:0!important;
+    outline:0!important;
+    background:#000!important;
+    color:#fff!important;
+    font:600 clamp(9px,2.7vw,12px)/28px Arial,sans-serif!important;
+    white-space:nowrap!important;
+  }
+  body.checkout-page .pay-chip:nth-child(4),
+  body.checkout-page .pay-chip:nth-child(5){grid-column:span 3!important}
+  body.checkout-page #checkoutForm.checkout-form{
+    order:3!important;
+    position:static!important;
+    display:block!important;
+    width:min(77vw,333px)!important;
+    height:auto!important;
+    min-height:0!important;
+    margin:0 auto!important;
+    padding:0!important;
+  }
+  body.checkout-page .checkout-section-title,
+  body.checkout-page .checkout-section-title.delivery-title{
+    position:static!important;
+    display:block!important;
+    width:100%!important;
+    height:auto!important;
+    margin:0 0 4px!important;
+    padding:0 0 0 14px!important;
+    font:400 17px/1.2 "DD Oswald","Arial Narrow",Arial,sans-serif!important;
+  }
+  body.checkout-page .checkout-section-title.delivery-title{margin-top:10px!important}
+  body.checkout-page #checkoutForm>input,
+  body.checkout-page #checkoutForm .country-field,
+  body.checkout-page #checkoutForm .form-row{
+    position:static!important;
+    width:100%!important;
+    height:auto!important;
+    margin:0 0 5px!important;
+  }
+  body.checkout-page #checkoutForm>input,
+  body.checkout-page #checkoutForm .form-row input,
+  body.checkout-page #checkoutForm .country-field select{
+    position:static!important;
+    box-sizing:border-box!important;
+    width:100%!important;
+    height:28px!important;
+    margin:0!important;
+    padding:0 15px!important;
+    border:1px solid #111!important;
+    border-radius:0!important;
+    background:#fff!important;
+    color:#111!important;
+    font:400 12px/26px "DD Oswald","Arial Narrow",Arial,sans-serif!important;
+    opacity:1!important;
+    visibility:visible!important;
+  }
+  body.checkout-page #checkoutForm .country-field{
+    position:relative!important;
+    display:block!important;
+    height:28px!important;
+  }
+  body.checkout-page #checkoutForm .country-field select{
+    padding-top:9px!important;
+    line-height:16px!important;
+  }
+  body.checkout-page #checkoutForm .country-label{
+    position:absolute!important;
+    left:14px!important;
+    top:1px!important;
+    z-index:2!important;
+    font:400 7px/9px "DD Oswald","Arial Narrow",Arial,sans-serif!important;
+    color:#999!important;
+  }
+  body.checkout-page #checkoutForm .form-row{
+    display:grid!important;
+    grid-template-columns:repeat(2,minmax(0,1fr))!important;
+    gap:5px!important;
+  }
+  body.checkout-page #checkoutForm .checkbox-line{
+    position:static!important;
+    display:flex!important;
+    align-items:center!important;
+    gap:4px!important;
+    width:100%!important;
+    height:auto!important;
+    min-height:18px!important;
+    margin:0 0 4px!important;
+    padding:0!important;
+    font:400 11px/1.2 "DD Oswald","Arial Narrow",Arial,sans-serif!important;
+  }
+  body.checkout-page #checkoutForm .checkbox-line input{
+    position:relative!important;
+    width:12px!important;
+    height:12px!important;
+    min-width:12px!important;
+    margin:0!important;
+    padding:0!important;
+    border:1px solid #111!important;
+  }
+  body.checkout-page #checkoutForm .fineprint{
+    position:static!important;
+    width:100%!important;
+    height:auto!important;
+    max-height:none!important;
+    margin:0 0 13px!important;
+    padding:0!important;
+    overflow:visible!important;
+    color:#999!important;
+    font:400 8px/1.25 "DD Oswald","Arial Narrow",Arial,sans-serif!important;
+  }
+  body.checkout-page #checkoutForm .review-btn{
+    position:static!important;
+    display:block!important;
+    width:100%!important;
+    height:29px!important;
+    margin:0!important;
+    padding:0!important;
+    border:0!important;
+    background:#000!important;
+    color:#fff!important;
+    font:600 13px/29px Arial,sans-serif!important;
+  }
+}
+
+@media (max-width:360px){
+  /* Keep the same composition on narrow phones without horizontal clipping. */
+  .home #homeMobileMenu.home-mobile-menu,
+  body.shared-chrome-page #mobileMenu.mobile-menu{width:62vw!important}
+  body.about-page .about-copy-mobile{font-size:12.4px!important}
+  body.cart-page .cart-card{width:66vw!important}
+  body.checkout-page .mobile-order-toggle,
+  body.checkout-page .order-side,
+  body.checkout-page .pay-methods,
+  body.checkout-page #checkoutForm.checkout-form{width:84vw!important}
+}
