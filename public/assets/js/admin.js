@@ -1,4 +1,4 @@
-let token=localStorage.getItem('dd_token')||'';
+let token='';
 let settings={};
 let menuDraft={groups:[],mobileLinks:[]};
 let adminState={};
@@ -8,6 +8,7 @@ let currentAdminTab='home';
 let galleryDraft=[];
 let productImagesDraft=[];
 let productSizesDraft=[];
+let paymentMethodsDraft=[];
 const DEFAULT_ABOUT_EN='About <strong>DEMI DEVILLE</strong> is a <em>PIONEERING DESIGN STUDIO BASED</em> in Paris, specializing in fashion, spatial design, and visual direction. <em>Established by Augustine</em> Oh &amp; Jude Lee, the <strong>studio redefines traditional</strong> design frameworks through methods of deconstruction, expansion, and reduction. <strong>By merging</strong> high fashion with a <strong>progressive design</strong> philosophy, DEMI DEVILLE delivers innovative, high-quality work that challenges visual conventions. <strong>The studio collaborates with a wide range of celebrities,</strong> artists, and brands, offering fresh design experiences that resonate with forward-thinking audiences around the world.';
 const DEFAULT_ABOUT_RU='DEMI DEVILLE — новаторская студия дизайна из Парижа. Мы работаем с модой, пространством и визуальным стилем. Основатели студии, Огюстин О и Джуд Ли, по-новому смотрят на привычные правила дизайна: разбирают формы, расширяют возможности и убирают лишнее. Мы объединяем высокую моду с современным подходом, создаём качественные проекты и сотрудничаем с артистами, брендами и творческими людьми по всему миру.';
 const $=(s,r=document)=>r.querySelector(s);
@@ -72,6 +73,13 @@ const DEFAULT_MENU_CONFIG={
     {id:'about',labelEn:'ABOUT',labelRu:'О НАС',href:'/about.html',enabled:true}
   ]
 };
+const DEFAULT_PAYMENT_METHODS=[
+  {id:'paypal',labelEn:'PayPal',labelRu:'PayPal',enabled:true},
+  {id:'applepay',labelEn:'ApplePay',labelRu:'ApplePay',enabled:true},
+  {id:'googlepay',labelEn:'GooglePay',labelRu:'GooglePay',enabled:true},
+  {id:'crypto',labelEn:'Crypto payment',labelRu:'Оплата криптовалютой',enabled:true},
+  {id:'card',labelEn:'Card payment',labelRu:'Оплата картой',enabled:true}
+];
 const clone=value=>JSON.parse(JSON.stringify(value));
 const uid=prefix=>`${prefix}-${Date.now().toString(36)}-${Math.random().toString(36).slice(2,7)}`;
 
@@ -106,8 +114,8 @@ async function boot(){
     const me=await api('/api/auth/me');
     if(me.user.role!=='admin')throw new Error('Доступ разрешён только администратору');
     $('#adminUser').textContent=me.user.email;$('#loginView').hidden=true;$('#loginView').style.display='none';$('#adminView').hidden=false;window.scrollTo(0,0);
-    const state=await api('/api/admin/state');adminState=state||{};settings=state.settings||{};productsDraft=Array.isArray(state.products)?state.products.map(clone):[];galleryDraft=Array.isArray(state.gallery)?state.gallery.map(clone):[];shopCategoriesDraft=normalizeShopCategories(settings.shopCategories);fillForm();fillShopEditor();fillGalleryEditor();fillExternalEditors();renderClientsAdmin();switchAdminTab(currentAdminTab);
-  }catch(e){token='';localStorage.removeItem('dd_token');showLogin(e.message)}
+    const state=await api('/api/admin/state');adminState=state||{};settings=state.settings||{};productsDraft=Array.isArray(state.products)?state.products.map(clone):[];galleryDraft=Array.isArray(state.gallery)?state.gallery.map(clone):[];shopCategoriesDraft=normalizeShopCategories(settings.shopCategories);paymentMethodsDraft=normalizePaymentMethods(settings.paymentMethods);fillForm();fillShopEditor();fillGalleryEditor();fillExternalEditors();renderClientsAdmin();renderPaymentEditor();switchAdminTab(currentAdminTab);
+  }catch(e){token='';showLogin(e.message)}
 }
 $('#adminLogin').addEventListener('submit',async e=>{
   e.preventDefault();const f=new FormData(e.currentTarget);
@@ -115,10 +123,10 @@ $('#adminLogin').addEventListener('submit',async e=>{
     const r=await fetch('/api/auth/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:f.get('email'),password:f.get('password')})});
     const data=await r.json().catch(()=>({}));if(!r.ok)throw new Error(data.error||'Не удалось войти');
     if(data.user?.role!=='admin')throw new Error('У этой учётной записи нет прав администратора');
-    token=data.token;localStorage.setItem('dd_token',token);await boot();
+    token=data.token;await boot();
   }catch(err){showNotice(err.message,'error','#loginNotice')}
 });
-$('#adminLogout').addEventListener('click',async()=>{try{await api('/api/auth/logout',{method:'POST'})}catch{}token='';localStorage.removeItem('dd_token');location.reload()});
+$('#adminLogout').addEventListener('click',async()=>{try{await api('/api/auth/logout',{method:'POST'})}catch{}token='';location.reload()});
 
 function normalizeMenu(raw){
   const d=clone(DEFAULT_MENU_CONFIG);if(!raw||typeof raw!=='object')return d;
@@ -230,7 +238,7 @@ async function save(){
   try{setBusy(true);settings=await api('/api/admin/settings',{method:'PUT',body:JSON.stringify(payload())});fillForm();showNotice('Изменения сохранены.')}catch(e){showNotice(e.message,'error')}finally{setBusy(false)}
 }
 $('#homeSettingsForm').addEventListener('submit',async e=>{e.preventDefault();await save()});
-$('#saveTop').addEventListener('click',()=>currentAdminTab==='shop'?saveShopSettings():currentAdminTab==='gallery'?saveGallerySettings():currentAdminTab==='instagram'?saveInstagramSettings():currentAdminTab==='contact'?saveContactSettings():currentAdminTab==='clients'?Promise.resolve():save());
+$('#saveTop').addEventListener('click',()=>currentAdminTab==='shop'?saveShopSettings():currentAdminTab==='gallery'?saveGallerySettings():currentAdminTab==='instagram'?saveInstagramSettings():currentAdminTab==='contact'?saveContactSettings():currentAdminTab==='payment'?savePaymentSettings():currentAdminTab==='clients'?Promise.resolve():save());
 
 function slugify(value){
   return String(value||'').trim().toLowerCase()
@@ -267,7 +275,7 @@ function fillShopEditor(){
   renderProductsAdmin();
 }
 function switchAdminTab(tab){
-  const allowed=['home','shop','gallery','instagram','contact','clients'];
+  const allowed=['home','shop','gallery','instagram','contact','clients','payment'];
   currentAdminTab=allowed.includes(tab)?tab:'home';
   $$('#adminView [data-admin-tab]').forEach(btn=>btn.classList.toggle('active',btn.dataset.adminTab===currentAdminTab));
   $('#homeSettingsForm').hidden=currentAdminTab!=='home';
@@ -276,10 +284,11 @@ function switchAdminTab(tab){
   $('#instagramEditor').hidden=currentAdminTab!=='instagram';
   $('#contactEditor').hidden=currentAdminTab!=='contact';
   $('#clientsEditor').hidden=currentAdminTab!=='clients';
-  const titles={home:'Главная страница',shop:'SHOP',gallery:'Галерея',instagram:'Instagram',contact:'Контакты',clients:'Клиенты'};
+  $('#paymentEditor').hidden=currentAdminTab!=='payment';
+  const titles={home:'Главная страница',shop:'SHOP',gallery:'Галерея',instagram:'Instagram',contact:'Контакты',clients:'Клиенты',payment:'Оплата'};
   $('#workspaceTitle').textContent=titles[currentAdminTab]||'Главная страница';
   const saveTop=$('#saveTop');saveTop.hidden=currentAdminTab==='clients';
-  saveTop.textContent=currentAdminTab==='shop'?'Сохранить магазин':currentAdminTab==='gallery'?'Сохранить галерею':currentAdminTab==='instagram'?'Сохранить Instagram':currentAdminTab==='contact'?'Сохранить контакты':'Сохранить';
+  saveTop.textContent=currentAdminTab==='shop'?'Сохранить магазин':currentAdminTab==='gallery'?'Сохранить галерею':currentAdminTab==='instagram'?'Сохранить Instagram':currentAdminTab==='contact'?'Сохранить контакты':currentAdminTab==='payment'?'Сохранить оплату':'Сохранить';
   if(currentAdminTab==='clients')renderClientsAdmin();
 }
 $$('[data-admin-tab]').forEach(btn=>btn.addEventListener('click',()=>switchAdminTab(btn.dataset.adminTab)));
@@ -587,5 +596,49 @@ $('#clientsAdminList')?.addEventListener('click',async e=>{
   const btn=e.target.closest('[data-delete-client-coupon]');if(!btn)return;const row=btn.closest('[data-coupon-id]');if(!row||!confirm('Удалить этот купон?'))return;
   try{await api(`/api/admin/coupons/${encodeURIComponent(row.dataset.couponId)}`,{method:'DELETE'});adminState.coupons=(adminState.coupons||[]).filter(c=>String(c.id)!==String(row.dataset.couponId));renderClientsAdmin();showNotice('Купон удалён.')}catch(err){showNotice(err.message,'error')}
 });
+
+
+function normalizePaymentMethods(raw){
+  const src=Array.isArray(raw)&&raw.length?raw:DEFAULT_PAYMENT_METHODS;
+  return src.map((m,i)=>({
+    id:String(m?.id||uid('payment')).trim()||uid('payment'),
+    labelEn:String(m?.labelEn||m?.label||`Payment ${i+1}`).trim(),
+    labelRu:String(m?.labelRu||m?.labelEn||m?.label||`Оплата ${i+1}`).trim(),
+    enabled:m?.enabled!==false
+  }));
+}
+function renderPaymentEditor(){
+  const box=$('#paymentMethodsEditor');if(!box)return;
+  if(!paymentMethodsDraft.length){box.innerHTML='<div class="empty-admin-list">Нет способов оплаты. Добавьте хотя бы один.</div>';return}
+  box.innerHTML=paymentMethodsDraft.map((m,i)=>`<div class="payment-method-row" data-payment-index="${i}">
+    <div class="payment-order">${i+1}</div>
+    <label class="field"><span>Название EN</span><input data-payment-field="labelEn" value="${esc(m.labelEn)}"></label>
+    <label class="field"><span>Название RU</span><input data-payment-field="labelRu" value="${esc(m.labelRu)}"></label>
+    <label class="check-control payment-enabled"><input type="checkbox" data-payment-field="enabled" ${m.enabled!==false?'checked':''}> Показывать</label>
+    <div class="payment-row-actions">
+      <button class="secondary-btn small" type="button" data-payment-up ${i===0?'disabled':''}>↑</button>
+      <button class="secondary-btn small" type="button" data-payment-down ${i===paymentMethodsDraft.length-1?'disabled':''}>↓</button>
+      <button class="danger-link" type="button" data-payment-delete>Удалить</button>
+    </div>
+  </div>`).join('');
+}
+$('#paymentMethodsEditor')?.addEventListener('input',e=>{
+  const row=e.target.closest('[data-payment-index]');const field=e.target.dataset.paymentField;if(!row||!field)return;
+  const item=paymentMethodsDraft[Number(row.dataset.paymentIndex)];if(!item)return;
+  item[field]=e.target.type==='checkbox'?e.target.checked:e.target.value;
+});
+$('#paymentMethodsEditor')?.addEventListener('click',e=>{
+  const row=e.target.closest('[data-payment-index]');if(!row)return;const i=Number(row.dataset.paymentIndex);
+  if(e.target.closest('[data-payment-delete]')){paymentMethodsDraft.splice(i,1);renderPaymentEditor();return}
+  if(e.target.closest('[data-payment-up]')&&i>0){[paymentMethodsDraft[i-1],paymentMethodsDraft[i]]=[paymentMethodsDraft[i],paymentMethodsDraft[i-1]];renderPaymentEditor();return}
+  if(e.target.closest('[data-payment-down]')&&i<paymentMethodsDraft.length-1){[paymentMethodsDraft[i+1],paymentMethodsDraft[i]]=[paymentMethodsDraft[i],paymentMethodsDraft[i+1]];renderPaymentEditor()}
+});
+$('#addPaymentMethod')?.addEventListener('click',()=>{paymentMethodsDraft.push({id:uid('payment'),labelEn:'New payment',labelRu:'Новый способ',enabled:true});renderPaymentEditor()});
+async function savePaymentSettings(){
+  const methods=normalizePaymentMethods(paymentMethodsDraft).filter(m=>m.labelEn||m.labelRu);
+  if(!methods.length||!methods.some(m=>m.enabled!==false))return showNotice('Оставьте минимум один включённый способ оплаты.','error');
+  try{setBusy(true);settings=await api('/api/admin/settings',{method:'PUT',body:JSON.stringify({paymentMethods:methods})});paymentMethodsDraft=normalizePaymentMethods(settings.paymentMethods);renderPaymentEditor();showNotice('Способы оплаты сохранены.')}catch(err){showNotice(err.message,'error')}finally{setBusy(false)}
+}
+$('#savePaymentSettings')?.addEventListener('click',savePaymentSettings);
 
 boot();

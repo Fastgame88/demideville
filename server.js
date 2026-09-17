@@ -2,6 +2,7 @@ const http = require('http');
 const fs = require('fs');
 const path = require('path');
 const crypto = require('crypto');
+const zlib = require('zlib');
 const { URL } = require('url');
 
 const PORT = Number(process.env.PORT || 3000);
@@ -9,6 +10,9 @@ const ROOT = __dirname;
 const PUBLIC = path.join(ROOT, 'public');
 const DB_PATH = path.join(ROOT, 'data', 'db.json');
 const UPLOAD_DIR = path.join(PUBLIC, 'uploads');
+
+let DB_CACHE = null;
+let DB_CACHE_MTIME = -1;
 
 function hashPassword(password, salt = crypto.randomBytes(16).toString('hex')) {
   const hash = crypto.scryptSync(password, salt, 64).toString('hex');
@@ -34,6 +38,13 @@ function defaultDb() {
       contactTitleEn:'CONTACT', contactTitleRu:'КОНТАКТЫ', contactTextEn:'Contact DEMI DEVILLE for orders, collaborations and client support.', contactTextRu:'Свяжитесь с DEMI DEVILLE по вопросам заказов, сотрудничества и поддержки.', contactPhone:'', contactAddressEn:'Paris, France', contactAddressRu:'Париж, Франция',
       baseFont: 'Arial, Helvetica, sans-serif', displayFont: 'Arial Black, Arial, Helvetica, sans-serif', condensedFont: 'Impact, Haettenschweiler, Arial Narrow Bold, sans-serif',
       baseFontSize: 16, shopPageSize: 8, shipping: 30, currency: '$',
+      paymentMethods: [
+        {id:'paypal',labelEn:'PayPal',labelRu:'PayPal',enabled:true},
+        {id:'applepay',labelEn:'ApplePay',labelRu:'ApplePay',enabled:true},
+        {id:'googlepay',labelEn:'GooglePay',labelRu:'GooglePay',enabled:true},
+        {id:'crypto',labelEn:'Crypto payment',labelRu:'Оплата криптовалютой',enabled:true},
+        {id:'card',labelEn:'Card payment',labelRu:'Оплата картой',enabled:true}
+      ],
       shopCategories: [
         { id:'jackets-coats', slug:'jackets-coats', labelEn:'JACKETS & COATS', labelRu:'КУРТКИ И ПАЛЬТО', enabled:true, showInMenu:true },
         { id:'jeans-pants-shorts', slug:'jeans-pants-shorts', labelEn:'JEANS, PANTS & SHORTS', labelRu:'ДЖИНСЫ, БРЮКИ И ШОРТЫ', enabled:true, showInMenu:true },
@@ -57,11 +68,19 @@ function loadDb() {
     const db = defaultDb();
     db.users.push({ id:id(), name:'Administrator', email:'admin@demideville.local', passwordHash:hashPassword('Admin123!'), role:'admin', newsletter:false, createdAt:now() });
     fs.writeFileSync(DB_PATH, JSON.stringify(db, null, 2));
+    DB_CACHE=db; DB_CACHE_MTIME=fs.statSync(DB_PATH).mtimeMs;
     return db;
   }
-  return JSON.parse(fs.readFileSync(DB_PATH, 'utf8'));
+  const mtime=fs.statSync(DB_PATH).mtimeMs;
+  if(DB_CACHE && DB_CACHE_MTIME===mtime)return DB_CACHE;
+  DB_CACHE=JSON.parse(fs.readFileSync(DB_PATH, 'utf8')); DB_CACHE_MTIME=mtime;
+  return DB_CACHE;
 }
-function saveDb(db) { fs.writeFileSync(DB_PATH, JSON.stringify(db, null, 2)); }
+function saveDb(db) {
+  fs.writeFileSync(DB_PATH, JSON.stringify(db, null, 2));
+  DB_CACHE=db;
+  try{DB_CACHE_MTIME=fs.statSync(DB_PATH).mtimeMs}catch{DB_CACHE_MTIME=-1}
+}
 function sanitizeUser(u) { return { id:u.id, name:u.name, email:u.email, role:u.role, newsletter:!!u.newsletter, createdAt:u.createdAt }; }
 function normalizeCouponCode(value){return String(value||'').trim().toUpperCase().replace(/\s+/g,'').slice(0,32)}
 function sanitizeCoupon(c){return {id:c.id,code:c.code,userId:c.userId,percent:Number(c.percent)||0,active:c.active!==false,createdAt:c.createdAt||'',note:String(c.note||'')}}
@@ -99,12 +118,23 @@ function publicProduct(product) {
 }
 function publicSite(db) { return { settings:db.settings, products:db.products.filter(p=>p.active!==false).sort((a,b)=>(a.sort||0)-(b.sort||0)).map(publicProduct), gallery:db.gallery.filter(g=>g.active!==false).sort((a,b)=>(a.sort||0)-(b.sort||0)), sections:db.sections.filter(s=>s.active!==false).sort((a,b)=>(a.sort||0)-(b.sort||0)) }; }
 function sendJson(res,status,obj){const b=Buffer.from(JSON.stringify(obj));res.writeHead(status,{'Content-Type':'application/json; charset=utf-8','Content-Length':b.length,'Cache-Control':'no-store'});res.end(b)}
+function sendPublicSite(req,res,db){
+  const body=Buffer.from(JSON.stringify(publicSite(db)));
+  const etag=`"${crypto.createHash('sha1').update(body).digest('hex')}"`;
+  const headers={'Content-Type':'application/json; charset=utf-8','Cache-Control':'no-cache, must-revalidate','ETag':etag,'Vary':'Accept-Encoding'};
+  if(req.headers['if-none-match']===etag){res.writeHead(304,headers);return res.end()}
+  const accepts=String(req.headers['accept-encoding']||'');
+  if(body.length>1024&&/\bgzip\b/.test(accepts)){
+    const compressed=zlib.gzipSync(body,{level:6});headers['Content-Encoding']='gzip';headers['Content-Length']=compressed.length;res.writeHead(200,headers);return res.end(compressed)
+  }
+  headers['Content-Length']=body.length;res.writeHead(200,headers);res.end(body)
+}
 function readJson(req){return new Promise((resolve,reject)=>{let size=0,parts=[];req.on('data',c=>{size+=c.length;if(size>30*1024*1024){reject(new Error('Body too large'));req.destroy();return}parts.push(c)});req.on('end',()=>{if(!parts.length)return resolve({});try{resolve(JSON.parse(Buffer.concat(parts).toString('utf8')))}catch{reject(new Error('Invalid JSON'))}});req.on('error',reject)})}
 function needUser(req,res,admin=false){const db=loadDb(),user=currentUser(req,db);if(!user){sendJson(res,401,{error:'Unauthorized'});return null}if(admin&&user.role!=='admin'){sendJson(res,403,{error:'Admin only'});return null}return {db,user}}
 
 async function handleApi(req,res,u){
   const p=u.pathname, m=req.method;
-  if(m==='GET'&&p==='/api/site') return sendJson(res,200,publicSite(loadDb()));
+  if(m==='GET'&&p==='/api/site') return sendPublicSite(req,res,loadDb());
   if(m==='GET'&&p.startsWith('/api/products/')){const pid=decodeURIComponent(p.slice('/api/products/'.length)),prod=loadDb().products.find(x=>x.id===pid&&x.active!==false);return prod?sendJson(res,200,publicProduct(prod)):sendJson(res,404,{error:'Product not found'});}
   if(m==='POST'&&p==='/api/auth/register'){
     const b=await readJson(req), name=String(b.name||'').trim(), email=String(b.email||'').trim().toLowerCase(), password=String(b.password||'');
@@ -213,11 +243,31 @@ async function handleApi(req,res,u){
   return sendJson(res,404,{error:'Not found'});
 }
 
-const MIME={'.html':'text/html; charset=utf-8','.css':'text/css; charset=utf-8','.js':'application/javascript; charset=utf-8','.json':'application/json; charset=utf-8','.jpg':'image/jpeg','.jpeg':'image/jpeg','.png':'image/png','.gif':'image/gif','.svg':'image/svg+xml','.webp':'image/webp','.ico':'image/x-icon'};
+const MIME={'.html':'text/html; charset=utf-8','.css':'text/css; charset=utf-8','.js':'application/javascript; charset=utf-8','.json':'application/json; charset=utf-8','.jpg':'image/jpeg','.jpeg':'image/jpeg','.png':'image/png','.gif':'image/gif','.svg':'image/svg+xml','.webp':'image/webp','.ico':'image/x-icon','.woff':'font/woff','.woff2':'font/woff2','.ttf':'font/ttf'};
+const TEXT_EXT=new Set(['.html','.css','.js','.json','.svg']);
 function serveStatic(req,res,u){
   let rel=decodeURIComponent(u.pathname);if(rel==='/')rel='/index.html';if(rel==='/admin')rel='/admin/index.html';if(!path.extname(rel))rel += '.html';
   const file=path.normalize(path.join(PUBLIC,rel));if(!file.startsWith(PUBLIC)){res.writeHead(403);return res.end('Forbidden')}
-  fs.stat(file,(err,st)=>{if(err||!st.isFile()){const nf=path.join(PUBLIC,'404.html');const b=fs.readFileSync(nf);res.writeHead(404,{'Content-Type':'text/html; charset=utf-8'});return res.end(b)}const ext=path.extname(file).toLowerCase();res.writeHead(200,{'Content-Type':MIME[ext]||'application/octet-stream','Cache-Control':ext==='.html'?'no-cache':'public, max-age=3600'});fs.createReadStream(file).pipe(res)});
+  fs.stat(file,(err,st)=>{
+    if(err||!st.isFile()){
+      const nf=path.join(PUBLIC,'404.html');const b=fs.readFileSync(nf);
+      res.writeHead(404,{'Content-Type':'text/html; charset=utf-8','Cache-Control':'no-store','Content-Length':b.length});return res.end(b)
+    }
+    const ext=path.extname(file).toLowerCase();
+    const etag=`W/"${st.size.toString(16)}-${Math.floor(st.mtimeMs).toString(16)}"`;
+    const headers={'Content-Type':MIME[ext]||'application/octet-stream','ETag':etag,'Last-Modified':st.mtime.toUTCString()};
+    if(ext==='.html')headers['Cache-Control']='no-cache, must-revalidate';
+    else if(['.jpg','.jpeg','.png','.gif','.webp','.svg','.ico','.woff','.woff2','.ttf'].includes(ext))headers['Cache-Control']='public, max-age=2592000, immutable';
+    else headers['Cache-Control']='public, max-age=604800';
+    if(req.headers['if-none-match']===etag){res.writeHead(304,headers);return res.end()}
+    if(req.method==='HEAD'){headers['Content-Length']=st.size;res.writeHead(200,headers);return res.end()}
+    const accepts=String(req.headers['accept-encoding']||'');
+    if(TEXT_EXT.has(ext)&&st.size>1024&&/\bgzip\b/.test(accepts)){
+      headers['Content-Encoding']='gzip';headers['Vary']='Accept-Encoding';res.writeHead(200,headers);
+      return fs.createReadStream(file).pipe(zlib.createGzip({level:6})).pipe(res);
+    }
+    headers['Content-Length']=st.size;res.writeHead(200,headers);fs.createReadStream(file).pipe(res)
+  });
 }
 
 const server=http.createServer(async(req,res)=>{try{const u=new URL(req.url,`http://${req.headers.host||'localhost'}`);if(u.pathname.startsWith('/api/'))return await handleApi(req,res,u);return serveStatic(req,res,u)}catch(e){console.error(e);if(!res.headersSent)sendJson(res,500,{error:'Server error'});else res.end()}});

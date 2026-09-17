@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>DEMI DEVILLE — Админ-панель</title>
-  <link rel="stylesheet" href="/assets/css/admin.css?v=20260917-v9">
+  <link rel="stylesheet" href="/assets/css/admin.css?v=20260917-v12">
 </head>
 <body>
   <section id="loginView" class="auth-screen">
@@ -36,6 +36,7 @@
         <button class="nav-item" type="button" data-admin-tab="instagram">INSTAGRAM</button>
         <button class="nav-item" type="button" data-admin-tab="contact">КОНТАКТЫ</button>
         <button class="nav-item" type="button" data-admin-tab="clients">КЛИЕНТЫ</button>
+        <button class="nav-item" type="button" data-admin-tab="payment">ОПЛАТА</button>
       </nav>
       <div class="side-bottom">
         <a class="side-link" href="/" target="_blank" rel="noreferrer">Открыть сайт ↗</a>
@@ -339,6 +340,24 @@
         </section>
       </section>
 
+      <section id="paymentEditor" class="editor-form" hidden>
+        <section class="device-card">
+          <div class="device-card-head">
+            <div><span class="device-badge">ОПЛАТА</span><h2>Способы оплаты</h2></div>
+            <a class="secondary-btn" href="/checkout.html" target="_blank" rel="noreferrer">Открыть оплату ↗</a>
+          </div>
+          <div class="payment-admin-toolbar">
+            <div class="admin-help-text">Добавляйте, изменяйте или удаляйте способы оплаты. Порядок здесь совпадает с порядком на странице оформления заказа.</div>
+            <button id="addPaymentMethod" class="secondary-btn" type="button">+ Добавить способ</button>
+          </div>
+          <div id="paymentMethodsEditor" class="payment-methods-editor"></div>
+        </section>
+        <div class="form-actions payment-actions">
+          <div class="save-note">На странице оплаты должен оставаться минимум один способ.</div>
+          <button id="savePaymentSettings" class="primary-btn large" type="button">Сохранить способы оплаты</button>
+        </div>
+      </section>
+
     </main>
   </div>
 
@@ -403,6 +422,6 @@
     </section>
   </div>
 
-  <script src="/assets/js/admin.js?v=20260917-v11"></script>
+  <script src="/assets/js/admin.js?v=20260917-v12"></script>
 </body>
 </html>

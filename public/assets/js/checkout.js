@@ -5,7 +5,11 @@
   const byId=Object.fromEntries((site.products||[]).map(p=>[String(p.id),p]));
   const cart=cartGet().filter(x=>byId[String(x.productId)]);
   const list=$('#orderList');
-  let pay='Card payment';
+  const DEFAULT_PAYMENT_METHODS=[{id:'paypal',labelEn:'PayPal',labelRu:'PayPal',enabled:true},{id:'applepay',labelEn:'ApplePay',labelRu:'ApplePay',enabled:true},{id:'googlepay',labelEn:'GooglePay',labelRu:'GooglePay',enabled:true},{id:'crypto',labelEn:'Crypto payment',labelRu:'Оплата криптовалютой',enabled:true},{id:'card',labelEn:'Card payment',labelRu:'Оплата картой',enabled:true}];
+  const configured=Array.isArray(site.settings?.paymentMethods)&&site.settings.paymentMethods.length?site.settings.paymentMethods:DEFAULT_PAYMENT_METHODS;
+  const paymentMethods=configured.filter(m=>m&&m.enabled!==false).map((m,i)=>({id:String(m.id||`payment-${i+1}`),labelEn:String(m.labelEn||m.label||`Payment ${i+1}`),labelRu:String(m.labelRu||m.labelEn||m.label||`Оплата ${i+1}`)}));
+  if(!paymentMethods.length)paymentMethods.push(DEFAULT_PAYMENT_METHODS[4]);
+  let pay=paymentMethods[0].id;
   let appliedCoupon=null;
   let discountAmount=0;
   const currentUser=window.ddCurrentUser?await window.ddCurrentUser():null;
@@ -22,6 +26,19 @@
   };
   const productName=p=>window.ddProductText?window.ddProductText(p,'name'):(p?.name||'');
 
+  const payBox=$('#paymentMethods');
+  const payLabel=m=>document.documentElement.lang==='ru'?(m.labelRu||m.labelEn):(m.labelEn||m.labelRu);
+  if(payBox){
+    payBox.classList.add(`pay-count-${Math.min(paymentMethods.length,12)}`);
+    const rows=Math.max(1,Math.ceil(paymentMethods.length/3));
+    payBox.style.setProperty('--pay-rows',String(rows));
+    payBox.style.setProperty('--pay-form-top',`${20+rows*54}px`);
+    payBox.innerHTML=paymentMethods.map((m,i)=>{
+      const row=Math.floor(i/3),start=row*3,count=Math.min(3,paymentMethods.length-start),index=i-start;
+      const gap=9,width=(535-gap*(count-1))/count,left=index*(width+gap);
+      return `<button type="button" class="pay-chip${i===0?' active':''}" data-pay="${esc(m.id)}" style="--pay-left:${left}px;--pay-top:${row*54}px;--pay-width:${width}px">${esc(payLabel(m))}</button>`;
+    }).join('');
+  }
   $$('.pay-chip').forEach(b=>b.onclick=()=>{
     $$('.pay-chip').forEach(x=>x.classList.remove('active'));
     b.classList.add('active');

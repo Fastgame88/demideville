@@ -1681,3 +1681,39 @@ body.shop-page .shop-page-number.is-active::after{
     height:2px!important;
   }
 }
+
+
+/* =========================================================
+   v12 — pagination spacing + dynamic payment methods
+   ========================================================= */
+body.shop-page .shop-footer{height:70px!important}
+body.shop-page .shop-page-number.is-active::after{bottom:-2px!important}
+body.shop-page .shop-terms{margin-top:15px!important}
+@media (max-width:900px){
+  body.shop-page .shop-page-number.is-active::after{bottom:-1px!important}
+  body.shop-page .shop-terms{margin-top:14px!important}
+}
+@media (min-width:901px){
+  body.checkout-page .pay-methods.dynamic-payments .pay-chip:nth-child(n){
+    left:var(--pay-left,0px)!important;
+    top:var(--pay-top,0px)!important;
+    width:var(--pay-width,172px)!important;
+  }
+  body.checkout-page .pay-methods.dynamic-payments{height:calc(var(--pay-rows,2) * 54px - 7px)!important}
+  body.checkout-page .pay-methods.dynamic-payments + #checkoutForm.checkout-form{top:var(--pay-form-top,128px)!important}
+}
+@media (max-width:900px){
+  body.checkout-page .pay-methods.dynamic-payments{
+    display:grid!important;
+    grid-template-columns:repeat(6,minmax(0,1fr))!important;
+    gap:7px!important;
+    height:auto!important;
+  }
+  body.checkout-page .pay-methods.dynamic-payments .pay-chip:nth-child(n){
+    position:static!important;width:auto!important;height:42px!important;line-height:42px!important;grid-column:span 2!important;
+  }
+  body.checkout-page .pay-methods.dynamic-payments.pay-count-1 .pay-chip{grid-column:span 6!important}
+  body.checkout-page .pay-methods.dynamic-payments.pay-count-2 .pay-chip{grid-column:span 3!important}
+  body.checkout-page .pay-methods.dynamic-payments.pay-count-4 .pay-chip{grid-column:span 3!important}
+  body.checkout-page .pay-methods.dynamic-payments.pay-count-5 .pay-chip:nth-child(n+4){grid-column:span 3!important}
+}
