@@ -38,7 +38,7 @@
     'Privacy policy':'Политикой конфиденциальности','Terms of service':'Условиями обслуживания','and':'и',
     'Review order':'Проверить заказ','Order summary':'Состав заказа','Discount Code':'Промокод','Apply':'Применить',
     'Subtotal':'Сумма товаров','Shipping':'Доставка','Total':'Итого',
-    'Terms and polices':'Условия и правила','No products yet.':'Товаров пока нет.',
+    'Terms and polices':'Условия и правила','Terms and policies':'Условия и правила','No products yet.':'Товаров пока нет.',
     'No gallery items.':'Пока нет фотографий.','Always up to date: unsigned1':'Всегда в курсе: unsigned1',
     'Section not found':'Раздел не найден','Page not found.':'Страница не найдена.','Back home':'На главную',
     'Invitation T-Shirt - Black':'Футболка Invitation — чёрная',

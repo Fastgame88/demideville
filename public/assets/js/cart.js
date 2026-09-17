@@ -44,6 +44,7 @@
       const p=byId[x.productId];if(!p)return false;const stock=maxStock(p,x.size);if(stock<=0)return false;if(Number.isFinite(stock))x.qty=Math.max(1,Math.min(Math.floor(stock),Number(x.qty)||1));return true;
     });
     cartSet(cart);
+    document.body.classList.toggle('cart-is-empty',!cart.length);
     if(!cart.length){
       box.innerHTML='<div class="empty-cart">Your bag is empty.</div>';
       $('#cartTotal').textContent=money(0,curr);
