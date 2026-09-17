@@ -14,8 +14,9 @@
       'lobby-hoody':'/assets/images/product-hoodie-ref.png',
       'inside-jeans':'/assets/images/product-jeans-ref.png'
     };
-    return known[p.id]||p.image;
+    return (window.ddProductImages?.(p)||[])[0]||known[p.id]||p.image;
   };
+  const productName=p=>window.ddProductText?window.ddProductText(p,'name'):(p?.name||'');
 
   $$('.pay-chip').forEach(b=>b.onclick=()=>{
     $$('.pay-chip').forEach(x=>x.classList.remove('active'));
@@ -29,10 +30,10 @@
       const qty=Math.max(1,Number(x.qty)||1);
       return `<div class="order-line">
         <div class="order-thumb">
-          <img src="${esc(preferredCheckoutImage(p))}" alt="${esc(p.name)}">
+          <img src="${esc(preferredCheckoutImage(p))}" alt="${esc(productName(p))}">
           <div class="order-qty-stack"><b class="qty-badge">${qty}</b><span class="size-badge">${esc(x.size||'')}</span></div>
         </div>
-        <div class="order-meta"><div>${esc(p.name)}</div><div>${money(p.price,curr)}</div></div>
+        <div class="order-meta"><div>${esc(productName(p))}</div><div>${money(p.price,curr)}</div></div>
       </div>`;
     }).join('');
 

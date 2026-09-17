@@ -32,7 +32,13 @@ function defaultDb() {
       aboutHtml: 'About <mark>DEMI DEVILLE</mark> is a <strong>PIONEERING DESIGN STUDIO BASED</strong> in Paris, specializing in fashion, spatial design, and visual direction.<br><em>Established by Augustine</em> Oh & Jude Lee, the <strong>studio redefines traditional</strong> design frameworks through methods of deconstruction, expansion, and reduction. <strong>By merging</strong> high fashion with a <strong>progressive design</strong> philosophy, DEMI DEVILLE delivers innovative, high-quality work that challenges visual conventions. <strong>The studio collaborates with a wide range of celebrities,</strong> artists, and brands, offering fresh design experiences that resonate with forward-thinking audiences around the world.',
       contact: 'contact@demideville.example', instagram: 'https://instagram.com/', supportText: 'SUPPORT',
       baseFont: 'Arial, Helvetica, sans-serif', displayFont: 'Arial Black, Arial, Helvetica, sans-serif', condensedFont: 'Impact, Haettenschweiler, Arial Narrow Bold, sans-serif',
-      baseFontSize: 16, shopPageSize: 12, shipping: 30, currency: '$'
+      baseFontSize: 16, shopPageSize: 10, shipping: 30, currency: '$',
+      shopCategories: [
+        { id:'jackets-coats', slug:'jackets-coats', labelEn:'JACKETS & COATS', labelRu:'КУРТКИ И ПАЛЬТО', enabled:true, showInMenu:true },
+        { id:'jeans-pants-shorts', slug:'jeans-pants-shorts', labelEn:'JEANS, PANTS & SHORTS', labelRu:'ДЖИНСЫ, БРЮКИ И ШОРТЫ', enabled:true, showInMenu:true },
+        { id:'tops', slug:'tops', labelEn:'TOPS', labelRu:'ВЕРХ', enabled:true, showInMenu:true },
+        { id:'bags-accessories', slug:'bags-accessories', labelEn:'BAGS & ACCESSORIES', labelRu:'СУМКИ И АКСЕССУАРЫ', enabled:true, showInMenu:true }
+      ]
     },
     products: [
       { id:'invitation-tshirt', name:'Invitation T-Shirt - Black', price:55, image:'/assets/images/product-tshirt.jpg', description:'Black invitation graphic T-shirt.', fabric:'Cotton blend', sizes:['XS','S','M','L','XL'], active:true, sort:1 },
@@ -62,7 +68,30 @@ function currentUser(req, db) {
   const s=db.sessions.find(x=>x.token===token && new Date(x.expiresAt)>new Date());
   return s ? db.users.find(u=>u.id===s.userId)||null : null;
 }
-function publicSite(db) { return { settings:db.settings, products:db.products.filter(p=>p.active!==false).sort((a,b)=>(a.sort||0)-(b.sort||0)), gallery:db.gallery.filter(g=>g.active!==false).sort((a,b)=>(a.sort||0)-(b.sort||0)), sections:db.sections.filter(s=>s.active!==false).sort((a,b)=>(a.sort||0)-(b.sort||0)) }; }
+function productImages(product) {
+  const out=[];
+  for (const value of (Array.isArray(product?.images)?product.images:[])) {
+    const url=String(value||'').trim(); if(url&&!out.includes(url)) out.push(url);
+  }
+  const primary=String(product?.image||'').trim(); if(primary&&!out.includes(primary)) out.unshift(primary);
+  return out;
+}
+function productVariants(product) {
+  if (Array.isArray(product?.variants) && product.variants.length) {
+    return product.variants.map(v=>({size:String(v?.size||'').trim(),stock:Math.max(0,Math.floor(Number(v?.stock)||0))})).filter(v=>v.size);
+  }
+  return (Array.isArray(product?.sizes)?product.sizes:[]).map(size=>({size:String(size||'').trim(),stock:null})).filter(v=>v.size);
+}
+function publicProduct(product) {
+  const out={...product};
+  out.images=productImages(product);
+  if(out.images.length)out.image=out.images[0];
+  const variants=productVariants(product);
+  out.variants=variants;
+  out.sizes=variants.filter(v=>v.stock===null||v.stock>0).map(v=>v.size);
+  return out;
+}
+function publicSite(db) { return { settings:db.settings, products:db.products.filter(p=>p.active!==false).sort((a,b)=>(a.sort||0)-(b.sort||0)).map(publicProduct), gallery:db.gallery.filter(g=>g.active!==false).sort((a,b)=>(a.sort||0)-(b.sort||0)), sections:db.sections.filter(s=>s.active!==false).sort((a,b)=>(a.sort||0)-(b.sort||0)) }; }
 function sendJson(res,status,obj){const b=Buffer.from(JSON.stringify(obj));res.writeHead(status,{'Content-Type':'application/json; charset=utf-8','Content-Length':b.length,'Cache-Control':'no-store'});res.end(b)}
 function readJson(req){return new Promise((resolve,reject)=>{let size=0,parts=[];req.on('data',c=>{size+=c.length;if(size>30*1024*1024){reject(new Error('Body too large'));req.destroy();return}parts.push(c)});req.on('end',()=>{if(!parts.length)return resolve({});try{resolve(JSON.parse(Buffer.concat(parts).toString('utf8')))}catch{reject(new Error('Invalid JSON'))}});req.on('error',reject)})}
 function needUser(req,res,admin=false){const db=loadDb(),user=currentUser(req,db);if(!user){sendJson(res,401,{error:'Unauthorized'});return null}if(admin&&user.role!=='admin'){sendJson(res,403,{error:'Admin only'});return null}return {db,user}}
@@ -70,7 +99,7 @@ function needUser(req,res,admin=false){const db=loadDb(),user=currentUser(req,db
 async function handleApi(req,res,u){
   const p=u.pathname, m=req.method;
   if(m==='GET'&&p==='/api/site') return sendJson(res,200,publicSite(loadDb()));
-  if(m==='GET'&&p.startsWith('/api/products/')){const pid=decodeURIComponent(p.slice('/api/products/'.length)),prod=loadDb().products.find(x=>x.id===pid&&x.active!==false);return prod?sendJson(res,200,prod):sendJson(res,404,{error:'Product not found'});}
+  if(m==='GET'&&p.startsWith('/api/products/')){const pid=decodeURIComponent(p.slice('/api/products/'.length)),prod=loadDb().products.find(x=>x.id===pid&&x.active!==false);return prod?sendJson(res,200,publicProduct(prod)):sendJson(res,404,{error:'Product not found'});}
   if(m==='POST'&&p==='/api/auth/register'){
     const b=await readJson(req), name=String(b.name||'').trim(), email=String(b.email||'').trim().toLowerCase(), password=String(b.password||'');
     if(name.length<2||!email.includes('@')||password.length<6)return sendJson(res,400,{error:'Enter a valid name, email and password (6+ characters).'});
@@ -93,14 +122,59 @@ async function handleApi(req,res,u){
     return sendJson(res,200,{ok:true,id:request.id});
   }
   if(m==='POST'&&p==='/api/orders'){
-    const b=await readJson(req),db=loadDb(),user=currentUser(req,db);if(!Array.isArray(b.items)||!b.items.length)return sendJson(res,400,{error:'Cart is empty.'});let subtotal=0,items=[];for(const x of b.items){const prod=db.products.find(q=>q.id===x.productId&&q.active!==false);if(!prod)continue;const qty=Math.max(1,Math.min(99,Number(x.qty)||1));subtotal+=prod.price*qty;items.push({productId:prod.id,name:prod.name,price:prod.price,qty,size:x.size||'',image:prod.image})}const order={id:id(),number:`DD-${String(Date.now()).slice(-8)}`,userId:user?.id||null,email:b.email||user?.email||'',customer:b.customer||{},items,subtotal,shipping:Number(db.settings.shipping||0),total:subtotal+Number(db.settings.shipping||0),paymentMethod:b.paymentMethod||'Card payment',status:'new',createdAt:now()};db.orders.unshift(order);saveDb(db);return sendJson(res,200,{ok:true,order});
+    const b=await readJson(req),db=loadDb(),user=currentUser(req,db);
+    if(!Array.isArray(b.items)||!b.items.length)return sendJson(res,400,{error:'Cart is empty.'});
+    let subtotal=0;const items=[];const reservations=[];
+    for(const x of b.items){
+      const prod=db.products.find(q=>String(q.id)===String(x.productId)&&q.active!==false);if(!prod)continue;
+      const qty=Math.max(1,Math.min(99,Math.floor(Number(x.qty)||1)));const size=String(x.size||'').trim();
+      const variants=productVariants(prod);
+      if(Array.isArray(prod.variants)&&prod.variants.length){
+        const variant=variants.find(v=>v.size.toUpperCase()===size.toUpperCase());
+        if(!variant||variant.stock<=0)return sendJson(res,409,{error:`Size ${size||'—'} is out of stock for ${prod.name}.`});
+        if(qty>variant.stock)return sendJson(res,409,{error:`Only ${variant.stock} item(s) left for ${prod.name}, size ${variant.size}.`});
+        reservations.push({prod,size:variant.size,qty});
+      }
+      subtotal+=(Number(prod.price)||0)*qty;
+      const images=productImages(prod);
+      items.push({productId:prod.id,name:prod.name,nameRu:prod.nameRu||'',price:Number(prod.price)||0,qty,size,image:images[0]||prod.image||''});
+    }
+    if(!items.length)return sendJson(res,400,{error:'Cart is empty.'});
+    for(const r of reservations){
+      const raw=(r.prod.variants||[]).find(v=>String(v?.size||'').trim().toUpperCase()===String(r.size).trim().toUpperCase());
+      if(raw)raw.stock=Math.max(0,Math.floor(Number(raw.stock)||0)-r.qty);
+      r.prod.sizes=(r.prod.variants||[]).filter(v=>Number(v?.stock)>0).map(v=>String(v.size));
+    }
+    const order={id:id(),number:`DD-${String(Date.now()).slice(-8)}`,userId:user?.id||null,email:b.email||user?.email||'',customer:b.customer||{},items,subtotal,shipping:Number(db.settings.shipping||0),total:subtotal+Number(db.settings.shipping||0),paymentMethod:b.paymentMethod||'Card payment',status:'new',createdAt:now()};
+    db.orders.unshift(order);saveDb(db);return sendJson(res,200,{ok:true,order});
   }
   if(m==='GET'&&p==='/api/admin/state'){const a=needUser(req,res,true);if(!a)return;return sendJson(res,200,{settings:a.db.settings,products:a.db.products,gallery:a.db.gallery,sections:a.db.sections,orders:a.db.orders,supportMessages:Array.isArray(a.db.supportMessages)?a.db.supportMessages:[],users:a.db.users.map(sanitizeUser)});}
   if(m==='PUT'&&p==='/api/admin/settings'){const a=needUser(req,res,true);if(!a)return;const b=await readJson(req);a.db.settings={...a.db.settings,...b};saveDb(a.db);return sendJson(res,200,a.db.settings);}
   if(m==='POST'&&p==='/api/admin/upload'){const a=needUser(req,res,true);if(!a)return;const b=await readJson(req),match=String(b.dataUrl||'').match(/^data:(image\/[a-zA-Z0-9.+-]+);base64,(.+)$/);if(!match)return sendJson(res,400,{error:'Invalid image data'});const ext=(match[1].split('/')[1]||'png').replace('jpeg','jpg').replace(/[^a-z0-9]/gi,''),safe=String(b.filename||'image').replace(/[^a-zA-Z0-9._-]/g,'-').replace(/\.[^.]+$/,'').slice(0,60)||'image',name=`${Date.now()}-${safe}.${ext}`;fs.mkdirSync(UPLOAD_DIR,{recursive:true});fs.writeFileSync(path.join(UPLOAD_DIR,name),Buffer.from(match[2],'base64'));return sendJson(res,200,{url:`/uploads/${name}`});}
   if(m==='POST'&&p==='/api/admin/change-password'){const a=needUser(req,res,true);if(!a)return;const b=await readJson(req);if(String(b.newPassword||'').length<8)return sendJson(res,400,{error:'New password must be at least 8 characters.'});if(!verifyPassword(String(b.currentPassword||''),a.user.passwordHash))return sendJson(res,400,{error:'Current password is wrong.'});a.user.passwordHash=hashPassword(b.newPassword);saveDb(a.db);return sendJson(res,200,{ok:true});}
   const crud=p.match(/^\/api\/admin\/(products|gallery|sections)(?:\/([^/]+))?$/);
-  if(crud){const a=needUser(req,res,true);if(!a)return;const collection=crud[1],objId=crud[2]?decodeURIComponent(crud[2]):null;if(m==='POST'&&!objId){const b=await readJson(req),obj={...b,id:b.id||id()};a.db[collection].push(obj);saveDb(a.db);return sendJson(res,200,obj)}if(m==='PUT'&&objId){const b=await readJson(req),idx=a.db[collection].findIndex(x=>x.id===objId);if(idx<0)return sendJson(res,404,{error:'Not found'});a.db[collection][idx]={...a.db[collection][idx],...b,id:objId};saveDb(a.db);return sendJson(res,200,a.db[collection][idx])}if(m==='DELETE'&&objId){a.db[collection]=a.db[collection].filter(x=>x.id!==objId);saveDb(a.db);return sendJson(res,200,{ok:true})}}
+  if(crud){
+    const a=needUser(req,res,true);if(!a)return;const collection=crud[1],objId=crud[2]?decodeURIComponent(crud[2]):null;
+    if(m==='POST'&&!objId){
+      const b=await readJson(req),obj={...b,id:b.id||id()};
+      if(collection==='products'){
+        if(a.db.products.some(x=>String(x.id)===String(obj.id)))return sendJson(res,409,{error:'Product ID already exists'});
+        obj.images=productImages(obj);obj.image=obj.images[0]||String(obj.image||'');
+        if(Array.isArray(obj.variants))obj.sizes=productVariants(obj).filter(v=>v.stock===null||v.stock>0).map(v=>v.size);
+      }
+      a.db[collection].push(obj);saveDb(a.db);return sendJson(res,200,obj)
+    }
+    if(m==='PUT'&&objId){
+      const b=await readJson(req),idx=a.db[collection].findIndex(x=>String(x.id)===String(objId));if(idx<0)return sendJson(res,404,{error:'Not found'});
+      const next={...a.db[collection][idx],...b,id:objId};
+      if(collection==='products'){
+        next.images=productImages(next);next.image=next.images[0]||String(next.image||'');
+        if(Array.isArray(next.variants))next.sizes=productVariants(next).filter(v=>v.stock===null||v.stock>0).map(v=>v.size);
+      }
+      a.db[collection][idx]=next;saveDb(a.db);return sendJson(res,200,next)
+    }
+    if(m==='DELETE'&&objId){a.db[collection]=a.db[collection].filter(x=>String(x.id)!==String(objId));saveDb(a.db);return sendJson(res,200,{ok:true})}
+  }
   const om=p.match(/^\/api\/admin\/orders\/([^/]+)$/);if(om&&m==='PUT'){const a=needUser(req,res,true);if(!a)return;const b=await readJson(req),o=a.db.orders.find(x=>x.id===decodeURIComponent(om[1]));if(!o)return sendJson(res,404,{error:'Order not found'});Object.assign(o,b);saveDb(a.db);return sendJson(res,200,o)}
   return sendJson(res,404,{error:'Not found'});
 }

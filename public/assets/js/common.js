@@ -5,6 +5,31 @@ const esc = v => String(v??'').replace(/[&<>'"]/g,c=>({"&":"&amp;","<":"&lt;",">
 function money(v,s='$'){ return `${Number(v||0).toFixed(Number(v)%1?2:0)}${s}`; }
 function getToken(){return localStorage.getItem('dd_token')||''}
 function authHeaders(){const t=getToken(); return t?{'Authorization':`Bearer ${t}`}:{}}
+function storefrontLang(){return document.documentElement.lang==='ru'?'ru':'en'}
+function productText(product,field){
+  if(!product)return'';
+  if(storefrontLang()==='ru'){
+    const ru=product[`${field}Ru`];if(String(ru??'').trim())return String(ru);
+  }
+  return String(product[field]??'');
+}
+function productImagesList(product){
+  const out=[];
+  for(const value of (Array.isArray(product?.images)?product.images:[])){const url=String(value||'').trim();if(url&&!out.includes(url))out.push(url)}
+  const primary=String(product?.image||'').trim();if(primary&&!out.includes(primary))out.unshift(primary);
+  return out;
+}
+function productVariantList(product){
+  if(Array.isArray(product?.variants)&&product.variants.length){
+    return product.variants.map(v=>({size:String(v?.size||'').trim(),stock:Math.max(0,Math.floor(Number(v?.stock)||0))})).filter(v=>v.size);
+  }
+  return (Array.isArray(product?.sizes)?product.sizes:[]).map(size=>({size:String(size||'').trim(),stock:null})).filter(v=>v.size);
+}
+function productStock(product,size){
+  const normalized=normalizeCartSize(size);const list=productVariantList(product);const hit=list.find(v=>normalizeCartSize(v.size)===normalized);
+  if(!hit)return 0;return hit.stock===null?Infinity:hit.stock;
+}
+window.ddProductText=productText;window.ddProductImages=productImagesList;window.ddProductVariants=productVariantList;window.ddProductStock=productStock;
 
 const DEFAULT_MENU_CONFIG={
   groups:[
@@ -64,6 +89,17 @@ function getMenuConfig(settings={}){
   const fallbackMobile=defaults.mobileLinks;
   const sourceMobile=Array.isArray(raw.mobileLinks)?raw.mobileLinks:fallbackMobile;
   const mobileLinks=sourceMobile.map((item,index)=>normalizeMenuItem(item,fallbackMobile[index]||{},contact));
+  const categories=Array.isArray(settings.shopCategories)?settings.shopCategories.filter(c=>c&&c.enabled!==false&&c.showInMenu!==false):[];
+  if(categories.length){
+    const shop=groups.find(g=>g.id==='shop');
+    if(shop){
+      const keep=(shop.items||[]).filter(item=>!String(item.href||'').includes('/shop.html?category='));
+      const allItem=keep.find(item=>String(item.href||'').replace(/\?.*$/,'')==='/shop.html')||normalizeMenuItem({id:'shop-all',labelEn:'SHOP ALL',labelRu:'ВСЕ ТОВАРЫ',href:'/shop.html',enabled:true,showMobile:true},{},contact);
+      const other=keep.filter(item=>item!==allItem);
+      const generated=categories.map((c,index)=>normalizeMenuItem({id:`category-${c.slug||c.id||index}`,labelEn:c.labelEn||c.name||c.slug,labelRu:c.labelRu||c.labelEn||c.name||c.slug,href:`/shop.html?category=${encodeURIComponent(c.slug||c.id||'')}`,enabled:true,showMobile:true},{},contact));
+      shop.items=[allItem,...generated,...other];
+    }
+  }
   return {groups,mobileLinks};
 }
 function menuLang(){return document.documentElement.lang==='ru'?'ru':'en'}

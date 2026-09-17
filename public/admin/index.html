@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>DEMI DEVILLE — Админ-панель</title>
-  <link rel="stylesheet" href="/assets/css/admin.css?v=20260917-admin-menu-v3">
+  <link rel="stylesheet" href="/assets/css/admin.css?v=20260917-admin-shop-v4">
 </head>
 <body>
   <section id="loginView" class="auth-screen">
@@ -30,7 +30,8 @@
       <div class="side-brand">DEMI DEVILLE</div>
       <div class="side-caption">АДМИН</div>
       <nav class="side-nav">
-        <button class="nav-item active" type="button">Главная страница</button>
+        <button class="nav-item active" type="button" data-admin-tab="home">Главная страница</button>
+        <button class="nav-item" type="button" data-admin-tab="shop">Shop.html</button>
       </nav>
       <div class="side-bottom">
         <a class="side-link" href="/" target="_blank" rel="noreferrer">Открыть сайт ↗</a>
@@ -42,7 +43,7 @@
       <header class="workspace-head">
         <div>
           <div class="eyebrow">Редактор сайта</div>
-          <h1>Главная страница</h1>
+          <h1 id="workspaceTitle">Главная страница</h1>
         </div>
         <div class="head-actions">
           <span id="adminUser" class="admin-user"></span>
@@ -225,9 +226,121 @@
           <button class="primary-btn large" type="submit">Сохранить изменения</button>
         </div>
       </form>
+
+      <section id="shopEditor" class="editor-form shop-editor" hidden>
+        <section class="device-card shop-settings-card">
+          <div class="device-card-head">
+            <div>
+              <span class="device-badge">SHOP</span>
+              <h2>Настройки страницы Shop.html</h2>
+            </div>
+            <a class="secondary-btn shop-open-link" href="/shop.html" target="_blank" rel="noreferrer">Открыть Shop.html ↗</a>
+          </div>
+          <div class="shop-settings-grid">
+            <label class="field">
+              <span>Сколько товаров показывать на одной странице</span>
+              <input id="shopPageSize" type="number" min="1" max="100" step="1" value="10">
+            </label>
+            <div class="shop-help">Категории работают через одну страницу: <strong>shop.html?category=...</strong>. Отдельные копии страниц создавать не нужно — дизайн остаётся один, а товары фильтруются автоматически.</div>
+          </div>
+        </section>
+
+        <section class="device-card categories-card">
+          <div class="device-card-head">
+            <div>
+              <span class="device-badge">КАТЕГОРИИ</span>
+              <h2>Разделы магазина</h2>
+            </div>
+            <button id="addShopCategory" class="secondary-btn" type="button">+ Добавить раздел</button>
+          </div>
+          <div class="shop-help category-help">Для каждого раздела автоматически создаётся ссылка вида <code>/shop.html?category=slug</code>. Можно показывать или скрывать раздел в меню SHOP.</div>
+          <div id="shopCategoriesEditor" class="category-list"></div>
+        </section>
+
+        <section class="device-card products-admin-card">
+          <div class="device-card-head">
+            <div>
+              <span class="device-badge">ТОВАРЫ</span>
+              <h2>Товары</h2>
+            </div>
+            <button id="addProductAdmin" class="primary-btn" type="button">+ Добавить товар</button>
+          </div>
+          <div class="product-admin-toolbar">
+            <label class="field product-search-field"><span>Поиск товара</span><input id="productAdminSearch" type="search" placeholder="Название или ID"></label>
+            <label class="check-control product-active-filter"><input id="showHiddenProducts" type="checkbox"> Показывать только скрытые</label>
+          </div>
+          <div id="productsAdminList" class="products-admin-list"></div>
+        </section>
+
+        <div class="form-actions shop-actions">
+          <div class="save-note">Настройки Shop.html и категории применятся после сохранения. Товары сохраняются из карточки редактирования.</div>
+          <button id="saveShopSettings" class="primary-btn large" type="button">Сохранить настройки магазина</button>
+        </div>
+      </section>
     </main>
   </div>
 
-  <script src="/assets/js/admin.js?v=20260917-admin-menu-v3"></script>
+  <div id="productModal" class="admin-modal" hidden>
+    <div class="admin-modal-backdrop" data-close-product-modal></div>
+    <section class="admin-modal-dialog" role="dialog" aria-modal="true" aria-labelledby="productModalTitle">
+      <header class="admin-modal-head">
+        <div>
+          <div class="eyebrow">Редактор товара</div>
+          <h2 id="productModalTitle">Новый товар</h2>
+        </div>
+        <button class="modal-close" type="button" data-close-product-modal aria-label="Закрыть">×</button>
+      </header>
+      <form id="productEditorForm" class="product-editor-form">
+        <input id="productOriginalId" type="hidden">
+        <div class="product-editor-grid">
+          <section class="product-editor-section">
+            <h3>Основная информация</h3>
+            <div class="form-grid two">
+              <label class="field"><span>ID / slug товара</span><input id="productId" type="text" placeholder="my-product"></label>
+              <label class="field"><span>Цена</span><input id="productPriceAdmin" type="number" min="0" step="0.01" value="0"></label>
+              <label class="field"><span>Название EN</span><input id="productNameEn" type="text" required></label>
+              <label class="field"><span>Название RU</span><input id="productNameRu" type="text"></label>
+              <label class="field"><span>Материал / состав EN</span><input id="productFabricEn" type="text"></label>
+              <label class="field"><span>Материал / состав RU</span><input id="productFabricRu" type="text"></label>
+              <label class="field span-2"><span>Описание EN</span><textarea id="productDescriptionEn" rows="4"></textarea></label>
+              <label class="field span-2"><span>Описание RU</span><textarea id="productDescriptionRu" rows="4"></textarea></label>
+              <label class="field"><span>Порядок сортировки</span><input id="productSort" type="number" min="0" step="1" value="0"></label>
+              <label class="check-control product-visible-check"><input id="productActive" type="checkbox" checked> Показывать товар на сайте</label>
+            </div>
+          </section>
+
+          <section class="product-editor-section">
+            <div class="section-title-row"><h3>Разделы / категории</h3><span class="section-note">Товар может быть сразу в нескольких разделах.</span></div>
+            <div id="productCategoryChecks" class="category-checks"></div>
+          </section>
+
+          <section class="product-editor-section">
+            <div class="section-title-row"><h3>Изображения</h3><span class="section-note">Первое изображение используется как основное.</span></div>
+            <label class="upload-btn multi-upload-btn">
+              <input id="productImagesUpload" type="file" accept="image/*" multiple>
+              <span>+ Загрузить изображения</span>
+            </label>
+            <div id="productImagesPreview" class="product-images-preview"></div>
+          </section>
+
+          <section class="product-editor-section">
+            <div class="section-title-row">
+              <div><h3>Размеры и количество</h3><div class="section-note">Размер с количеством 0 автоматически не показывается клиенту.</div></div>
+              <button id="addProductSize" class="secondary-btn small" type="button">+ Добавить размер</button>
+            </div>
+            <div id="productSizesEditor" class="sizes-editor"></div>
+          </section>
+        </div>
+        <footer class="admin-modal-footer">
+          <button id="deleteProductAdmin" class="danger-btn" type="button" hidden>Удалить товар</button>
+          <div class="modal-footer-spacer"></div>
+          <button class="secondary-btn" type="button" data-close-product-modal>Отмена</button>
+          <button class="primary-btn" type="submit">Сохранить товар</button>
+        </footer>
+      </form>
+    </section>
+  </div>
+
+  <script src="/assets/js/admin.js?v=20260917-admin-shop-v4"></script>
 </body>
 </html>

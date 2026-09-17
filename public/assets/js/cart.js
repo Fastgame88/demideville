@@ -34,11 +34,15 @@
       'lobby-hoody':'/assets/images/product-hoodie-ref.png',
       'inside-jeans':'/assets/images/product-jeans-ref.png'
     };
-    return known[p.id]||p.image;
+    return (window.ddProductImages?.(p)||[])[0]||known[p.id]||p.image;
   };
+  const productName=p=>window.ddProductText?window.ddProductText(p,'name'):(p?.name||'');
+  const maxStock=(p,size)=>window.ddProductStock?window.ddProductStock(p,size):Infinity;
 
   function draw(){
-    cart=mergeSameCartItems(cart).filter(x=>byId[x.productId]);
+    cart=mergeSameCartItems(cart).filter(x=>{
+      const p=byId[x.productId];if(!p)return false;const stock=maxStock(p,x.size);if(stock<=0)return false;if(Number.isFinite(stock))x.qty=Math.max(1,Math.min(Math.floor(stock),Number(x.qty)||1));return true;
+    });
     cartSet(cart);
     if(!cart.length){
       box.innerHTML='<div class="empty-cart">Your bag is empty.</div>';
@@ -50,9 +54,9 @@
       const qty=Math.max(1,Number(x.qty)||1);
       return `<article class="cart-card" data-cart-index="${i}">
         <button class="cart-card-remove" type="button" data-cart-remove="${i}" aria-label="Remove item">×</button>
-        <div class="cart-card-media"><img src="${esc(preferredCartImage(p))}" alt="${esc(p.name)}"></div>
+        <div class="cart-card-media"><img src="${esc(preferredCartImage(p))}" alt="${esc(productName(p))}"></div>
         <div class="cart-card-copy">
-          <div class="cart-card-name">${esc(p.name)}</div>
+          <div class="cart-card-name">${esc(productName(p))}</div>
           <div class="cart-card-price">${money(p.price,curr)}</div>
           <div class="cart-card-size">${esc(x.size||'')}</div>
           <div class="cart-card-quantity">
@@ -71,9 +75,9 @@
       btn.onclick=()=>{
         const i=Number(btn.dataset.cartInc);
         if(!cart[i]) return;
-        cart[i].qty=Math.min(99,(Number(cart[i].qty)||1)+1);
-        cartSet(cart);
-        draw();
+        const p=byId[cart[i].productId],stock=maxStock(p,cart[i].size),limit=Number.isFinite(stock)?Math.min(99,stock):99;
+        cart[i].qty=Math.min(limit,(Number(cart[i].qty)||1)+1);
+        cartSet(cart);draw();
       };
     });
     $$('[data-cart-dec]',box).forEach(btn=>{
@@ -89,9 +93,9 @@
       input.onchange=()=>{
         const i=Number(input.dataset.cartQty);
         if(!cart[i]) return;
-        cart[i].qty=Math.max(1,Math.min(99,Math.floor(Number(input.value)||1)));
-        cartSet(cart);
-        draw();
+        const p=byId[cart[i].productId],stock=maxStock(p,cart[i].size),limit=Number.isFinite(stock)?Math.min(99,stock):99;
+        cart[i].qty=Math.max(1,Math.min(limit,Math.floor(Number(input.value)||1)));
+        cartSet(cart);draw();
       };
     });
     $$('[data-cart-remove]',box).forEach(btn=>{
