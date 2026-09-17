@@ -1,12 +1,190 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>DEMI DEVILLE Admin</title><link rel="stylesheet" href="/assets/css/admin.css"></head><body>
-<div id="loginView" class="login-admin"><form id="adminLogin" class="login-card"><h1>DEMI DEVILLE Admin</h1><p>Use an administrator account.</p><div id="loginNotice" class="notice"></div><input required type="email" name="email" placeholder="Email" value="admin@demideville.local"><input required type="password" name="password" placeholder="Password" value="Admin123!"><button class="btn" type="submit">Login</button><p style="font-size:12px;color:#777">Change the default password immediately after first login.</p></form></div>
-<div id="adminView" class="admin-shell" style="display:none"><aside class="sidebar"><h1>DEMI DEVILLE</h1><nav><button data-tab="settings" class="active">Site settings</button><button data-tab="products">Products</button><button data-tab="gallery">Gallery</button><button data-tab="sections">Custom sections</button><button data-tab="orders">Orders</button><button data-tab="security">Security</button><a href="/" target="_blank">Open website ↗</a><button id="adminLogout">Logout</button></nav></aside><main class="main"><div class="topbar"><h2 id="tabTitle">Site settings</h2><span id="adminUser"></span></div><div id="globalNotice" class="notice"></div>
-<section id="tab-settings" class="tab active"><form id="settingsForm" class="panel"><div class="grid2"><div class="field"><label>Brand</label><input name="brand"></div><div class="field"><label>Home title</label><input name="heroTitle"></div><div class="field"><label>Desktop hero image URL</label><input name="heroDesktop"><input type="file" accept="image/*" data-upload-target="heroDesktop"></div><div class="field"><label>Mobile hero image URL</label><input name="heroMobile"><input type="file" accept="image/*" data-upload-target="heroMobile"></div><div class="field"><label>Home dark overlay (%)</label><input name="homeOverlayOpacity" type="number" min="0" max="100" step="1" placeholder="35"></div><div class="field"><label>Login artwork URL</label><input name="loginArt"><input type="file" accept="image/*" data-upload-target="loginArt"></div><div class="field"><label>Contact email</label><input name="contact"></div><div class="field"><label>Instagram URL</label><input name="instagram"></div><div class="field"><label>Support button text</label><input name="supportText"></div><div class="field"><label>Main font CSS stack</label><input name="baseFont"></div><div class="field"><label>Logo/display font CSS stack</label><input name="displayFont"></div><div class="field"><label>Condensed font CSS stack</label><input name="condensedFont"></div><div class="field"><label>Base font size (px)</label><input name="baseFontSize" type="number" min="12" max="24"></div><div class="field"><label>Shipping amount</label><input name="shipping" type="number" min="0" step="0.01"></div><div class="field"><label>Currency symbol</label><input name="currency"></div></div><div class="field" style="margin-top:14px"><label>About page HTML/text</label><textarea name="aboutHtml"></textarea></div><div class="toolbar"><button class="btn" type="submit">Save settings</button></div></form><div class="panel"><strong>Tip:</strong> image fields accept local uploaded images from this admin panel or normal HTTPS image URLs.</div></section>
-<section id="tab-products" class="tab"><div class="panel"><div class="topbar"><h3>Products</h3><button class="btn" id="addProduct">+ Add product</button></div><div id="productsList" class="list"></div></div></section>
-<section id="tab-gallery" class="tab"><div class="panel"><div class="topbar"><h3>Gallery</h3><button class="btn" id="addGallery">+ Add image</button></div><div id="galleryList" class="list"></div></div></section>
-<section id="tab-sections" class="tab"><div class="panel"><div class="topbar"><div><h3>Custom sections</h3><p style="margin:4px 0;color:#666">Create extra pages. They appear in the mobile menu automatically.</p></div><button class="btn" id="addSection">+ Add section</button></div><div id="sectionsList" class="list"></div></div></section>
-<section id="tab-orders" class="tab"><div class="panel orders"><h3>Orders</h3><div id="ordersList" class="list"></div></div></section>
-<section id="tab-security" class="tab"><form id="passwordForm" class="panel" style="max-width:620px"><h3>Change admin password</h3><div class="field"><label>Current password</label><input required name="currentPassword" type="password"></div><div class="field"><label>New password</label><input required minlength="8" name="newPassword" type="password"></div><div class="toolbar"><button class="btn" type="submit">Change password</button></div></form><div class="panel"><h3>Local admin login</h3><div class="code-note">admin@demideville.local\nAdmin123!</div><p>These are seed credentials only. Change the password before deployment.</p></div></section>
-</main></div>
-<div id="editorModal" class="modal"><div class="modal-card"><h3 id="modalTitle">Edit</h3><form id="editorForm"></form></div></div>
-<script src="/assets/js/i18n.js"></script><script src="/assets/js/admin.js"></script></body></html>
+<!doctype html>
+<html lang="uk">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>DEMI DEVILLE — Admin</title>
+  <link rel="stylesheet" href="/assets/css/admin.css?v=20260917-admin-v2">
+</head>
+<body>
+  <section id="loginView" class="auth-screen">
+    <form id="adminLogin" class="auth-card" autocomplete="on">
+      <div class="auth-brand">DEMI DEVILLE</div>
+      <h1>Адмін-панель</h1>
+      <p class="muted">Увійдіть під обліковим записом адміністратора.</p>
+      <div id="loginNotice" class="notice" aria-live="polite"></div>
+      <label class="field">
+        <span>Email</span>
+        <input required type="email" name="email" autocomplete="username" value="admin@demideville.local">
+      </label>
+      <label class="field">
+        <span>Пароль</span>
+        <input required type="password" name="password" autocomplete="current-password" value="Admin123!">
+      </label>
+      <button class="primary-btn wide" type="submit">Увійти</button>
+    </form>
+  </section>
+
+  <div id="adminView" class="admin-app" hidden>
+    <aside class="side-panel">
+      <div class="side-brand">DEMI DEVILLE</div>
+      <div class="side-caption">ADMIN</div>
+      <nav class="side-nav">
+        <button class="nav-item active" type="button">Головна сторінка</button>
+      </nav>
+      <div class="side-bottom">
+        <a class="side-link" href="/" target="_blank" rel="noreferrer">Відкрити сайт ↗</a>
+        <button id="adminLogout" class="side-link side-button" type="button">Вийти</button>
+      </div>
+    </aside>
+
+    <main class="workspace">
+      <header class="workspace-head">
+        <div>
+          <div class="eyebrow">Редактор сайту</div>
+          <h1>Головна сторінка</h1>
+          <p>На цьому етапі редагуємо тільки фон, затемнення та шрифт елементів окремо для ПК і телефону.</p>
+        </div>
+        <div class="head-actions">
+          <span id="adminUser" class="admin-user"></span>
+          <button id="saveTop" class="primary-btn" type="button">Зберегти</button>
+        </div>
+      </header>
+
+      <div id="globalNotice" class="notice global-notice" aria-live="polite"></div>
+
+      <form id="homeSettingsForm" class="editor-form">
+        <section class="device-card" data-device="desktop">
+          <div class="device-card-head">
+            <div>
+              <span class="device-badge">ПК</span>
+              <h2>Дизайн головної — комп'ютер</h2>
+            </div>
+            <span class="device-hint">Desktop</span>
+          </div>
+
+          <div class="device-layout">
+            <div class="preview desktop-preview" id="desktopPreview">
+              <div class="preview-overlay" id="desktopPreviewOverlay"></div>
+              <div class="preview-ui">
+                <div class="preview-logo">DEMI DEVILLE</div>
+                <div class="preview-menu"><span>SHOP</span><span>LOGIN</span></div>
+                <div class="preview-support">SUPPORT</div>
+              </div>
+            </div>
+
+            <div class="controls">
+              <div class="control-block">
+                <div class="control-title">Фон</div>
+                <label class="field">
+                  <span>Зображення для ПК</span>
+                  <input id="heroDesktop" name="heroDesktop" type="text" placeholder="/assets/images/hero.jpg">
+                </label>
+                <label class="upload-btn">
+                  <input id="heroDesktopFile" type="file" accept="image/*" data-upload-target="heroDesktop">
+                  <span>Завантажити новий фон</span>
+                </label>
+              </div>
+
+              <div class="control-block">
+                <div class="control-title">Затемнення фону</div>
+                <div class="range-row">
+                  <input id="desktopOverlayRange" type="range" min="0" max="100" step="1" value="35">
+                  <div class="number-wrap"><input id="homeDesktopOverlayOpacity" name="homeDesktopOverlayOpacity" type="number" min="0" max="100" step="1" value="35"><span>%</span></div>
+                </div>
+              </div>
+
+              <div class="control-block">
+                <div class="control-title">Шрифт елементів</div>
+                <label class="field">
+                  <span>Меню, кнопки та текстові елементи головної</span>
+                  <select id="homeDesktopFont" name="homeDesktopFont">
+                    <option value="">Поточний дизайн (без змін)</option>
+                    <option value="Arial, Helvetica, sans-serif">Arial</option>
+                    <option value="'DD Oswald','Arial Narrow',Arial,sans-serif">Oswald</option>
+                    <option value="'Benzin Regular','Benzin-Regular','Century Gothic','Trebuchet MS',Arial,sans-serif">Benzin Regular</option>
+                    <option value="'Benzin Semibold','Benzin-Semibold','Arial Black',Arial,sans-serif">Benzin Semibold</option>
+                    <option value="'Lucida Sans Typewriter','Lucida Console','Courier New',monospace">Lucida Typewriter</option>
+                    <option value="Impact, Haettenschweiler, 'Arial Narrow Bold', sans-serif">Impact</option>
+                    <option value="Georgia, 'Times New Roman', serif">Georgia</option>
+                    <option value="'Courier New', Courier, monospace">Courier New</option>
+                  </select>
+                </label>
+                <div class="font-sample" id="desktopFontSample">SHOP · LOGIN · SUPPORT</div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="device-card" data-device="mobile">
+          <div class="device-card-head">
+            <div>
+              <span class="device-badge">ТЕЛЕФОН</span>
+              <h2>Дизайн головної — телефон</h2>
+            </div>
+            <span class="device-hint">Mobile</span>
+          </div>
+
+          <div class="device-layout mobile-layout">
+            <div class="preview mobile-preview" id="mobilePreview">
+              <div class="preview-overlay" id="mobilePreviewOverlay"></div>
+              <div class="preview-ui mobile-ui">
+                <div class="mobile-top"><span>MENU</span><strong>DEMI DEVILLE</strong></div>
+                <div class="mobile-bottom"><span>EN / RU</span><span>SUPPORT</span></div>
+              </div>
+            </div>
+
+            <div class="controls">
+              <div class="control-block">
+                <div class="control-title">Фон</div>
+                <label class="field">
+                  <span>Зображення для телефону</span>
+                  <input id="heroMobile" name="heroMobile" type="text" placeholder="/assets/images/hero-mobile.jpg">
+                </label>
+                <label class="upload-btn">
+                  <input id="heroMobileFile" type="file" accept="image/*" data-upload-target="heroMobile">
+                  <span>Завантажити новий фон</span>
+                </label>
+              </div>
+
+              <div class="control-block">
+                <div class="control-title">Затемнення фону</div>
+                <div class="range-row">
+                  <input id="mobileOverlayRange" type="range" min="0" max="100" step="1" value="35">
+                  <div class="number-wrap"><input id="homeMobileOverlayOpacity" name="homeMobileOverlayOpacity" type="number" min="0" max="100" step="1" value="35"><span>%</span></div>
+                </div>
+              </div>
+
+              <div class="control-block">
+                <div class="control-title">Шрифт елементів</div>
+                <label class="field">
+                  <span>MENU, пункти меню, SUPPORT, вибір мови та інші текстові елементи</span>
+                  <select id="homeMobileFont" name="homeMobileFont">
+                    <option value="">Поточний дизайн (без змін)</option>
+                    <option value="Arial, Helvetica, sans-serif">Arial</option>
+                    <option value="'DD Oswald','Arial Narrow',Arial,sans-serif">Oswald</option>
+                    <option value="'Benzin Regular','Benzin-Regular','Century Gothic','Trebuchet MS',Arial,sans-serif">Benzin Regular</option>
+                    <option value="'Benzin Semibold','Benzin-Semibold','Arial Black',Arial,sans-serif">Benzin Semibold</option>
+                    <option value="'Lucida Sans Typewriter','Lucida Console','Courier New',monospace">Lucida Typewriter</option>
+                    <option value="Impact, Haettenschweiler, 'Arial Narrow Bold', sans-serif">Impact</option>
+                    <option value="Georgia, 'Times New Roman', serif">Georgia</option>
+                    <option value="'Courier New', Courier, monospace">Courier New</option>
+                  </select>
+                </label>
+                <div class="font-sample" id="mobileFontSample">MENU · SHOP ALL · SUPPORT</div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <div class="form-actions">
+          <div class="save-note">Зміни застосуються на головній сторінці після збереження.</div>
+          <button class="primary-btn large" type="submit">Зберегти зміни</button>
+        </div>
+      </form>
+    </main>
+  </div>
+
+  <script src="/assets/js/admin.js?v=20260917-admin-v2"></script>
+</body>
+</html>

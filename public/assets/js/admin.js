@@ -1,29 +1,118 @@
-let token=localStorage.getItem('dd_token')||'';let state=null;let editing={type:null,id:null};
-const $=(s,r=document)=>r.querySelector(s), $$=(s,r=document)=>[...r.querySelectorAll(s)];const esc=v=>String(v??'').replace(/[&<>'"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;","'":"&#39;",'"':'&quot;'}[c]));
-const auth=()=>({'Authorization':`Bearer ${token}`});
-function notice(t,ok=true){const n=$('#globalNotice');n.textContent=t;n.style.background=ok?'#e8f7ed':'#fdeaea';n.classList.add('show');setTimeout(()=>n.classList.remove('show'),2500)}
-async function api(url,opt={}){opt.headers={...(opt.headers||{}),...auth()};if(opt.body&&!opt.headers['Content-Type'])opt.headers['Content-Type']='application/json';const r=await fetch(url,opt);const d=await r.json().catch(()=>({}));if(!r.ok)throw new Error(d.error||'Request failed');return d}
-async function boot(){if(!token)return showLogin();try{const me=await api('/api/auth/me');if(me.user.role!=='admin')throw new Error('Admin only');$('#adminUser').textContent=me.user.email;$('#loginView').style.display='none';$('#adminView').style.display='grid';await refresh()}catch(e){showLogin(e.message)}}
-function showLogin(msg=''){$('#adminView').style.display='none';$('#loginView').style.display='flex';if(msg){const n=$('#loginNotice');n.textContent=msg;n.classList.add('show')}}
-$('#adminLogin').onsubmit=async e=>{e.preventDefault();const f=new FormData(e.target);const r=await fetch('/api/auth/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:f.get('email'),password:f.get('password')})});const d=await r.json();if(!r.ok){const n=$('#loginNotice');n.textContent=d.error||'Login failed';n.classList.add('show');return}if(d.user.role!=='admin'){const n=$('#loginNotice');n.textContent='This account is not an administrator.';n.classList.add('show');return}token=d.token;localStorage.setItem('dd_token',token);boot()};
-$('#adminLogout').onclick=async()=>{try{await api('/api/auth/logout',{method:'POST'})}catch{}localStorage.removeItem('dd_token');token='';location.reload()};
-$$('[data-tab]').forEach(b=>b.onclick=()=>{$$('[data-tab]').forEach(x=>x.classList.remove('active'));b.classList.add('active');$$('.tab').forEach(x=>x.classList.remove('active'));$(`#tab-${b.dataset.tab}`).classList.add('active');$('#tabTitle').textContent=b.textContent.trim()});
-async function refresh(){state=await api('/api/admin/state');fillSettings();renderProducts();renderGallery();renderSections();renderOrders()}
-function fillSettings(){const f=$('#settingsForm');Object.entries(state.settings||{}).forEach(([k,v])=>{if(f.elements[k])f.elements[k].value=v??''})}
-$('#settingsForm').onsubmit=async e=>{e.preventDefault();const f=new FormData(e.target),o={};for(const [k,v] of f.entries())if(!(v instanceof File))o[k]=v;if(o.baseFontSize)o.baseFontSize=Number(o.baseFontSize);if(o.homeOverlayOpacity!==undefined&&o.homeOverlayOpacity!=='')o.homeOverlayOpacity=Math.max(0,Math.min(100,Number(o.homeOverlayOpacity)));if(o.shipping)o.shipping=Number(o.shipping);state.settings=await api('/api/admin/settings',{method:'PUT',body:JSON.stringify(o)});notice('Settings saved')};
-async function uploadFile(file){return new Promise((resolve,reject)=>{const rd=new FileReader();rd.onload=async()=>{try{const d=await api('/api/admin/upload',{method:'POST',body:JSON.stringify({dataUrl:rd.result,filename:file.name})});resolve(d.url)}catch(e){reject(e)}};rd.onerror=reject;rd.readAsDataURL(file)})}
-$$('[data-upload-target]').forEach(inp=>inp.onchange=async()=>{if(!inp.files[0])return;try{const url=await uploadFile(inp.files[0]);$('#settingsForm').elements[inp.dataset.uploadTarget].value=url;notice('Image uploaded. Save settings to apply.')}catch(e){notice(e.message,false)}});
-function renderProducts(){const box=$('#productsList');box.innerHTML=(state.products||[]).sort((a,b)=>(a.sort||0)-(b.sort||0)).map(p=>`<div class="item"><img src="${esc(p.image)}"><div><div class="title">${esc(p.name)}</div><div class="meta">${esc(p.id)} · ${p.price}${esc(state.settings.currency||'$')} · ${(p.sizes||[]).join(', ')} · ${p.active===false?'hidden':'visible'}</div></div><div class="actions"><button class="btn small secondary" data-edit-product="${esc(p.id)}">Edit</button><button class="btn small danger" data-delete-product="${esc(p.id)}">Delete</button></div></div>`).join('')||'<p>No products.</p>';$$('[data-edit-product]').forEach(b=>b.onclick=()=>openProduct(b.dataset.editProduct));$$('[data-delete-product]').forEach(b=>b.onclick=()=>del('products',b.dataset.deleteProduct))}
-function renderGallery(){const box=$('#galleryList');box.innerHTML=(state.gallery||[]).map(g=>`<div class="item"><img src="${esc(g.image)}"><div><div class="title">${esc(g.caption||'Gallery image')}</div><div class="meta">sort ${g.sort||0} · ${g.active===false?'hidden':'visible'}</div></div><div class="actions"><button class="btn small secondary" data-edit-gallery="${esc(g.id)}">Edit</button><button class="btn small danger" data-delete-gallery="${esc(g.id)}">Delete</button></div></div>`).join('')||'<p>No gallery items.</p>';$$('[data-edit-gallery]').forEach(b=>b.onclick=()=>openGallery(b.dataset.editGallery));$$('[data-delete-gallery]').forEach(b=>b.onclick=()=>del('gallery',b.dataset.deleteGallery))}
-function renderSections(){const box=$('#sectionsList');box.innerHTML=(state.sections||[]).map(s=>`<div class="item"><img src="${esc(s.image||'/assets/images/gallery.jpg')}"><div><div class="title">${esc(s.title)}</div><div class="meta">/${esc(s.slug)} · sort ${s.sort||0} · ${s.active===false?'hidden':'visible'}</div></div><div class="actions"><button class="btn small secondary" data-edit-section="${esc(s.id)}">Edit</button><button class="btn small danger" data-delete-section="${esc(s.id)}">Delete</button></div></div>`).join('')||'<p>No custom sections yet.</p>';$$('[data-edit-section]').forEach(b=>b.onclick=()=>openSection(b.dataset.editSection));$$('[data-delete-section]').forEach(b=>b.onclick=()=>del('sections',b.dataset.deleteSection))}
-function renderOrders(){const box=$('#ordersList');box.innerHTML=(state.orders||[]).map(o=>`<div class="item"><div><div class="title">${esc(o.number)} · ${esc(o.email||'guest')} · ${o.total}${esc(state.settings.currency||'$')}</div><div class="order-lines">${(o.items||[]).map(i=>`${esc(i.name)} × ${i.qty} (${esc(i.size)})`).join('<br>')}</div><div class="meta">${new Date(o.createdAt).toLocaleString()} · <span class="status">${esc(o.status)}</span></div></div><div class="actions"><select data-order-status="${esc(o.id)}"><option ${o.status==='new'?'selected':''}>new</option><option ${o.status==='paid'?'selected':''}>paid</option><option ${o.status==='shipped'?'selected':''}>shipped</option><option ${o.status==='completed'?'selected':''}>completed</option><option ${o.status==='cancelled'?'selected':''}>cancelled</option></select></div></div>`).join('')||'<p>No orders.</p>';$$('[data-order-status]').forEach(s=>s.onchange=async()=>{await api(`/api/admin/orders/${s.dataset.orderStatus}`,{method:'PUT',body:JSON.stringify({status:s.value})});notice('Order status updated');refresh()})}
-async function del(type,id){if(!confirm(window.ddTranslate?.('Delete this item?')||'Delete this item?'))return;try{await api(`/api/admin/${type}/${id}`,{method:'DELETE'});notice('Deleted');refresh()}catch(e){notice(e.message,false)}}
-$('#addProduct').onclick=()=>openProduct();$('#addGallery').onclick=()=>openGallery();$('#addSection').onclick=()=>openSection();
-function modal(html,title,type,idv){editing={type,id:idv||null};$('#modalTitle').textContent=title;$('#editorForm').innerHTML=html;$('#editorModal').classList.add('open');$('#editorModal').onclick=e=>{if(e.target.id==='editorModal')closeModal()};$('#editorForm').onsubmit=saveEditor;const file=$('#editorForm [data-editor-upload]');if(file)file.onchange=async()=>{if(!file.files[0])return;try{const u=await uploadFile(file.files[0]);$('#editorForm [name=image]').value=u;notice('Image uploaded')}catch(e){notice(e.message,false)}}}
-function closeModal(){$('#editorModal').classList.remove('open')}
-function openProduct(idv){const p=(state.products||[]).find(x=>x.id===idv)||{name:'',price:0,image:'',description:'',fabric:'',sizes:['S','M','L'],active:true,sort:(state.products?.length||0)+1};modal(`<div class="grid2"><div class="field"><label>ID / slug</label><input name="id" ${idv?'readonly':''} required value="${esc(p.id||'')}"></div><div class="field"><label>Name</label><input name="name" required value="${esc(p.name)}"></div><div class="field"><label>Price</label><input name="price" type="number" step="0.01" value="${p.price||0}"></div><div class="field"><label>Sort</label><input name="sort" type="number" value="${p.sort||0}"></div><div class="field"><label>Image URL</label><input name="image" required value="${esc(p.image||'')}"><input data-editor-upload type="file" accept="image/*"></div><div class="field"><label>Sizes, comma separated</label><input name="sizes" value="${esc((p.sizes||[]).join(', '))}"></div><div class="field"><label>Fabric</label><input name="fabric" value="${esc(p.fabric||'')}"></div><div class="field"><label>Visible</label><select name="active"><option value="true" ${p.active!==false?'selected':''}>Yes</option><option value="false" ${p.active===false?'selected':''}>No</option></select></div></div><div class="field" style="margin-top:12px"><label>Description</label><textarea name="description">${esc(p.description||'')}</textarea></div><div class="row-actions"><button type="button" class="btn secondary" onclick="document.getElementById('editorModal').classList.remove('open')">Cancel</button><button class="btn" type="submit">Save</button></div>`,'Product','products',idv)}
-function openGallery(idv){const g=(state.gallery||[]).find(x=>x.id===idv)||{caption:'',image:'',sort:(state.gallery?.length||0)+1,active:true};modal(`<div class="grid2"><div class="field"><label>Image URL</label><input name="image" required value="${esc(g.image||'')}"><input data-editor-upload type="file" accept="image/*"></div><div class="field"><label>Caption</label><input name="caption" value="${esc(g.caption||'')}"></div><div class="field"><label>Sort</label><input name="sort" type="number" value="${g.sort||0}"></div><div class="field"><label>Visible</label><select name="active"><option value="true" ${g.active!==false?'selected':''}>Yes</option><option value="false" ${g.active===false?'selected':''}>No</option></select></div></div><div class="row-actions"><button type="button" class="btn secondary" onclick="document.getElementById('editorModal').classList.remove('open')">Cancel</button><button class="btn" type="submit">Save</button></div>`,'Gallery item','gallery',idv)}
-function openSection(idv){const s=(state.sections||[]).find(x=>x.id===idv)||{title:'',slug:'',image:'',content:'',sort:(state.sections?.length||0)+1,active:true};modal(`<div class="grid2"><div class="field"><label>Title</label><input name="title" required value="${esc(s.title||'')}"></div><div class="field"><label>Slug</label><input name="slug" required value="${esc(s.slug||'')}"></div><div class="field"><label>Image URL</label><input name="image" value="${esc(s.image||'')}"><input data-editor-upload type="file" accept="image/*"></div><div class="field"><label>Sort</label><input name="sort" type="number" value="${s.sort||0}"></div><div class="field"><label>Visible</label><select name="active"><option value="true" ${s.active!==false?'selected':''}>Yes</option><option value="false" ${s.active===false?'selected':''}>No</option></select></div></div><div class="field" style="margin-top:12px"><label>Content (HTML allowed)</label><textarea name="content">${esc(s.content||'')}</textarea></div><div class="row-actions"><button type="button" class="btn secondary" onclick="document.getElementById('editorModal').classList.remove('open')">Cancel</button><button class="btn" type="submit">Save</button></div>`,'Custom section','sections',idv)}
-async function saveEditor(e){e.preventDefault();const f=new FormData(e.target),o={};for(const [k,v] of f.entries())if(!(v instanceof File))o[k]=v;if(editing.type==='products'){o.price=Number(o.price||0);o.sort=Number(o.sort||0);o.active=o.active==='true';o.sizes=String(o.sizes||'').split(',').map(x=>x.trim()).filter(Boolean)}else{o.sort=Number(o.sort||0);o.active=o.active==='true'};try{if(editing.id)await api(`/api/admin/${editing.type}/${editing.id}`,{method:'PUT',body:JSON.stringify(o)});else await api(`/api/admin/${editing.type}`,{method:'POST',body:JSON.stringify(o)});closeModal();notice('Saved');refresh()}catch(err){notice(err.message,false)}}
-$('#passwordForm').onsubmit=async e=>{e.preventDefault();const f=new FormData(e.target);try{await api('/api/admin/change-password',{method:'POST',body:JSON.stringify({currentPassword:f.get('currentPassword'),newPassword:f.get('newPassword')})});notice('Password changed');e.target.reset()}catch(err){notice(err.message,false)}};
+let token=localStorage.getItem('dd_token')||'';
+let settings={};
+const $=(s,r=document)=>r.querySelector(s);
+
+const authHeaders=()=>({'Authorization':`Bearer ${token}`});
+function showNotice(message,type='ok',target='#globalNotice'){
+  const el=$(target);if(!el)return;
+  el.textContent=message;el.className=`notice show ${type}`;
+  clearTimeout(el._timer);el._timer=setTimeout(()=>{el.className='notice'},2800);
+}
+async function api(url,opt={}){
+  opt.headers={...(opt.headers||{}),...authHeaders()};
+  if(opt.body&&!opt.headers['Content-Type'])opt.headers['Content-Type']='application/json';
+  const r=await fetch(url,opt);const data=await r.json().catch(()=>({}));
+  if(!r.ok)throw new Error(data.error||'Помилка запиту');return data;
+}
+function clampPercent(value,fallback=35){
+  const n=Number(value);return Number.isFinite(n)?Math.max(0,Math.min(100,Math.round(n))):fallback;
+}
+function cssImage(url){return url?`url(${JSON.stringify(String(url))})`:'none'}
+function setBusy(busy){
+  document.querySelectorAll('.primary-btn').forEach(b=>{if(b.id==='saveTop'||b.type==='submit'){b.disabled=busy}});
+}
+function showLogin(message=''){
+  $('#adminView').hidden=true;$('#loginView').style.display='grid';
+  if(message)showNotice(message,'error','#loginNotice');
+}
+async function boot(){
+  if(!token)return showLogin();
+  try{
+    const me=await api('/api/auth/me');
+    if(me.user.role!=='admin')throw new Error('Доступ тільки для адміністратора');
+    $('#adminUser').textContent=me.user.email;
+    $('#loginView').style.display='none';$('#adminView').hidden=false;
+    const state=await api('/api/admin/state');settings=state.settings||{};fillForm();
+  }catch(e){token='';localStorage.removeItem('dd_token');showLogin(e.message)}
+}
+$('#adminLogin').addEventListener('submit',async e=>{
+  e.preventDefault();
+  const f=new FormData(e.currentTarget);
+  try{
+    const r=await fetch('/api/auth/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:f.get('email'),password:f.get('password')})});
+    const data=await r.json().catch(()=>({}));if(!r.ok)throw new Error(data.error||'Не вдалося увійти');
+    if(data.user?.role!=='admin')throw new Error('Цей акаунт не є адміністратором');
+    token=data.token;localStorage.setItem('dd_token',token);await boot();
+  }catch(err){showNotice(err.message,'error','#loginNotice')}
+});
+$('#adminLogout').addEventListener('click',async()=>{
+  try{await api('/api/auth/logout',{method:'POST'})}catch{}
+  token='';localStorage.removeItem('dd_token');location.reload();
+});
+function fillForm(){
+  const desktopOverlay=clampPercent(settings.homeDesktopOverlayOpacity,clampPercent(settings.homeOverlayOpacity,35));
+  const mobileOverlay=clampPercent(settings.homeMobileOverlayOpacity,clampPercent(settings.homeOverlayOpacity,35));
+  $('#heroDesktop').value=settings.heroDesktop||'/assets/images/hero.jpg';
+  $('#heroMobile').value=settings.heroMobile||'/assets/images/hero-mobile.jpg';
+  $('#homeDesktopOverlayOpacity').value=desktopOverlay;$('#desktopOverlayRange').value=desktopOverlay;
+  $('#homeMobileOverlayOpacity').value=mobileOverlay;$('#mobileOverlayRange').value=mobileOverlay;
+  selectValue($('#homeDesktopFont'),settings.homeDesktopFont||'');
+  selectValue($('#homeMobileFont'),settings.homeMobileFont||'');
+  updatePreview();
+}
+function selectValue(select,value){
+  const exists=[...select.options].some(o=>o.value===value);select.value=exists?value:'';
+}
+function updatePreview(){
+  const dImg=$('#heroDesktop').value.trim();const mImg=$('#heroMobile').value.trim();
+  $('#desktopPreview').style.backgroundImage=cssImage(dImg);
+  $('#mobilePreview').style.backgroundImage=cssImage(mImg);
+  const d=clampPercent($('#homeDesktopOverlayOpacity').value,35);const m=clampPercent($('#homeMobileOverlayOpacity').value,35);
+  $('#desktopPreviewOverlay').style.background=`rgba(0,0,0,${d/100})`;
+  $('#mobilePreviewOverlay').style.background=`rgba(0,0,0,${m/100})`;
+  const df=$('#homeDesktopFont').value;const mf=$('#homeMobileFont').value;
+  $('#desktopPreview').style.fontFamily=df||'';$('#desktopFontSample').style.fontFamily=df||'';
+  $('#mobilePreview').style.fontFamily=mf||'';$('#mobileFontSample').style.fontFamily=mf||'';
+}
+function syncRange(rangeId,numberId){
+  const range=$(rangeId),num=$(numberId);
+  range.addEventListener('input',()=>{num.value=range.value;updatePreview()});
+  num.addEventListener('input',()=>{const v=clampPercent(num.value,35);range.value=v;updatePreview()});
+}
+syncRange('#desktopOverlayRange','#homeDesktopOverlayOpacity');
+syncRange('#mobileOverlayRange','#homeMobileOverlayOpacity');
+['#heroDesktop','#heroMobile','#homeDesktopFont','#homeMobileFont'].forEach(id=>$(id).addEventListener('input',updatePreview));
+
+async function uploadImage(file,targetName){
+  const dataUrl=await new Promise((resolve,reject)=>{const r=new FileReader();r.onload=()=>resolve(r.result);r.onerror=reject;r.readAsDataURL(file)});
+  const out=await api('/api/admin/upload',{method:'POST',body:JSON.stringify({dataUrl,filename:file.name})});
+  const input=$(`#${targetName}`);input.value=out.url;updatePreview();
+}
+document.querySelectorAll('[data-upload-target]').forEach(input=>{
+  input.addEventListener('change',async()=>{
+    const file=input.files?.[0];if(!file)return;
+    try{input.disabled=true;await uploadImage(file,input.dataset.uploadTarget);showNotice('Фон завантажено. Натисніть «Зберегти», щоб застосувати.')}catch(e){showNotice(e.message,'error')}finally{input.disabled=false;input.value=''}
+  });
+});
+function payload(){
+  const desktop=clampPercent($('#homeDesktopOverlayOpacity').value,35);
+  const mobile=clampPercent($('#homeMobileOverlayOpacity').value,35);
+  return {
+    heroDesktop:$('#heroDesktop').value.trim()||'/assets/images/hero.jpg',
+    heroMobile:$('#heroMobile').value.trim()||'/assets/images/hero-mobile.jpg',
+    homeDesktopOverlayOpacity:desktop,
+    homeMobileOverlayOpacity:mobile,
+    homeDesktopFont:$('#homeDesktopFont').value,
+    homeMobileFont:$('#homeMobileFont').value,
+    homeOverlayOpacity:mobile
+  };
+}
+async function save(){
+  try{
+    setBusy(true);settings=await api('/api/admin/settings',{method:'PUT',body:JSON.stringify(payload())});
+    fillForm();showNotice('Зміни головної сторінки збережено.');
+  }catch(e){showNotice(e.message,'error')}finally{setBusy(false)}
+}
+$('#homeSettingsForm').addEventListener('submit',async e=>{e.preventDefault();await save()});
+$('#saveTop').addEventListener('click',save);
 boot();

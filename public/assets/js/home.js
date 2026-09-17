@@ -1,9 +1,18 @@
 (async()=>{
   const site=await SITE;
   const s=site.settings||{};
-  const overlayRaw=Number(s.homeOverlayOpacity);
-  const overlayPct=Number.isFinite(overlayRaw)?Math.max(0,Math.min(100,overlayRaw)):35;
-  document.documentElement.style.setProperty('--home-overlay-opacity',String(overlayPct/100));
+  const clampPct=(value,fallback=35)=>{const n=Number(value);return Number.isFinite(n)?Math.max(0,Math.min(100,n)):fallback};
+  const legacyOverlay=clampPct(s.homeOverlayOpacity,35);
+  const desktopOverlay=clampPct(s.homeDesktopOverlayOpacity,legacyOverlay);
+  const mobileOverlay=clampPct(s.homeMobileOverlayOpacity,legacyOverlay);
+  document.documentElement.style.setProperty('--home-overlay-opacity',String(mobileOverlay/100));
+  document.documentElement.style.setProperty('--home-desktop-overlay-opacity',String(desktopOverlay/100));
+  document.documentElement.style.setProperty('--home-mobile-overlay-opacity',String(mobileOverlay/100));
+  const page=document.querySelector('.home');
+  const desktopFont=String(s.homeDesktopFont||'').trim();
+  const mobileFont=String(s.homeMobileFont||'').trim();
+  if(desktopFont&&page){page.style.setProperty('--home-desktop-font',desktopFont);page.classList.add('home-font-desktop-custom')}
+  if(mobileFont&&page){page.style.setProperty('--home-mobile-font',mobileFont);page.classList.add('home-font-mobile-custom')}
   const hero=$('#heroImage');
   const title=$('#heroTitle');
   const mobileBrand=$('#mobileBrand');
