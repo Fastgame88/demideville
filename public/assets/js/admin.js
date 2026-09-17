@@ -80,6 +80,17 @@ const DEFAULT_PAYMENT_METHODS=[
   {id:'crypto',labelEn:'Crypto payment',labelRu:'Оплата криптовалютой',enabled:true},
   {id:'card',labelEn:'Card payment',labelRu:'Оплата картой',enabled:true}
 ];
+const DEFAULT_SUPPORT_SETTINGS={
+  supportButtonTextEn:'SUPPORT',supportButtonTextRu:'ПОДДЕРЖКА',
+  supportTitleEn:'START A CHAT',supportTitleRu:'НАЧАТЬ ЧАТ',
+  supportGreetingEn:'Thanks for stopping by! How can I help you?',supportGreetingRu:'Спасибо, что заглянули! Чем я могу помочь?',
+  supportEmailPlaceholderEn:'YOUR EMAIL',supportEmailPlaceholderRu:'ВАША ПОЧТА',
+  supportMessagePlaceholderEn:'HOW CAN WE HELP?',supportMessagePlaceholderRu:'ЧЕМ МЫ МОЖЕМ ПОМОЧЬ?',
+  supportSendTextEn:'SEND',supportSendTextRu:'ОТПРАВИТЬ',
+  supportBackgroundImage:'/assets/images/support-cross-pattern.png',supportButtonBg:'#000000',supportButtonColor:'#ffffff',
+  supportFieldBg:'#000000',supportFieldColor:'#ffffff',supportButtonFont:'',supportWindowFont:''
+};
+
 const clone=value=>JSON.parse(JSON.stringify(value));
 const uid=prefix=>`${prefix}-${Date.now().toString(36)}-${Math.random().toString(36).slice(2,7)}`;
 
@@ -114,7 +125,7 @@ async function boot(){
     const me=await api('/api/auth/me');
     if(me.user.role!=='admin')throw new Error('Доступ разрешён только администратору');
     $('#adminUser').textContent=me.user.email;$('#loginView').hidden=true;$('#loginView').style.display='none';$('#adminView').hidden=false;window.scrollTo(0,0);
-    const state=await api('/api/admin/state');adminState=state||{};settings=state.settings||{};productsDraft=Array.isArray(state.products)?state.products.map(clone):[];galleryDraft=Array.isArray(state.gallery)?state.gallery.map(clone):[];shopCategoriesDraft=normalizeShopCategories(settings.shopCategories);paymentMethodsDraft=normalizePaymentMethods(settings.paymentMethods);fillForm();fillShopEditor();fillGalleryEditor();fillExternalEditors();renderClientsAdmin();renderPaymentEditor();switchAdminTab(currentAdminTab);
+    const state=await api('/api/admin/state');adminState=state||{};settings=state.settings||{};productsDraft=Array.isArray(state.products)?state.products.map(clone):[];galleryDraft=Array.isArray(state.gallery)?state.gallery.map(clone):[];shopCategoriesDraft=normalizeShopCategories(settings.shopCategories);paymentMethodsDraft=normalizePaymentMethods(settings.paymentMethods);fillForm();fillShopEditor();fillGalleryEditor();fillExternalEditors();fillSupportEditor();renderOrdersAdmin();renderClientsAdmin();renderPaymentEditor();switchAdminTab(currentAdminTab);
   }catch(e){token='';showLogin(e.message)}
 }
 $('#adminLogin').addEventListener('submit',async e=>{
@@ -238,7 +249,7 @@ async function save(){
   try{setBusy(true);settings=await api('/api/admin/settings',{method:'PUT',body:JSON.stringify(payload())});fillForm();showNotice('Изменения сохранены.')}catch(e){showNotice(e.message,'error')}finally{setBusy(false)}
 }
 $('#homeSettingsForm').addEventListener('submit',async e=>{e.preventDefault();await save()});
-$('#saveTop').addEventListener('click',()=>currentAdminTab==='shop'?saveShopSettings():currentAdminTab==='gallery'?saveGallerySettings():currentAdminTab==='instagram'?saveInstagramSettings():currentAdminTab==='contact'?saveContactSettings():currentAdminTab==='payment'?savePaymentSettings():currentAdminTab==='clients'?Promise.resolve():save());
+$('#saveTop').addEventListener('click',()=>currentAdminTab==='shop'?saveShopSettings():currentAdminTab==='gallery'?saveGallerySettings():currentAdminTab==='instagram'?saveInstagramSettings():currentAdminTab==='contact'?saveContactSettings():currentAdminTab==='support'?saveSupportSettings():currentAdminTab==='payment'?savePaymentSettings():(currentAdminTab==='clients'||currentAdminTab==='orders')?Promise.resolve():save());
 
 function slugify(value){
   return String(value||'').trim().toLowerCase()
@@ -278,7 +289,7 @@ function fillShopEditor(){
   renderProductsAdmin();
 }
 function switchAdminTab(tab){
-  const allowed=['home','shop','gallery','instagram','contact','clients','payment'];
+  const allowed=['home','shop','gallery','instagram','contact','support','orders','clients','payment'];
   currentAdminTab=allowed.includes(tab)?tab:'home';
   $$('#adminView [data-admin-tab]').forEach(btn=>btn.classList.toggle('active',btn.dataset.adminTab===currentAdminTab));
   $('#homeSettingsForm').hidden=currentAdminTab!=='home';
@@ -286,13 +297,17 @@ function switchAdminTab(tab){
   $('#galleryEditor').hidden=currentAdminTab!=='gallery';
   $('#instagramEditor').hidden=currentAdminTab!=='instagram';
   $('#contactEditor').hidden=currentAdminTab!=='contact';
+  $('#supportEditor').hidden=currentAdminTab!=='support';
+  $('#ordersEditor').hidden=currentAdminTab!=='orders';
   $('#clientsEditor').hidden=currentAdminTab!=='clients';
   $('#paymentEditor').hidden=currentAdminTab!=='payment';
-  const titles={home:'Главная страница',shop:'SHOP',gallery:'Галерея',instagram:'Instagram',contact:'Контакты',clients:'Клиенты',payment:'Оплата'};
+  const titles={home:'Главная страница',shop:'SHOP',gallery:'Галерея',instagram:'Instagram',contact:'Контакты',support:'Поддержка',orders:'Заказы',clients:'Клиенты',payment:'Оплата'};
   $('#workspaceTitle').textContent=titles[currentAdminTab]||'Главная страница';
-  const saveTop=$('#saveTop');saveTop.hidden=currentAdminTab==='clients';
-  saveTop.textContent=currentAdminTab==='shop'?'Сохранить магазин':currentAdminTab==='gallery'?'Сохранить галерею':currentAdminTab==='instagram'?'Сохранить Instagram':currentAdminTab==='contact'?'Сохранить контакты':currentAdminTab==='payment'?'Сохранить оплату':'Сохранить';
+  const saveTop=$('#saveTop');saveTop.hidden=currentAdminTab==='clients'||currentAdminTab==='orders';
+  saveTop.textContent=currentAdminTab==='shop'?'Сохранить магазин':currentAdminTab==='gallery'?'Сохранить галерею':currentAdminTab==='instagram'?'Сохранить Instagram':currentAdminTab==='contact'?'Сохранить контакты':currentAdminTab==='support'?'Сохранить поддержку':currentAdminTab==='payment'?'Сохранить оплату':'Сохранить';
   if(currentAdminTab==='clients')renderClientsAdmin();
+  if(currentAdminTab==='orders')renderOrdersAdmin();
+  if(currentAdminTab==='support')updateSupportPreview();
 }
 $$('[data-admin-tab]').forEach(btn=>btn.addEventListener('click',()=>switchAdminTab(btn.dataset.adminTab)));
 
@@ -612,6 +627,66 @@ $('#clientsAdminList')?.addEventListener('click',async e=>{
   try{await api(`/api/admin/coupons/${encodeURIComponent(row.dataset.couponId)}`,{method:'DELETE'});adminState.coupons=(adminState.coupons||[]).filter(c=>String(c.id)!==String(row.dataset.couponId));renderClientsAdmin();showNotice('Купон удалён.')}catch(err){showNotice(err.message,'error')}
 });
 
+
+
+function supportSetting(key){
+  const value=settings?.[key];
+  return value==null||value===''?DEFAULT_SUPPORT_SETTINGS[key]:value;
+}
+function fillSupportEditor(){
+  const textIds=['supportButtonTextEn','supportButtonTextRu','supportTitleEn','supportTitleRu','supportGreetingEn','supportGreetingRu','supportEmailPlaceholderEn','supportEmailPlaceholderRu','supportMessagePlaceholderEn','supportMessagePlaceholderRu','supportSendTextEn','supportSendTextRu','supportBackgroundImage','supportButtonBg','supportButtonColor','supportFieldBg','supportFieldColor'];
+  textIds.forEach(id=>{const el=$('#'+id);if(el)el.value=supportSetting(id)||''});
+  selectValue($('#supportButtonFont'),settings.supportButtonFont||'');
+  selectValue($('#supportWindowFont'),settings.supportWindowFont||'');
+  updateSupportPreview();
+}
+function updateSupportPreview(){
+  const g=id=>$('#'+id)?.value||'';
+  const preview=$('#supportAdminPreview');if(!preview)return;
+  const previewBody=preview.querySelector('.support-preview-body');
+  if(previewBody)previewBody.style.backgroundImage=`url(${JSON.stringify(g('supportBackgroundImage')||DEFAULT_SUPPORT_SETTINGS.supportBackgroundImage)})`;
+  preview.style.fontFamily=g('supportWindowFont')||'';
+  const title=$('#supportPreviewTitle'),greeting=$('#supportPreviewGreeting'),email=$('#supportPreviewEmail'),message=$('#supportPreviewMessage'),send=$('#supportPreviewSend'),btn=$('#supportPreviewButton');
+  if(title){title.textContent=g('supportTitleEn')||DEFAULT_SUPPORT_SETTINGS.supportTitleEn;title.style.background=g('supportFieldBg')||'#000';title.style.color=g('supportFieldColor')||'#fff'}
+  if(greeting){greeting.textContent=g('supportGreetingEn')||DEFAULT_SUPPORT_SETTINGS.supportGreetingEn;greeting.style.background=g('supportFieldBg')||'#000';greeting.style.color=g('supportFieldColor')||'#fff'}
+  [email,message].forEach((el,i)=>{if(!el)return;el.textContent=g(i?'supportMessagePlaceholderEn':'supportEmailPlaceholderEn')||DEFAULT_SUPPORT_SETTINGS[i?'supportMessagePlaceholderEn':'supportEmailPlaceholderEn'];el.style.background=g('supportFieldBg')||'#000';el.style.color=g('supportFieldColor')||'#fff'});
+  if(send){send.textContent=g('supportSendTextEn')||DEFAULT_SUPPORT_SETTINGS.supportSendTextEn;send.style.background=g('supportFieldBg')||'#000';send.style.color=g('supportFieldColor')||'#fff'}
+  if(btn){btn.textContent=g('supportButtonTextEn')||DEFAULT_SUPPORT_SETTINGS.supportButtonTextEn;btn.style.background=g('supportButtonBg')||'#000';btn.style.color=g('supportButtonColor')||'#fff';btn.style.fontFamily=g('supportButtonFont')||''}
+}
+$('#supportEditor')?.addEventListener('input',e=>{if(e.target.matches('input,select'))updateSupportPreview()});
+$('#supportEditor')?.addEventListener('change',e=>{if(e.target.matches('input,select'))updateSupportPreview()});
+$('#supportBackgroundFile')?.addEventListener('change',async e=>{
+  const file=e.target.files?.[0];if(!file)return;
+  try{e.target.disabled=true;const dataUrl=await new Promise((resolve,reject)=>{const r=new FileReader();r.onload=()=>resolve(r.result);r.onerror=reject;r.readAsDataURL(file)});const out=await api('/api/admin/upload',{method:'POST',body:JSON.stringify({dataUrl,filename:file.name})});$('#supportBackgroundImage').value=out.url;updateSupportPreview();showNotice('Фон поддержки загружен.')}catch(err){showNotice(err.message,'error')}finally{e.target.disabled=false;e.target.value=''}
+});
+async function saveSupportSettings(){
+  const ids=['supportButtonTextEn','supportButtonTextRu','supportTitleEn','supportTitleRu','supportGreetingEn','supportGreetingRu','supportEmailPlaceholderEn','supportEmailPlaceholderRu','supportMessagePlaceholderEn','supportMessagePlaceholderRu','supportSendTextEn','supportSendTextRu','supportBackgroundImage','supportButtonBg','supportButtonColor','supportFieldBg','supportFieldColor','supportButtonFont','supportWindowFont'];
+  const payload={};ids.forEach(id=>{const el=$('#'+id);payload[id]=String(el?.value||'').trim()});
+  payload.supportText=payload.supportButtonTextEn||'SUPPORT';
+  try{setBusy(true);settings=await api('/api/admin/settings',{method:'PUT',body:JSON.stringify(payload)});fillSupportEditor();showNotice('Настройки поддержки сохранены.')}catch(err){showNotice(err.message,'error')}finally{setBusy(false)}
+}
+$('#saveSupportSettings')?.addEventListener('click',saveSupportSettings);
+
+const ORDER_STATUSES=['new','processing','paid','shipped','completed','cancelled'];
+function renderOrdersAdmin(){
+  const box=$('#ordersAdminList');if(!box)return;
+  const q=String($('#ordersSearch')?.value||'').trim().toLowerCase();const filter=String($('#ordersStatusFilter')?.value||'');
+  let orders=Array.isArray(adminState.orders)?[...adminState.orders]:[];
+  orders=orders.filter(o=>{if(filter&&String(o.status)!==filter)return false;if(!q)return true;const hay=[o.number,o.email,o.customer?.firstName,o.customer?.lastName,o.customer?.name].join(' ').toLowerCase();return hay.includes(q)});
+  if(!orders.length){box.innerHTML='<div class="empty-admin-list">Заказов пока нет.</div>';return}
+  box.innerHTML=orders.map(o=>{
+    const customer=o.customer||{};const name=[customer.firstName,customer.lastName].filter(Boolean).join(' ')||customer.name||'';
+    const items=(o.items||[]).map(i=>`<div class="order-item-admin"><span>${esc(i.nameRu||i.name||'Товар')}</span><span>${esc(i.size||'—')} × ${Number(i.qty)||1}</span><strong>${adminMoney((Number(i.price)||0)*(Number(i.qty)||1),settings.currency||'$')}</strong></div>`).join('');
+    return `<article class="order-admin-card" data-order-id="${esc(o.id)}"><div class="order-admin-head"><div><strong>${esc(o.number||o.id)}</strong><div>${o.createdAt?new Date(o.createdAt).toLocaleString('ru-RU'):''}</div></div><div class="order-admin-total">${adminMoney(o.total,settings.currency||'$')}</div></div><div class="order-admin-meta"><span>${esc(name||'Без имени')}</span><span>${esc(o.email||'')}</span><span>${esc(customer.phone||'')}</span><span>${esc(o.paymentMethod||'')}</span>${o.couponCode?`<span>Купон: ${esc(o.couponCode)}</span>`:''}</div><div class="order-admin-items">${items||'<span>Нет товаров</span>'}</div><label class="field order-status-field"><span>Статус</span><select data-order-status>${ORDER_STATUSES.map(st=>`<option value="${st}" ${String(o.status||'new')===st?'selected':''}>${st}</option>`).join('')}</select></label></article>`;
+  }).join('');
+}
+$('#ordersSearch')?.addEventListener('input',renderOrdersAdmin);
+$('#ordersStatusFilter')?.addEventListener('change',renderOrdersAdmin);
+$('#ordersAdminList')?.addEventListener('change',async e=>{
+  const select=e.target.closest('[data-order-status]');if(!select)return;const card=select.closest('[data-order-id]');if(!card)return;
+  const order=(adminState.orders||[]).find(o=>String(o.id)===String(card.dataset.orderId));const prev=order?.status||'new';
+  try{const saved=await api(`/api/admin/orders/${encodeURIComponent(card.dataset.orderId)}`,{method:'PUT',body:JSON.stringify({status:select.value})});if(order)Object.assign(order,saved);showNotice('Статус заказа обновлён.')}catch(err){select.value=prev;showNotice(err.message,'error')}
+});
 
 function normalizePaymentMethods(raw){
   const src=Array.isArray(raw)&&raw.length?raw:DEFAULT_PAYMENT_METHODS;

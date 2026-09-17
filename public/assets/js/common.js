@@ -144,6 +144,32 @@ function safeCssFont(value){return String(value||'').replace(/[{};<>]/g,'').trim
 function safeCssColor(value,fallback='#000000'){
   const v=String(value||'').trim();return /^#[0-9a-f]{3,8}$/i.test(v)||/^(rgb|hsl)a?\([^;{}]+\)$/i.test(v)?v:fallback;
 }
+function supportConfig(settings={},lang=menuLang()){
+  const pick=(en,ru,fallbackEn,fallbackRu)=>lang==='ru'?String(settings[ru]||fallbackRu):String(settings[en]||fallbackEn);
+  return {
+    buttonText:pick('supportButtonTextEn','supportButtonTextRu',settings.supportText||'SUPPORT','ПОДДЕРЖКА'),
+    title:pick('supportTitleEn','supportTitleRu','START A CHAT','НАЧАТЬ ЧАТ'),
+    greeting:pick('supportGreetingEn','supportGreetingRu','Thanks for stopping by! How can I help you?','Спасибо, что заглянули! Чем я могу помочь?'),
+    emailPlaceholder:pick('supportEmailPlaceholderEn','supportEmailPlaceholderRu','YOUR EMAIL','ВАША ПОЧТА'),
+    messagePlaceholder:pick('supportMessagePlaceholderEn','supportMessagePlaceholderRu','HOW CAN WE HELP?','ЧЕМ МЫ МОЖЕМ ПОМОЧЬ?'),
+    send:pick('supportSendTextEn','supportSendTextRu','SEND','ОТПРАВИТЬ'),
+    backgroundImage:String(settings.supportBackgroundImage||'/assets/images/support-cross-pattern.png'),
+    buttonBg:safeCssColor(settings.supportButtonBg||'#000000','#000000'),buttonColor:safeCssColor(settings.supportButtonColor||'#ffffff','#ffffff'),
+    fieldBg:safeCssColor(settings.supportFieldBg||'#000000','#000000'),fieldColor:safeCssColor(settings.supportFieldColor||'#ffffff','#ffffff'),
+    buttonFont:safeCssFont(settings.supportButtonFont||''),windowFont:safeCssFont(settings.supportWindowFont||'')
+  };
+}
+function applySupportRuntimeStyles(settings={}){
+  const root=document.documentElement.style;
+  const cfg=supportConfig(settings,'en');
+  const bg=String(cfg.backgroundImage||'').replace(/["'\\()]/g,m=>'\\'+m);
+  root.setProperty('--dd-support-button-bg',cfg.buttonBg);root.setProperty('--dd-support-button-color',cfg.buttonColor);
+  root.setProperty('--dd-support-field-bg',cfg.fieldBg);root.setProperty('--dd-support-field-color',cfg.fieldColor);
+  root.setProperty('--dd-support-bg-image',bg?`url("${bg}")`:'none');
+  root.setProperty('--dd-support-button-font',cfg.buttonFont||'"Benzin Semibold","Benzin-Semibold","Arial Black",Arial,sans-serif');
+  root.setProperty('--dd-support-window-font',cfg.windowFont||'"DD Oswald","Arial Narrow",Arial,sans-serif');
+}
+window.ddSupportConfig=supportConfig;window.ddApplySupportRuntimeStyles=applySupportRuntimeStyles;
 function applyMenuRuntimeStyles(settings={}){
   let style=document.getElementById('dd-menu-runtime-style');
   if(!style){style=document.createElement('style');style.id='dd-menu-runtime-style';document.head.appendChild(style)}
@@ -242,6 +268,7 @@ async function renderChrome({home=false}={}){
     if(loginGroup){loginGroup.labelEn='ACCOUNT';loginGroup.labelRu='АККАУНТ';loginGroup.href='/account.html';loginGroup.items=(loginGroup.items||[]).map(item=>item.id==='register'?{...item,enabled:false}:item.id==='account'?{...item,href:'/account.html',showMobile:true}:item)}
   }
   applyMenuRuntimeStyles(s);
+  applySupportRuntimeStyles(s);
   document.documentElement.style.setProperty('--font',s.baseFont||'Arial, Helvetica, sans-serif');
   document.documentElement.style.setProperty('--display',s.displayFont||'Arial Black, Arial, sans-serif');
   document.documentElement.style.setProperty('--condensed',s.condensedFont||'Impact, Arial Narrow, sans-serif');
@@ -303,21 +330,23 @@ function mountSharedChrome(site,menu=getMenuConfig(site.settings||{}),currentUse
 
   $$('#shopSupportOpen, #supportOpen, [data-support], #shopSupportLayer, #supportLayer').forEach(el=>el.remove());
   const tr=text=>window.ddTranslate?.(text)||text;
+  const supportCfg=supportConfig(site.settings||{},lang);
+  applySupportRuntimeStyles(site.settings||{});
   const shell=document.createElement('div');
   shell.className='shared-support-root';
-  shell.innerHTML=`<button id="sharedSupportOpen" class="support-btn shared-support-button" type="button">${tr('SUPPORT')}</button>
+  shell.innerHTML=`<button id="sharedSupportOpen" class="support-btn shared-support-button" type="button">${esc(supportCfg.buttonText)}</button>
     <div id="sharedSupportLayer" class="support-layer shared-support-layer" aria-hidden="true">
       <div class="support-window shared-support-window" role="dialog" aria-label="DEMI DEVILLE support">
         <button id="sharedSupportClose" class="support-close" type="button" aria-label="${tr('Close support')}">×</button>
         <div class="support-panel">
           <div class="support-brand">DEMI DEVILLE</div>
           <div class="support-chat-body support-email-body">
-            <div class="support-start support-form-heading"><span class="support-desktop-copy">${tr('SEND A MESSAGE')}</span><span class="support-mobile-copy">${tr('START A CHAT')}</span></div>
-            <div class="support-mobile-intro">${tr('Thanks for stopping by! How can I help you?')}</div>
+            <div class="support-start support-form-heading">${esc(supportCfg.title)}</div>
+            <div class="support-mobile-intro">${esc(supportCfg.greeting)}</div>
             <form id="sharedSupportForm" class="support-form" novalidate>
-              <input id="sharedSupportEmail" class="support-form-input" name="email" type="email" autocomplete="email" required placeholder="${tr('YOUR EMAIL')}">
-              <textarea id="sharedSupportMessage" class="support-form-message" name="message" required placeholder="${tr('HOW CAN WE HELP?')}"></textarea>
-              <button id="sharedSupportSubmit" class="support-form-submit" type="submit">${tr('SEND')}</button>
+              <input id="sharedSupportEmail" class="support-form-input" name="email" type="email" autocomplete="email" required placeholder="${esc(supportCfg.emailPlaceholder)}">
+              <textarea id="sharedSupportMessage" class="support-form-message" name="message" required placeholder="${esc(supportCfg.messagePlaceholder)}"></textarea>
+              <button id="sharedSupportSubmit" class="support-form-submit" type="submit">${esc(supportCfg.send)}</button>
               <div id="sharedSupportStatus" class="support-form-status" aria-live="polite"></div>
             </form>
           </div>
@@ -340,7 +369,7 @@ function mountSharedChrome(site,menu=getMenuConfig(site.settings||{}),currentUse
     submit.disabled=true;submit.textContent=tr('SENDING…');
     try{const r=await fetch('/api/support',{method:'POST',headers:{'Content-Type':'application/json',...authHeaders()},body:JSON.stringify({email,message,lang:document.documentElement.lang==='ru'?'ru':'en'})});if(!r.ok)throw new Error('Support request failed');status.textContent=tr('THANK YOU. YOUR MESSAGE HAS BEEN SENT.');form.reset();if(currentUser?.email&&supportEmail)supportEmail.value=currentUser.email}
     catch{const contact=site.settings?.contact||'';if(contact){location.href=`mailto:${encodeURIComponent(contact)}?reply-to=${encodeURIComponent(email)}&subject=${encodeURIComponent('DEMI DEVILLE support')}&body=${encodeURIComponent(`From: ${email}\n\n${message}`)}`;status.textContent=tr('THANK YOU. YOUR MESSAGE HAS BEEN SENT.')}else{status.textContent=error;status.classList.add('error')}}
-    finally{submit.disabled=false;submit.textContent=tr('SEND')}
+    finally{submit.disabled=false;submit.textContent=supportCfg.send}
   });
   const fit=()=>{if(innerWidth<=900)return;const h=window.visualViewport?.height||innerHeight;const sx=innerWidth/1920,sy=h/1080,s=Math.min(sx,sy);document.body.style.setProperty('--shared-chrome-x',sx);document.body.style.setProperty('--shared-chrome-y',sy);document.body.style.setProperty('--shared-chrome-y-inverse',1/sy);document.body.style.setProperty('--shared-support-scale',s);document.body.style.setProperty('--shared-support-right',`${22*s}px`);document.body.style.setProperty('--shared-support-bottom',`${25*s}px`)};
   fit();addEventListener('resize',fit,{passive:true});window.visualViewport?.addEventListener('resize',fit,{passive:true});

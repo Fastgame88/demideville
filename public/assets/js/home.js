@@ -5,6 +5,7 @@
   const menuConfig=window.ddGetMenuConfig?window.ddGetMenuConfig(s):{groups:[],mobileLinks:[]};
   if(currentUser){const loginGroup=(menuConfig.groups||[]).find(g=>g.id==='login');if(loginGroup){loginGroup.labelEn='ACCOUNT';loginGroup.labelRu='АККАУНТ';loginGroup.href='/account.html';loginGroup.items=(loginGroup.items||[]).map(item=>item.id==='register'?{...item,enabled:false}:item.id==='account'?{...item,href:'/account.html',showMobile:true}:item)}}
   window.ddApplyMenuRuntimeStyles?.(s);
+  window.ddApplySupportRuntimeStyles?.(s);
   const clampPct=(value,fallback=35)=>{const n=Number(value);return Number.isFinite(n)?Math.max(0,Math.min(100,n)):fallback};
   const legacyOverlay=clampPct(s.homeOverlayOpacity,35);
   const desktopOverlay=clampPct(s.homeDesktopOverlayOpacity,legacyOverlay);
@@ -30,6 +31,8 @@
   const supportMessage=$('#supportMessage');
   const supportSubmit=$('#supportSubmit');
   const supportFormStatus=$('#supportFormStatus');
+  const supportHeading=$('#supportHeading');
+  const supportGreeting=$('#supportGreeting');
   if(currentUser?.email&&supportSenderEmail)supportSenderEmail.value=currentUser.email;
   const mobileMenu=$('#homeMobileMenu');
   const menuOpen=$('#homeMenuOpen');
@@ -77,6 +80,13 @@
     renderMenus();
     document.querySelectorAll('[data-i18n]').forEach(el=>{const k=el.dataset.i18n;if(dict[lang][k])el.textContent=dict[lang][k]});
     document.querySelectorAll('[data-i18n-placeholder]').forEach(el=>{const k=el.dataset.i18nPlaceholder;if(dict[lang][k])el.placeholder=dict[lang][k]});
+    const cfg=window.ddSupportConfig?window.ddSupportConfig(s,lang):{buttonText:dict[lang].support,title:dict[lang].startChat,greeting:dict[lang].greeting,emailPlaceholder:dict[lang].yourEmail,messagePlaceholder:dict[lang].yourMessage,send:dict[lang].send};
+    if(supportOpen)supportOpen.textContent=cfg.buttonText;
+    if(supportHeading)supportHeading.textContent=cfg.title;
+    if(supportGreeting)supportGreeting.textContent=cfg.greeting;
+    if(supportSenderEmail)supportSenderEmail.placeholder=cfg.emailPlaceholder;
+    if(supportMessage)supportMessage.placeholder=cfg.messagePlaceholder;
+    if(supportSubmit)supportSubmit.textContent=cfg.send;
     if(menuOpen)menuOpen.textContent=lang==='ru'?'МЕНЮ':'MENU';
     if(langToggle)langToggle.textContent=lang==='en'?'EN / RU':'RU / EN';
     localStorage.setItem('demi-lang',lang);
@@ -113,9 +123,10 @@
   supportForm?.addEventListener('submit',async e=>{
     e.preventDefault();const email=String(supportSenderEmail?.value||'').trim();const message=String(supportMessage?.value||'').trim();const validEmail=/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);supportFormStatus?.classList.remove('error');
     if(!validEmail||message.length<2){if(supportFormStatus){supportFormStatus.textContent=dict[lang].sendError;supportFormStatus.classList.add('error')}return}
+    const supportCfg=window.ddSupportConfig?window.ddSupportConfig(s,lang):{send:dict[lang].send};
     if(supportSubmit){supportSubmit.disabled=true;supportSubmit.textContent=dict[lang].sending}
     try{const r=await fetch('/api/support',{method:'POST',headers:{'Content-Type':'application/json',...authHeaders()},body:JSON.stringify({email,message,lang})});const data=await r.json().catch(()=>({}));if(!r.ok)throw new Error(data.error||'Support request failed');if(supportFormStatus)supportFormStatus.textContent=dict[lang].sent;supportForm.reset();if(currentUser?.email&&supportSenderEmail)supportSenderEmail.value=currentUser.email}
     catch(err){if(supportFormStatus){supportFormStatus.textContent=dict[lang].sendError;supportFormStatus.classList.add('error')}}
-    finally{if(supportSubmit){supportSubmit.disabled=false;supportSubmit.textContent=dict[lang].send}}
+    finally{if(supportSubmit){supportSubmit.disabled=false;supportSubmit.textContent=supportCfg.send||dict[lang].send}}
   });
 })();

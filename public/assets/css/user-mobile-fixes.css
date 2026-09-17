@@ -1927,3 +1927,94 @@ body.about-page .about-copy-ru{display:none!important}
   html[lang="ru"] body.about-page .about-copy-mobile{display:none!important}
   html[lang="ru"] body.about-page .about-copy-ru{display:block!important}
 }
+
+/* =========================================================
+   v18 — editable SUPPORT, same desktop/mobile form content
+   ========================================================= */
+.home #supportOpen.home-support-btn,
+body.shared-chrome-page>#sharedSupportOpen.shared-support-button{
+  background:var(--dd-support-button-bg,#000)!important;
+  color:var(--dd-support-button-color,#fff)!important;
+  font-family:var(--dd-support-button-font,"Benzin Semibold","Benzin-Semibold","Arial Black",Arial,sans-serif)!important;
+}
+.home #supportLayer .support-chat-body,
+body.shared-chrome-page>#sharedSupportLayer .shared-support-window .support-chat-body{
+  background-color:#fff!important;
+  background-image:var(--dd-support-bg-image,url('/assets/images/support-cross-pattern.png'))!important;
+  background-repeat:repeat!important;
+  background-size:55px 61px!important;
+  background-position:0 0!important;
+  font-family:var(--dd-support-window-font,"DD Oswald","Arial Narrow",Arial,sans-serif)!important;
+}
+.home #supportLayer .support-form-heading,
+.home #supportLayer .support-mobile-intro,
+.home #supportLayer .support-form-input,
+.home #supportLayer .support-form-message,
+.home #supportLayer .support-form-submit,
+body.shared-chrome-page>#sharedSupportLayer .shared-support-window .support-form-heading,
+body.shared-chrome-page>#sharedSupportLayer .shared-support-window .support-mobile-intro,
+body.shared-chrome-page>#sharedSupportLayer .shared-support-window .support-form-input,
+body.shared-chrome-page>#sharedSupportLayer .shared-support-window .support-form-message,
+body.shared-chrome-page>#sharedSupportLayer .shared-support-window .support-form-submit{
+  font-family:var(--dd-support-window-font,"DD Oswald","Arial Narrow",Arial,sans-serif)!important;
+}
+.home #supportLayer .support-form-heading,
+.home #supportLayer .support-mobile-intro,
+.home #supportLayer .support-form-input,
+.home #supportLayer .support-form-message,
+.home #supportLayer .support-form-submit,
+body.shared-chrome-page>#sharedSupportLayer .shared-support-window .support-form-heading,
+body.shared-chrome-page>#sharedSupportLayer .shared-support-window .support-mobile-intro,
+body.shared-chrome-page>#sharedSupportLayer .shared-support-window .support-form-input,
+body.shared-chrome-page>#sharedSupportLayer .shared-support-window .support-form-message,
+body.shared-chrome-page>#sharedSupportLayer .shared-support-window .support-form-submit{
+  background:var(--dd-support-field-bg,#000)!important;
+  color:var(--dd-support-field-color,#fff)!important;
+}
+.home #supportLayer .support-form-input::placeholder,
+.home #supportLayer .support-form-message::placeholder,
+body.shared-chrome-page>#sharedSupportLayer .shared-support-window .support-form-input::placeholder,
+body.shared-chrome-page>#sharedSupportLayer .shared-support-window .support-form-message::placeholder{
+  color:var(--dd-support-field-color,#fff)!important;opacity:1!important;
+}
+
+@media (min-width:901px){
+  /* Keep the original desktop dimensions, only fix the inner composition. */
+  .home #supportLayer .support-chat-body,
+  body.shared-chrome-page>#sharedSupportLayer .shared-support-window .support-chat-body{
+    position:relative!important;
+    padding:12px 12px 13px!important;
+  }
+  .home #supportLayer .support-form-heading,
+  body.shared-chrome-page>#sharedSupportLayer .shared-support-window .support-form-heading{
+    display:flex!important;width:216px!important;height:58px!important;margin:0 auto!important;
+    align-items:center!important;justify-content:center!important;font-size:15px!important;line-height:1.05!important;
+  }
+  .home #supportLayer .support-mobile-intro,
+  body.shared-chrome-page>#sharedSupportLayer .shared-support-window .support-mobile-intro{
+    display:block!important;position:absolute!important;left:12px!important;right:12px!important;top:82px!important;
+    width:auto!important;min-height:46px!important;margin:0!important;padding:8px 10px!important;
+    font-size:14px!important;line-height:1.15!important;text-align:left!important;
+  }
+  .home #supportLayer .support-form,
+  body.shared-chrome-page>#sharedSupportLayer .shared-support-window .support-form{
+    position:absolute!important;left:12px!important;right:12px!important;top:142px!important;bottom:13px!important;
+    display:flex!important;flex-direction:column!important;gap:9px!important;
+  }
+  .home #supportLayer .support-form-input,
+  body.shared-chrome-page>#sharedSupportLayer .shared-support-window .support-form-input{
+    width:100%!important;height:42px!important;margin:0!important;padding:9px 10px!important;flex:0 0 42px!important;font-size:14px!important;
+  }
+  .home #supportLayer .support-form-message,
+  body.shared-chrome-page>#sharedSupportLayer .shared-support-window .support-form-message{
+    width:100%!important;height:104px!important;margin:0!important;padding:9px 10px!important;flex:0 0 104px!important;font-size:14px!important;
+  }
+  .home #supportLayer .support-form-submit,
+  body.shared-chrome-page>#sharedSupportLayer .shared-support-window .support-form-submit{
+    width:100%!important;height:44px!important;margin-top:auto!important;flex:0 0 44px!important;font-size:15px!important;
+  }
+  .home #supportLayer .support-form-status,
+  body.shared-chrome-page>#sharedSupportLayer .shared-support-window .support-form-status{
+    min-height:22px!important;margin:0!important;padding:3px 2px 0!important;font-size:10px!important;
+  }
+}

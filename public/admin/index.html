@@ -4,22 +4,22 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>DEMI DEVILLE — Админ-панель</title>
-  <link rel="stylesheet" href="/assets/css/admin.css?v=20260917-v12">
+  <link rel="stylesheet" href="/assets/css/admin.css?v=20260917-v18">
 </head>
 <body>
   <section id="loginView" class="auth-screen">
-    <form id="adminLogin" class="auth-card" autocomplete="on">
+    <form id="adminLogin" class="auth-card" autocomplete="off">
       <div class="auth-brand">DEMI DEVILLE</div>
       <h1>Админ-панель</h1>
       <p class="muted">Войдите под учётной записью администратора.</p>
       <div id="loginNotice" class="notice" aria-live="polite"></div>
       <label class="field">
         <span>Электронная почта</span>
-        <input required type="email" name="email" autocomplete="username" value="admin@demideville.local">
+        <input required type="email" name="email" autocomplete="off" placeholder="admin@example.com">
       </label>
       <label class="field">
         <span>Пароль</span>
-        <input required type="password" name="password" autocomplete="current-password" value="Admin123!">
+        <input required type="password" name="password" autocomplete="new-password" placeholder="Пароль">
       </label>
       <button class="primary-btn wide" type="submit">Войти</button>
     </form>
@@ -35,6 +35,8 @@
         <button class="nav-item" type="button" data-admin-tab="gallery">ГАЛЕРЕЯ</button>
         <button class="nav-item" type="button" data-admin-tab="instagram">INSTAGRAM</button>
         <button class="nav-item" type="button" data-admin-tab="contact">КОНТАКТЫ</button>
+        <button class="nav-item" type="button" data-admin-tab="support">ПОДДЕРЖКА</button>
+        <button class="nav-item" type="button" data-admin-tab="orders">ЗАКАЗЫ</button>
         <button class="nav-item" type="button" data-admin-tab="clients">КЛИЕНТЫ</button>
         <button class="nav-item" type="button" data-admin-tab="payment">ОПЛАТА</button>
       </nav>
@@ -344,6 +346,70 @@
         </section>
       </section>
 
+
+      <section id="supportEditor" class="editor-form" hidden>
+        <section class="device-card support-admin-card">
+          <div class="device-card-head">
+            <div><span class="device-badge">ПОДДЕРЖКА</span><h2>Окно SUPPORT</h2></div>
+            <a class="secondary-btn" href="/" target="_blank" rel="noreferrer">Открыть сайт ↗</a>
+          </div>
+          <div class="support-admin-grid">
+            <section class="support-admin-controls">
+              <h3>Тексты</h3>
+              <div class="form-grid two">
+                <label class="field"><span>Текст кнопки EN</span><input id="supportButtonTextEn" value="SUPPORT"></label>
+                <label class="field"><span>Текст кнопки RU</span><input id="supportButtonTextRu" value="ПОДДЕРЖКА"></label>
+                <label class="field"><span>Заголовок EN</span><input id="supportTitleEn" value="START A CHAT"></label>
+                <label class="field"><span>Заголовок RU</span><input id="supportTitleRu" value="НАЧАТЬ ЧАТ"></label>
+                <label class="field span-2"><span>Сообщение EN</span><input id="supportGreetingEn" value="Thanks for stopping by! How can I help you?"></label>
+                <label class="field span-2"><span>Сообщение RU</span><input id="supportGreetingRu" value="Спасибо, что заглянули! Чем я могу помочь?"></label>
+                <label class="field"><span>Поле email EN</span><input id="supportEmailPlaceholderEn" value="YOUR EMAIL"></label>
+                <label class="field"><span>Поле email RU</span><input id="supportEmailPlaceholderRu" value="ВАША ПОЧТА"></label>
+                <label class="field"><span>Поле сообщения EN</span><input id="supportMessagePlaceholderEn" value="HOW CAN WE HELP?"></label>
+                <label class="field"><span>Поле сообщения RU</span><input id="supportMessagePlaceholderRu" value="ЧЕМ МЫ МОЖЕМ ПОМОЧЬ?"></label>
+                <label class="field"><span>Кнопка отправки EN</span><input id="supportSendTextEn" value="SEND"></label>
+                <label class="field"><span>Кнопка отправки RU</span><input id="supportSendTextRu" value="ОТПРАВИТЬ"></label>
+              </div>
+
+              <h3>Фон, поля и шрифты</h3>
+              <div class="form-grid two">
+                <label class="field span-2"><span>Фоновое изображение окна</span><input id="supportBackgroundImage" placeholder="/assets/images/support-cross-pattern.png"></label>
+                <label class="upload-btn span-2"><input id="supportBackgroundFile" type="file" accept="image/*"><span>Загрузить фото для фона</span></label>
+                <label class="field"><span>Фон кнопки</span><input id="supportButtonBg" type="color" value="#000000"></label>
+                <label class="field"><span>Цвет текста кнопки</span><input id="supportButtonColor" type="color" value="#ffffff"></label>
+                <label class="field"><span>Фон полей</span><input id="supportFieldBg" type="color" value="#000000"></label>
+                <label class="field"><span>Цвет текста в полях</span><input id="supportFieldColor" type="color" value="#ffffff"></label>
+                <label class="field"><span>Шрифт кнопки</span><select id="supportButtonFont" class="font-select" data-default-label="Текущий дизайн"></select></label>
+                <label class="field"><span>Шрифт окна</span><select id="supportWindowFont" class="font-select" data-default-label="Текущий дизайн"></select></label>
+              </div>
+            </section>
+            <section class="support-admin-preview-wrap">
+              <h3>Предпросмотр</h3>
+              <div id="supportAdminPreview" class="support-admin-preview">
+                <div class="support-preview-brand">DEMI DEVILLE</div>
+                <div class="support-preview-body">
+                  <div id="supportPreviewTitle" class="support-preview-title">START A CHAT</div>
+                  <div id="supportPreviewGreeting" class="support-preview-greeting">Thanks for stopping by! How can I help you?</div>
+                  <div id="supportPreviewEmail" class="support-preview-field">YOUR EMAIL</div>
+                  <div id="supportPreviewMessage" class="support-preview-field support-preview-message">HOW CAN WE HELP?</div>
+                  <div id="supportPreviewSend" class="support-preview-send">SEND</div>
+                </div>
+              </div>
+              <button id="supportPreviewButton" class="support-preview-button" type="button">SUPPORT</button>
+            </section>
+          </div>
+        </section>
+        <div class="form-actions"><div class="save-note">Изменения применяются одновременно к ПК и телефону.</div><button id="saveSupportSettings" class="primary-btn large" type="button">Сохранить поддержку</button></div>
+      </section>
+
+      <section id="ordersEditor" class="editor-form" hidden>
+        <section class="device-card">
+          <div class="device-card-head"><div><span class="device-badge">ЗАКАЗЫ</span><h2>Заказы клиентов</h2></div></div>
+          <div class="orders-admin-toolbar"><input id="ordersSearch" type="search" placeholder="Поиск по номеру, email или имени"><select id="ordersStatusFilter"><option value="">Все статусы</option><option value="new">new</option><option value="processing">processing</option><option value="paid">paid</option><option value="shipped">shipped</option><option value="completed">completed</option><option value="cancelled">cancelled</option></select></div>
+          <div id="ordersAdminList" class="orders-admin-list"></div>
+        </section>
+      </section>
+
       <section id="clientsEditor" class="editor-form" hidden>
         <section class="device-card">
           <div class="device-card-head"><div><span class="device-badge">КЛИЕНТЫ</span><h2>Зарегистрированные клиенты</h2></div></div>
@@ -434,6 +500,6 @@
     </section>
   </div>
 
-  <script src="/assets/js/admin.js?v=20260917-v15"></script>
+  <script src="/assets/js/admin.js?v=20260917-v18"></script>
 </body>
 </html>

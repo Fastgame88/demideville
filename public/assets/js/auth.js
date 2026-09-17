@@ -3,6 +3,17 @@
   const site=await SITE;
   $('#loginArt').src=site.settings?.loginArt||'/assets/images/login-art.png';
 
+  // Never expose or prefill the administrator credentials on the customer page.
+  const clearAdminAutofill=()=>{
+    [$('#registerForm'),$('#loginForm')].forEach(form=>{
+      if(!form)return;const email=form.querySelector('input[type=email]'),password=form.querySelector('input[type=password]');
+      if(String(email?.value||'').trim().toLowerCase()==='admin@demideville.local'){email.value='';if(password)password.value=''}
+    });
+  };
+  clearAdminAutofill();
+  setTimeout(clearAdminAutofill,120);
+  setTimeout(clearAdminAutofill,700);
+
   /* Header and support are provided by renderChrome() in common.js. */
 
   const canvas=$('#loginCanvas');
