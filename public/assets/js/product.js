@@ -26,10 +26,24 @@
 
   if(images.length>1){
     const visual=$('.product-visual');
-    const thumbs=document.createElement('div');thumbs.className='product-customer-thumbs';
-    thumbs.innerHTML=images.map((url,i)=>`<button class="product-customer-thumb${i===0?' is-active':''}" type="button" data-product-image="${i}" aria-label="${lang==='ru'?'Фото':'Image'} ${i+1}"><img src="${esc(displayImage(url))}" alt=""></button>`).join('');
-    visual.appendChild(thumbs);
-    thumbs.addEventListener('click',e=>{const btn=e.target.closest('[data-product-image]');if(!btn)return;const i=Number(btn.dataset.productImage);mainImage.src=displayImage(images[i]);$$('.product-customer-thumb',thumbs).forEach(x=>x.classList.toggle('is-active',x===btn))});
+    let activeImage=0;
+    const gallery=document.createElement('div');gallery.className='product-customer-gallery';
+    gallery.innerHTML=`<button class="product-gallery-arrow product-gallery-prev" type="button" aria-label="${lang==='ru'?'Предыдущее фото':'Previous image'}"></button><div class="product-customer-thumbs">${images.map((url,i)=>`<button class="product-customer-thumb${i===0?' is-active':''}" type="button" data-product-image="${i}" aria-label="${lang==='ru'?'Фото':'Image'} ${i+1}"><img src="${esc(displayImage(url))}" alt=""></button>`).join('')}</div><button class="product-gallery-arrow product-gallery-next" type="button" aria-label="${lang==='ru'?'Следующее фото':'Next image'}"></button>`;
+    visual.appendChild(gallery);
+    const thumbs=$('.product-customer-thumbs',gallery);
+    const showImage=index=>{
+      activeImage=(index+images.length)%images.length;
+      mainImage.src=displayImage(images[activeImage]);
+      $$('[data-product-image]',gallery).forEach((btn,i)=>btn.classList.toggle('is-active',i===activeImage));
+      const active=$(`[data-product-image="${activeImage}"]`,gallery);active?.scrollIntoView({block:'nearest',inline:'nearest'});
+    };
+    gallery.addEventListener('click',e=>{
+      e.preventDefault();e.stopPropagation();
+      const thumb=e.target.closest('[data-product-image]');
+      if(thumb)return showImage(Number(thumb.dataset.productImage));
+      if(e.target.closest('.product-gallery-prev'))return showImage(activeImage-1);
+      if(e.target.closest('.product-gallery-next'))return showImage(activeImage+1);
+    });
   }
 
   /* Preserve the PSD Benzin typography when the local font is installed. */

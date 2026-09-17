@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>DEMI DEVILLE — Админ-панель</title>
-  <link rel="stylesheet" href="/assets/css/admin.css?v=20260917-gallery-v8">
+  <link rel="stylesheet" href="/assets/css/admin.css?v=20260917-v9">
 </head>
 <body>
   <section id="loginView" class="auth-screen">
@@ -33,6 +33,9 @@
         <button class="nav-item active" type="button" data-admin-tab="home">Главная страница</button>
         <button class="nav-item" type="button" data-admin-tab="shop">SHOP</button>
         <button class="nav-item" type="button" data-admin-tab="gallery">ГАЛЕРЕЯ</button>
+        <button class="nav-item" type="button" data-admin-tab="instagram">INSTAGRAM</button>
+        <button class="nav-item" type="button" data-admin-tab="contact">КОНТАКТЫ</button>
+        <button class="nav-item" type="button" data-admin-tab="clients">КЛИЕНТЫ</button>
       </nav>
       <div class="side-bottom">
         <a class="side-link" href="/" target="_blank" rel="noreferrer">Открыть сайт ↗</a>
@@ -302,6 +305,40 @@
         </div>
       </section>
 
+      <section id="instagramEditor" class="editor-form" hidden>
+        <section class="device-card">
+          <div class="device-card-head"><div><span class="device-badge">INSTAGRAM</span><h2>Ссылка Instagram в меню</h2></div></div>
+          <div class="simple-admin-form">
+            <label class="field"><span>Ссылка на Instagram</span><input id="instagramUrl" type="url" placeholder="https://instagram.com/..."></label>
+            <p class="admin-help-text">Эта ссылка используется в пункте INSTAGRAM верхнего меню сайта.</p>
+          </div>
+        </section>
+      </section>
+
+      <section id="contactEditor" class="editor-form" hidden>
+        <section class="device-card">
+          <div class="device-card-head"><div><span class="device-badge">КОНТАКТЫ</span><h2>Страница контактов</h2></div><a class="secondary-btn" href="/contact.html" target="_blank" rel="noreferrer">Открыть страницу ↗</a></div>
+          <div class="contact-admin-grid">
+            <label class="field"><span>Заголовок EN</span><input id="contactTitleEn"></label>
+            <label class="field"><span>Заголовок RU</span><input id="contactTitleRu"></label>
+            <label class="field span-2"><span>Текст EN</span><textarea id="contactTextEn" rows="4"></textarea></label>
+            <label class="field span-2"><span>Текст RU</span><textarea id="contactTextRu" rows="4"></textarea></label>
+            <label class="field"><span>Email</span><input id="contactEmailAdmin" type="email"></label>
+            <label class="field"><span>Телефон</span><input id="contactPhoneAdmin" placeholder="+33 ..."></label>
+            <label class="field"><span>Адрес EN</span><input id="contactAddressEn"></label>
+            <label class="field"><span>Адрес RU</span><input id="contactAddressRu"></label>
+          </div>
+        </section>
+      </section>
+
+      <section id="clientsEditor" class="editor-form" hidden>
+        <section class="device-card">
+          <div class="device-card-head"><div><span class="device-badge">КЛИЕНТЫ</span><h2>Зарегистрированные клиенты</h2></div></div>
+          <div class="clients-admin-head"><span>Клиент, его заказы и персональные купоны на скидку.</span></div>
+          <div id="clientsAdminList" class="clients-admin-list"></div>
+        </section>
+      </section>
+
     </main>
   </div>
 
@@ -366,6 +403,6 @@
     </section>
   </div>
 
-  <script src="/assets/js/admin.js?v=20260917-gallery-v8"></script>
+  <script src="/assets/js/admin.js?v=20260917-v9"></script>
 </body>
 </html>

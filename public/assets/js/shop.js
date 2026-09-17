@@ -81,11 +81,13 @@
     const desktopColumns=count<=6?3:Math.ceil(count/2);
     const desktopRows=2;
     const desktopMedia=desktopColumns<=3?305:Math.max(175,305-(desktopColumns-3)*28);
-    const desktopCardWidth=desktopColumns<=3?355:Math.max(210,Math.floor((1780-(desktopColumns-1)*48)/desktopColumns));
+    const desktopGap=desktopColumns<=3?125:48;
+    const desktopCardWidth=desktopColumns<=3?355:Math.max(210,Math.floor((1780-(desktopColumns-1)*desktopGap)/desktopColumns));
     grid.style.setProperty('--shop-columns',String(desktopColumns));
     grid.style.setProperty('--shop-rows',String(desktopRows));
     grid.style.setProperty('--shop-media-size',`${desktopMedia}px`);
     grid.style.setProperty('--shop-card-width',`${desktopCardWidth}px`);
+    grid.style.setProperty('--shop-column-gap',`${desktopGap}px`);
 
     if(!pageItems.length){
       grid.innerHTML=`<p class="shop-empty">${lang==='ru'?'В этом разделе пока нет товаров.':'No products in this category yet.'}</p>`;

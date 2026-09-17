@@ -6,6 +6,10 @@
   const cart=cartGet().filter(x=>byId[String(x.productId)]);
   const list=$('#orderList');
   let pay='Card payment';
+  let appliedCoupon=null;
+  let discountAmount=0;
+  const currentUser=window.ddCurrentUser?await window.ddCurrentUser():null;
+  if(currentUser?.email){const emailInput=document.querySelector('#checkoutForm [name=email]');if(emailInput)emailInput.value=currentUser.email}
 
   const preferredCheckoutImage=p=>{
     const known={
@@ -41,9 +45,12 @@
     const ship=Number(site.settings?.shipping||30);
     $('#subtotal').textContent=money(sub,curr);
     $('#shipping').textContent=money(ship,curr);
-    $('#grandTotal').textContent=money(sub+ship,curr);
+    const discountRow=$('#discountRow'),discountValue=$('#discountValue');
+    if(discountRow)discountRow.hidden=!(discountAmount>0);if(discountValue)discountValue.textContent=discountAmount>0?`−${money(discountAmount,curr)}`:'';
+    const total=Math.max(0,sub-discountAmount+ship);
+    $('#grandTotal').textContent=money(total,curr);
     const mobileTotal=$('#mobileOrderTotal');
-    if(mobileTotal)mobileTotal.textContent=money(sub+ship,curr);
+    if(mobileTotal)mobileTotal.textContent=money(total,curr);
   }
   draw();
 
@@ -52,7 +59,16 @@
     e.currentTarget.setAttribute('aria-expanded',String(open));
   });
 
-  $('#discountApply')?.addEventListener('click',e=>e.preventDefault());
+  $('#discountApply')?.addEventListener('click',async e=>{
+    e.preventDefault();const code=String($('#discountCode')?.value||'').trim();const status=$('#discountStatus');
+    if(status){status.textContent='';status.classList.remove('error','ok')}
+    if(!code){appliedCoupon=null;discountAmount=0;draw();return}
+    try{
+      const r=await fetch('/api/coupons/validate',{method:'POST',headers:{'Content-Type':'application/json',...authHeaders()},body:JSON.stringify({code,items:cart})});
+      const d=await r.json().catch(()=>({}));if(!r.ok)throw new Error(d.error||'Coupon is not valid');
+      appliedCoupon=d.code;discountAmount=Number(d.discount)||0;if(status){status.textContent=`${d.code}: −${Number(d.percent)||0}%`;status.classList.add('ok')}draw();
+    }catch(err){appliedCoupon=null;discountAmount=0;if(status){status.textContent=err.message;status.classList.add('error')}draw()}
+  });
 
   $('#checkoutForm').addEventListener('submit',async e=>{
     e.preventDefault();
@@ -61,6 +77,7 @@
     const body={
       email:f.get('email'),
       paymentMethod:pay,
+      couponCode:appliedCoupon||'',
       items:cart,
       customer:{
         country:f.get('country'),

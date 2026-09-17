@@ -1,7 +1,9 @@
 (async()=>{
   const site=await SITE;
   const s=site.settings||{};
+  const currentUser=window.ddCurrentUser?await window.ddCurrentUser():null;
   const menuConfig=window.ddGetMenuConfig?window.ddGetMenuConfig(s):{groups:[],mobileLinks:[]};
+  if(currentUser){const loginGroup=(menuConfig.groups||[]).find(g=>g.id==='login');if(loginGroup){loginGroup.labelEn='ACCOUNT';loginGroup.labelRu='АККАУНТ';loginGroup.href='/account.html';loginGroup.items=(loginGroup.items||[]).map(item=>item.id==='register'?{...item,enabled:false}:item.id==='account'?{...item,href:'/account.html',showMobile:true}:item)}}
   window.ddApplyMenuRuntimeStyles?.(s);
   const clampPct=(value,fallback=35)=>{const n=Number(value);return Number.isFinite(n)?Math.max(0,Math.min(100,n)):fallback};
   const legacyOverlay=clampPct(s.homeOverlayOpacity,35);
@@ -28,6 +30,7 @@
   const supportMessage=$('#supportMessage');
   const supportSubmit=$('#supportSubmit');
   const supportFormStatus=$('#supportFormStatus');
+  if(currentUser?.email&&supportSenderEmail)supportSenderEmail.value=currentUser.email;
   const mobileMenu=$('#homeMobileMenu');
   const menuOpen=$('#homeMenuOpen');
   const langToggle=$('#langToggle');
@@ -111,7 +114,7 @@
     e.preventDefault();const email=String(supportSenderEmail?.value||'').trim();const message=String(supportMessage?.value||'').trim();const validEmail=/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);supportFormStatus?.classList.remove('error');
     if(!validEmail||message.length<2){if(supportFormStatus){supportFormStatus.textContent=dict[lang].sendError;supportFormStatus.classList.add('error')}return}
     if(supportSubmit){supportSubmit.disabled=true;supportSubmit.textContent=dict[lang].sending}
-    try{const r=await fetch('/api/support',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email,message,lang})});const data=await r.json().catch(()=>({}));if(!r.ok)throw new Error(data.error||'Support request failed');if(supportFormStatus)supportFormStatus.textContent=dict[lang].sent;supportForm.reset()}
+    try{const r=await fetch('/api/support',{method:'POST',headers:{'Content-Type':'application/json',...authHeaders()},body:JSON.stringify({email,message,lang})});const data=await r.json().catch(()=>({}));if(!r.ok)throw new Error(data.error||'Support request failed');if(supportFormStatus)supportFormStatus.textContent=dict[lang].sent;supportForm.reset();if(currentUser?.email&&supportSenderEmail)supportSenderEmail.value=currentUser.email}
     catch(err){if(supportFormStatus){supportFormStatus.textContent=dict[lang].sendError;supportFormStatus.classList.add('error')}}
     finally{if(supportSubmit){supportSubmit.disabled=false;supportSubmit.textContent=dict[lang].send}}
   });

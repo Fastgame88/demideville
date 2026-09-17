@@ -13,6 +13,7 @@ const DEFAULT_ABOUT_RU='DEMI DEVILLE — новаторская студия д�
 const $=(s,r=document)=>r.querySelector(s);
 const $$=(s,r=document)=>[...r.querySelectorAll(s)];
 const esc=v=>String(v??'').replace(/[&<>'"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;","'":"&#39;",'"':'&quot;'}[c]));
+const adminMoney=(v,s='$')=>`${Number(v||0).toFixed(Number(v)%1?2:0)}${s}`;
 
 const FONT_OPTIONS=[
   ['Arial','Arial, Helvetica, sans-serif'],['Arial Black','"Arial Black", Arial, sans-serif'],['Arial Narrow','"Arial Narrow", Arial, sans-serif'],
@@ -61,9 +62,9 @@ const DEFAULT_MENU_CONFIG={
     {id:'login',labelEn:'LOGIN',labelRu:'ВХОД',href:'/login.html',enabled:true,mobileShowMain:true,mobileDarkLabel:true,items:[
       {id:'cart',labelEn:'CART',labelRu:'КОРЗИНА',href:'/cart.html',enabled:true,showMobile:true},
       {id:'register',labelEn:'REGISTER',labelRu:'РЕГИСТРАЦИЯ',href:'/login.html#register',enabled:true,showMobile:true},
-      {id:'account',labelEn:'ACCOUNT',labelRu:'АККАУНТ',href:'/login.html',enabled:true,showMobile:false},
+      {id:'account',labelEn:'ACCOUNT',labelRu:'АККАУНТ',href:'/account.html',enabled:true,showMobile:false},
       {id:'about-login',labelEn:'ABOUT',labelRu:'О НАС',href:'/about.html',enabled:true,showMobile:false,separatorBefore:true},
-      {id:'services',labelEn:'CLIENT SERVICES',labelRu:'КЛИЕНТСКИЙ СЕРВИС',href:'mailto:{{contact}}',enabled:true,showMobile:false}
+      {id:'services',labelEn:'CLIENT SERVICES',labelRu:'КЛИЕНТСКИЙ СЕРВИС',href:'/contact.html',enabled:true,showMobile:false}
     ]}
   ],
   mobileLinks:[
@@ -105,7 +106,7 @@ async function boot(){
     const me=await api('/api/auth/me');
     if(me.user.role!=='admin')throw new Error('Доступ разрешён только администратору');
     $('#adminUser').textContent=me.user.email;$('#loginView').hidden=true;$('#loginView').style.display='none';$('#adminView').hidden=false;window.scrollTo(0,0);
-    const state=await api('/api/admin/state');adminState=state||{};settings=state.settings||{};productsDraft=Array.isArray(state.products)?state.products.map(clone):[];galleryDraft=Array.isArray(state.gallery)?state.gallery.map(clone):[];shopCategoriesDraft=normalizeShopCategories(settings.shopCategories);fillForm();fillShopEditor();fillGalleryEditor();switchAdminTab(currentAdminTab);
+    const state=await api('/api/admin/state');adminState=state||{};settings=state.settings||{};productsDraft=Array.isArray(state.products)?state.products.map(clone):[];galleryDraft=Array.isArray(state.gallery)?state.gallery.map(clone):[];shopCategoriesDraft=normalizeShopCategories(settings.shopCategories);fillForm();fillShopEditor();fillGalleryEditor();fillExternalEditors();renderClientsAdmin();switchAdminTab(currentAdminTab);
   }catch(e){token='';localStorage.removeItem('dd_token');showLogin(e.message)}
 }
 $('#adminLogin').addEventListener('submit',async e=>{
@@ -229,7 +230,7 @@ async function save(){
   try{setBusy(true);settings=await api('/api/admin/settings',{method:'PUT',body:JSON.stringify(payload())});fillForm();showNotice('Изменения сохранены.')}catch(e){showNotice(e.message,'error')}finally{setBusy(false)}
 }
 $('#homeSettingsForm').addEventListener('submit',async e=>{e.preventDefault();await save()});
-$('#saveTop').addEventListener('click',()=>currentAdminTab==='shop'?saveShopSettings():currentAdminTab==='gallery'?saveGallerySettings():save());
+$('#saveTop').addEventListener('click',()=>currentAdminTab==='shop'?saveShopSettings():currentAdminTab==='gallery'?saveGallerySettings():currentAdminTab==='instagram'?saveInstagramSettings():currentAdminTab==='contact'?saveContactSettings():currentAdminTab==='clients'?Promise.resolve():save());
 
 function slugify(value){
   return String(value||'').trim().toLowerCase()
@@ -266,13 +267,20 @@ function fillShopEditor(){
   renderProductsAdmin();
 }
 function switchAdminTab(tab){
-  currentAdminTab=['home','shop','gallery'].includes(tab)?tab:'home';
+  const allowed=['home','shop','gallery','instagram','contact','clients'];
+  currentAdminTab=allowed.includes(tab)?tab:'home';
   $$('#adminView [data-admin-tab]').forEach(btn=>btn.classList.toggle('active',btn.dataset.adminTab===currentAdminTab));
   $('#homeSettingsForm').hidden=currentAdminTab!=='home';
   $('#shopEditor').hidden=currentAdminTab!=='shop';
   $('#galleryEditor').hidden=currentAdminTab!=='gallery';
-  $('#workspaceTitle').textContent=currentAdminTab==='shop'?'SHOP':currentAdminTab==='gallery'?'Галерея':'Главная страница';
-  $('#saveTop').textContent=currentAdminTab==='shop'?'Сохранить магазин':currentAdminTab==='gallery'?'Сохранить галерею':'Сохранить';
+  $('#instagramEditor').hidden=currentAdminTab!=='instagram';
+  $('#contactEditor').hidden=currentAdminTab!=='contact';
+  $('#clientsEditor').hidden=currentAdminTab!=='clients';
+  const titles={home:'Главная страница',shop:'SHOP',gallery:'Галерея',instagram:'Instagram',contact:'Контакты',clients:'Клиенты'};
+  $('#workspaceTitle').textContent=titles[currentAdminTab]||'Главная страница';
+  const saveTop=$('#saveTop');saveTop.hidden=currentAdminTab==='clients';
+  saveTop.textContent=currentAdminTab==='shop'?'Сохранить магазин':currentAdminTab==='gallery'?'Сохранить галерею':currentAdminTab==='instagram'?'Сохранить Instagram':currentAdminTab==='contact'?'Сохранить контакты':'Сохранить';
+  if(currentAdminTab==='clients')renderClientsAdmin();
 }
 $$('[data-admin-tab]').forEach(btn=>btn.addEventListener('click',()=>switchAdminTab(btn.dataset.adminTab)));
 
@@ -539,5 +547,40 @@ async function saveGallerySettings(){
   }catch(err){showNotice(err.message,'error')}finally{setBusy(false)}
 }
 $('#saveGallerySettings')?.addEventListener('click',saveGallerySettings);
+
+function fillExternalEditors(){
+  const set=(id,value)=>{const el=$(id);if(el)el.value=value||''};
+  set('#instagramUrl',settings.instagram||'');
+  set('#contactTitleEn',settings.contactTitleEn||'CONTACT');set('#contactTitleRu',settings.contactTitleRu||'КОНТАКТЫ');
+  set('#contactTextEn',settings.contactTextEn||'');set('#contactTextRu',settings.contactTextRu||'');
+  set('#contactEmailAdmin',settings.contact||'');set('#contactPhoneAdmin',settings.contactPhone||'');
+  set('#contactAddressEn',settings.contactAddressEn||'');set('#contactAddressRu',settings.contactAddressRu||'');
+}
+async function saveInstagramSettings(){
+  try{setBusy(true);settings=await api('/api/admin/settings',{method:'PUT',body:JSON.stringify({instagram:$('#instagramUrl').value.trim()})});fillExternalEditors();showNotice('Ссылка Instagram сохранена.')}catch(err){showNotice(err.message,'error')}finally{setBusy(false)}
+}
+async function saveContactSettings(){
+  try{setBusy(true);const payload={contactTitleEn:$('#contactTitleEn').value.trim(),contactTitleRu:$('#contactTitleRu').value.trim(),contactTextEn:$('#contactTextEn').value.trim(),contactTextRu:$('#contactTextRu').value.trim(),contact:$('#contactEmailAdmin').value.trim(),contactPhone:$('#contactPhoneAdmin').value.trim(),contactAddressEn:$('#contactAddressEn').value.trim(),contactAddressRu:$('#contactAddressRu').value.trim()};settings=await api('/api/admin/settings',{method:'PUT',body:JSON.stringify(payload)});fillExternalEditors();showNotice('Страница контактов сохранена.')}catch(err){showNotice(err.message,'error')}finally{setBusy(false)}
+}
+function renderClientsAdmin(){
+  const box=$('#clientsAdminList');if(!box)return;
+  const users=(Array.isArray(adminState.users)?adminState.users:[]).filter(u=>u.role!=='admin');
+  const orders=Array.isArray(adminState.orders)?adminState.orders:[];const coupons=Array.isArray(adminState.coupons)?adminState.coupons:[];
+  if(!users.length){box.innerHTML='<div class="empty-admin-list">Зарегистрированных клиентов пока нет.</div>';return}
+  box.innerHTML=users.map(user=>{
+    const userOrders=orders.filter(o=>String(o.userId)===String(user.id));const userCoupons=coupons.filter(c=>String(c.userId)===String(user.id));
+    const orderHtml=userOrders.length?userOrders.map(o=>`<div class="client-order-row"><strong>${esc(o.number||'')}</strong><span>${esc((o.items||[]).map(i=>`${i.name||i.nameRu||'Товар'} × ${Number(i.qty)||1}`).join(', '))}</span><span>${adminMoney(o.total,settings.currency||'$')}</span><span>${esc(o.status||'new')}</span></div>`).join(''):'<div class="client-empty">Заказов пока нет.</div>';
+    const couponHtml=userCoupons.length?userCoupons.map(c=>`<div class="client-coupon-row" data-coupon-id="${esc(c.id)}"><span class="coupon-code-admin">${esc(c.code)}</span><span class="coupon-discount-admin">−${Number(c.percent)||0}%</span><button class="danger-link" type="button" data-delete-client-coupon>Удалить</button></div>`).join(''):'<div class="client-empty">Купонов нет.</div>';
+    return `<article class="client-admin-card" data-client-id="${esc(user.id)}"><div class="client-admin-top"><div><div class="client-admin-name">${esc(user.name||'Без имени')}</div><div class="client-admin-email">${esc(user.email||'')}</div></div><div class="client-admin-created">${user.createdAt?new Date(user.createdAt).toLocaleDateString('ru-RU'):''}</div></div><div class="client-admin-columns"><section class="client-admin-block"><h4>Заказы (${userOrders.length})</h4>${orderHtml}</section><section class="client-admin-block"><h4>Купоны</h4><form class="client-coupon-form"><input name="code" placeholder="Код, например DEMI20" maxlength="32"><input name="percent" type="number" min="1" max="95" value="10" aria-label="Процент скидки"><button class="secondary-btn small" type="submit">+ Выдать купон</button></form><div class="client-coupon-list">${couponHtml}</div></section></div></article>`;
+  }).join('');
+}
+$('#clientsAdminList')?.addEventListener('submit',async e=>{
+  const form=e.target.closest('.client-coupon-form');if(!form)return;e.preventDefault();const card=form.closest('[data-client-id]');const f=new FormData(form);
+  try{const coupon=await api('/api/admin/coupons',{method:'POST',body:JSON.stringify({userId:card.dataset.clientId,code:f.get('code'),percent:f.get('percent')})});adminState.coupons=Array.isArray(adminState.coupons)?adminState.coupons:[];adminState.coupons.unshift(coupon);renderClientsAdmin();showNotice('Купон выдан клиенту.')}catch(err){showNotice(err.message,'error')}
+});
+$('#clientsAdminList')?.addEventListener('click',async e=>{
+  const btn=e.target.closest('[data-delete-client-coupon]');if(!btn)return;const row=btn.closest('[data-coupon-id]');if(!row||!confirm('Удалить этот купон?'))return;
+  try{await api(`/api/admin/coupons/${encodeURIComponent(row.dataset.couponId)}`,{method:'DELETE'});adminState.coupons=(adminState.coupons||[]).filter(c=>String(c.id)!==String(row.dataset.couponId));renderClientsAdmin();showNotice('Купон удалён.')}catch(err){showNotice(err.message,'error')}
+});
 
 boot();

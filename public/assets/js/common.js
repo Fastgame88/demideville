@@ -3,8 +3,15 @@ const $ = (s,root=document)=>root.querySelector(s);
 const $$ = (s,root=document)=>[...root.querySelectorAll(s)];
 const esc = v => String(v??'').replace(/[&<>'"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;","'":"&#39;",'"':'&quot;'}[c]));
 function money(v,s='$'){ return `${Number(v||0).toFixed(Number(v)%1?2:0)}${s}`; }
-function getToken(){return localStorage.getItem('dd_token')||''}
+function getToken(){return localStorage.getItem('dd_token')||sessionStorage.getItem('dd_token')||''}
 function authHeaders(){const t=getToken(); return t?{'Authorization':`Bearer ${t}`}:{}}
+let DD_CURRENT_USER_PROMISE=null;
+function currentUserSafe(){
+  if(!getToken())return Promise.resolve(null);
+  if(!DD_CURRENT_USER_PROMISE)DD_CURRENT_USER_PROMISE=fetch('/api/auth/me',{headers:authHeaders()}).then(async r=>r.ok?(await r.json()).user:null).catch(()=>null);
+  return DD_CURRENT_USER_PROMISE;
+}
+window.ddCurrentUser=currentUserSafe;
 function storefrontLang(){return document.documentElement.lang==='ru'?'ru':'en'}
 function productText(product,field){
   if(!product)return'';
@@ -43,9 +50,9 @@ const DEFAULT_MENU_CONFIG={
     {id:'login',labelEn:'LOGIN',labelRu:'ВХОД',href:'/login.html',enabled:true,mobileShowMain:true,mobileDarkLabel:true,items:[
       {id:'cart',labelEn:'CART',labelRu:'КОРЗИНА',href:'/cart.html',enabled:true,showMobile:true},
       {id:'register',labelEn:'REGISTER',labelRu:'РЕГИСТРАЦИЯ',href:'/login.html#register',enabled:true,showMobile:true},
-      {id:'account',labelEn:'ACCOUNT',labelRu:'АККАУНТ',href:'/login.html',enabled:true,showMobile:false},
+      {id:'account',labelEn:'ACCOUNT',labelRu:'АККАУНТ',href:'/account.html',enabled:true,showMobile:false},
       {id:'about-login',labelEn:'ABOUT',labelRu:'О НАС',href:'/about.html',enabled:true,showMobile:false,separatorBefore:true},
-      {id:'services',labelEn:'CLIENT SERVICES',labelRu:'КЛИЕНТСКИЙ СЕРВИС',href:'mailto:{{contact}}',enabled:true,showMobile:false}
+      {id:'services',labelEn:'CLIENT SERVICES',labelRu:'КЛИЕНТСКИЙ СЕРВИС',href:'/contact.html',enabled:true,showMobile:false}
     ]}
   ],
   mobileLinks:[
@@ -228,7 +235,12 @@ function updateCartCount(){
 }
 async function renderChrome({home=false}={}){
   const site=await SITE,s=site.settings||{};
+  const currentUser=await currentUserSafe();
   const menu=getMenuConfig(s),lang=menuLang();
+  if(currentUser){
+    const loginGroup=menu.groups.find(g=>g.id==='login');
+    if(loginGroup){loginGroup.labelEn='ACCOUNT';loginGroup.labelRu='АККАУНТ';loginGroup.href='/account.html';loginGroup.items=(loginGroup.items||[]).map(item=>item.id==='register'?{...item,enabled:false}:item.id==='account'?{...item,href:'/account.html',showMobile:true}:item)}
+  }
   applyMenuRuntimeStyles(s);
   document.documentElement.style.setProperty('--font',s.baseFont||'Arial, Helvetica, sans-serif');
   document.documentElement.style.setProperty('--display',s.displayFont||'Arial Black, Arial, sans-serif');
@@ -247,7 +259,7 @@ async function renderChrome({home=false}={}){
     const loginAnchor=loginGroup?`<a class="menu-admin-login" href="${esc(loginGroup.href||'/login.html')}">${esc(menuLabel(loginGroup,lang)||'LOGIN')}</a>`:'';
     const galleryAnchor=galleryLink&&galleryLink.enabled!==false?`<a href="${esc(galleryLink.href||'/gallery.html')}">${esc(menuLabel(galleryLink,lang)||'GALLERY')}</a>`:'';
     const aboutAnchor=aboutLink&&aboutLink.enabled!==false?`<a href="${esc(aboutLink.href||'/about.html')}">${esc(menuLabel(aboutLink,lang)||'ABOUT')}</a>`:'';
-    desktop.innerHTML=`<div class="nav-side">${shopAnchor}${galleryAnchor}${aboutAnchor}${desktopSections}</div><a class="brand" data-brand href="/">${esc(s.brand||'DEMI DEVILLE')}</a><a class="cart-link global-cart-icon${cartCurrent?' cart-current':''}" href="/cart.html" aria-label="Cart"></a><div class="nav-side right"><a href="${esc(s.instagram||'#')}" target="_blank" rel="noreferrer">INSTAGRAM</a><a href="mailto:${esc(s.contact||'')}">CONTACT</a>${loginAnchor}</div>`;
+    desktop.innerHTML=`<div class="nav-side">${shopAnchor}${galleryAnchor}${aboutAnchor}${desktopSections}</div><a class="brand" data-brand href="/">${esc(s.brand||'DEMI DEVILLE')}</a><a class="cart-link global-cart-icon${cartCurrent?' cart-current':''}" href="/cart.html" aria-label="Cart"></a><div class="nav-side right"><a href="${esc(s.instagram||'#')}" target="_blank" rel="noreferrer">INSTAGRAM</a><a href="/contact.html">CONTACT</a>${loginAnchor}</div>`;
   }
   const mobile=$('#mobileHeader');
   if(mobile)mobile.classList.toggle('transparent',home),mobile.innerHTML=`<button class="mobile-menu-btn" aria-label="Menu">${lang==='ru'?'МЕНЮ':'MENU'}</button><a class="brand" href="/" data-brand>${esc(s.brand||'DEMI DEVILLE')}</a><a class="mobile-cart" href="/cart.html">${home?'':'🛒'}<span data-cart-count></span></a>`;
@@ -261,14 +273,14 @@ async function renderChrome({home=false}={}){
     document.addEventListener('keydown',e=>{if(e.key==='Escape')setMobileMenu(false)});
   }
   updateCartCount();
-  if(!home)mountSharedChrome(site,menu);
+  if(!home)mountSharedChrome(site,menu,currentUser);
 }
 
 function flyoutItemsHtml(items,lang){
   return (items||[]).filter(x=>x.enabled!==false).map(item=>`${item.separatorBefore?'<span class="shared-header-flyout-gap"></span>':''}${menuItemHtml(item,lang)}`).join('');
 }
 /* All storefront pages except the home page use one shared header and support shell. */
-function mountSharedChrome(site,menu=getMenuConfig(site.settings||{})){
+function mountSharedChrome(site,menu=getMenuConfig(site.settings||{}),currentUser=null){
   if(document.body.classList.contains('shared-chrome-page'))return;
   document.body.classList.add('shared-chrome-page');
   const lang=menuLang();
@@ -316,6 +328,7 @@ function mountSharedChrome(site,menu=getMenuConfig(site.settings||{})){
   const button=$('#sharedSupportOpen'),layer=$('#sharedSupportLayer'),windowEl=$('.shared-support-window');
   const closeButton=$('#sharedSupportClose'),form=$('#sharedSupportForm');
   const submit=$('#sharedSupportSubmit'),status=$('#sharedSupportStatus');
+  const supportEmail=$('#sharedSupportEmail');if(currentUser?.email&&supportEmail)supportEmail.value=currentUser.email;
   let timer=0;
   const setOpen=open=>{clearTimeout(timer);layer.classList.toggle('open',open);layer.setAttribute('aria-hidden',String(!open))};
   const delayedClose=()=>{clearTimeout(timer);timer=setTimeout(()=>setOpen(false),320)};
@@ -325,7 +338,7 @@ function mountSharedChrome(site,menu=getMenuConfig(site.settings||{})){
     e.preventDefault();const email=$('#sharedSupportEmail').value.trim();const message=$('#sharedSupportMessage').value.trim();const error=tr('PLEASE CHECK YOUR EMAIL AND MESSAGE.');status.classList.remove('error');
     if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)||message.length<2){status.textContent=error;status.classList.add('error');return}
     submit.disabled=true;submit.textContent=tr('SENDING…');
-    try{const r=await fetch('/api/support',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email,message,lang:document.documentElement.lang==='ru'?'ru':'en'})});if(!r.ok)throw new Error('Support request failed');status.textContent=tr('THANK YOU. YOUR MESSAGE HAS BEEN SENT.');form.reset()}
+    try{const r=await fetch('/api/support',{method:'POST',headers:{'Content-Type':'application/json',...authHeaders()},body:JSON.stringify({email,message,lang:document.documentElement.lang==='ru'?'ru':'en'})});if(!r.ok)throw new Error('Support request failed');status.textContent=tr('THANK YOU. YOUR MESSAGE HAS BEEN SENT.');form.reset();if(currentUser?.email&&supportEmail)supportEmail.value=currentUser.email}
     catch{const contact=site.settings?.contact||'';if(contact){location.href=`mailto:${encodeURIComponent(contact)}?reply-to=${encodeURIComponent(email)}&subject=${encodeURIComponent('DEMI DEVILLE support')}&body=${encodeURIComponent(`From: ${email}\n\n${message}`)}`;status.textContent=tr('THANK YOU. YOUR MESSAGE HAS BEEN SENT.')}else{status.textContent=error;status.classList.add('error')}}
     finally{submit.disabled=false;submit.textContent=tr('SEND')}
   });

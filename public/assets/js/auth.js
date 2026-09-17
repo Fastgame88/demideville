@@ -93,7 +93,7 @@
     $('.auth-stack').style.display='none';
     const p=$('#userPanel');
     p.style.display='block';
-    p.innerHTML=`<h2>${esc(user.name)}</h2><p>${esc(user.email)}</p>${user.role==='admin'?'<p><a class="btn-black" style="display:flex;align-items:center;justify-content:center" href="/admin">OPEN ADMIN PANEL</a></p>':''}<button class="btn-black" id="logoutBtn">Logout</button>`;
+    p.innerHTML=`<h2>${esc(user.name)}</h2><p>${esc(user.email)}</p><p><a class="btn-black" style="display:flex;align-items:center;justify-content:center;text-decoration:none" href="${user.role==='admin'?'/admin':'/account.html'}">${user.role==='admin'?'OPEN ADMIN PANEL':'OPEN ACCOUNT'}</a></p><button class="btn-black" id="logoutBtn">Logout</button>`;
     $('#logoutBtn').onclick=async()=>{
       await fetch('/api/auth/logout',{method:'POST',headers:authHeaders()});
       localStorage.removeItem('dd_token');
