@@ -731,3 +731,143 @@
   body.checkout-page .pay-methods{margin-top:5px!important;margin-bottom:5px!important}
   body.checkout-page #checkoutForm.checkout-form{margin-top:0!important}
 }
+
+/* 2026-09-17 final mobile corrections requested from screenshots 1-5. */
+@media (max-width:900px){
+  /* MENU: same compact panel everywhere, beginning at the very top so it can sit behind the header/logo. */
+  .home #homeMobileMenu.home-mobile-menu,
+  body.shared-chrome-page #mobileMenu.mobile-menu{
+    top:0!important;
+    left:7px!important;
+    width:min(58.2vw,252px)!important;
+    height:330px!important;
+    min-height:330px!important;
+    max-height:330px!important;
+    box-sizing:border-box!important;
+    margin:0!important;
+    padding:47px 2px 14px!important;
+    overflow:hidden!important;
+    background:rgba(171,171,171,.62)!important;
+  }
+
+  /* On inner pages the menu background must continue behind MENU / the logo instead of being cut off by the white header. */
+  body.shared-chrome-page.mobile-menu-open #mobileHeader.mobile-header{
+    background:transparent!important;
+  }
+
+  .home #homeMobileMenu .home-mobile-menu-nav,
+  body.shared-chrome-page #mobileMenu .home-mobile-menu-nav{
+    display:flex!important;
+    flex-direction:column!important;
+    align-items:flex-start!important;
+    gap:0!important;
+    margin:0!important;
+    padding:0!important;
+  }
+  .home #homeMobileMenu .home-mobile-menu-nav a,
+  body.shared-chrome-page #mobileMenu .home-mobile-menu-nav a{
+    display:block!important;
+    width:auto!important;
+    max-width:100%!important;
+    margin:0!important;
+    padding:0!important;
+    color:#fff!important;
+    font:400 clamp(15px,4vw,16px)/1.42 Arial,sans-serif!important;
+    letter-spacing:-.035em!important;
+    white-space:nowrap!important;
+    opacity:1!important;
+    transform:none!important;
+  }
+  .home #homeMobileMenu .home-mobile-menu-gap,
+  body.shared-chrome-page #mobileMenu .home-mobile-menu-gap{
+    height:15px!important;
+    flex:none!important;
+  }
+  .home #homeMobileMenu .home-mobile-menu-gap.small,
+  body.shared-chrome-page #mobileMenu .home-mobile-menu-gap.small{
+    height:10px!important;
+  }
+
+  /* LOGIN is black whenever the mobile menu is open, exactly like MENU. */
+  body.mobile-menu-open .home #homeMobileMenu a[href="/login.html"],
+  body.shared-chrome-page.mobile-menu-open #mobileMenu a[href="/login.html"]{
+    color:#000!important;
+  }
+  body.mobile-menu-open .home #homeMenuOpen.home-mobile-menu-button,
+  body.shared-chrome-page.mobile-menu-open #mobileHeader .mobile-menu-btn{
+    color:#000!important;
+  }
+
+  /* Empty bag: absolutely no cart icon in the mobile header. */
+  body.shared-chrome-page #mobileHeader .mobile-cart:not(.has-items){
+    display:none!important;
+    visibility:hidden!important;
+    pointer-events:none!important;
+  }
+
+  /* CHECKOUT: all blocks are packed directly under Order summary with no reserved vertical gaps. */
+  body.checkout-page .checkout-wrap{
+    display:flex!important;
+    flex-direction:column!important;
+    justify-content:flex-start!important;
+    align-items:stretch!important;
+    gap:0!important;
+    padding-top:17px!important;
+  }
+  body.checkout-page .checkout-left{
+    display:contents!important;
+    width:auto!important;
+    height:auto!important;
+    min-height:0!important;
+    margin:0!important;
+    padding:0!important;
+  }
+  body.checkout-page .mobile-order-toggle{
+    order:0!important;
+    margin:0 auto!important;
+  }
+  body.checkout-page .order-side{
+    order:1!important;
+    position:static!important;
+    height:auto!important;
+    min-height:0!important;
+    margin:0 auto!important;
+    padding:0!important;
+  }
+  body.checkout-page.mobile-order-open .order-side{
+    display:block!important;
+    margin-top:0!important;
+    padding-top:6px!important;
+  }
+  body.checkout-page .order-list{
+    margin:0!important;
+    padding:0!important;
+  }
+  body.checkout-page .order-line:first-child{
+    margin-top:0!important;
+  }
+  body.checkout-page .pay-methods{
+    order:2!important;
+    position:static!important;
+    margin:6px auto 0!important;
+    padding:0!important;
+  }
+  body.checkout-page.mobile-order-open .pay-methods{
+    margin-top:7px!important;
+  }
+  body.checkout-page #checkoutForm.checkout-form{
+    order:3!important;
+    position:static!important;
+    height:auto!important;
+    min-height:0!important;
+    margin:8px auto 0!important;
+    padding:0!important;
+  }
+}
+
+/* Empty bag: absolutely no cart icon in the desktop header either. */
+body.shared-chrome-page>#desktopHeader .global-cart-icon:not(.has-items){
+  display:none!important;
+  visibility:hidden!important;
+  pointer-events:none!important;
+}
