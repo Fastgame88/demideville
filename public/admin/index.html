@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>DEMI DEVILLE — Админ-панель</title>
-  <link rel="stylesheet" href="/assets/css/admin.css?v=20260917-admin-shop-v4">
+  <link rel="stylesheet" href="/assets/css/admin.css?v=20260917-shop-layout-v6">
 </head>
 <body>
   <section id="loginView" class="auth-screen">
@@ -31,7 +31,7 @@
       <div class="side-caption">АДМИН</div>
       <nav class="side-nav">
         <button class="nav-item active" type="button" data-admin-tab="home">Главная страница</button>
-        <button class="nav-item" type="button" data-admin-tab="shop">Shop.html</button>
+        <button class="nav-item" type="button" data-admin-tab="shop">SHOP</button>
       </nav>
       <div class="side-bottom">
         <a class="side-link" href="/" target="_blank" rel="noreferrer">Открыть сайт ↗</a>
@@ -232,16 +232,15 @@
           <div class="device-card-head">
             <div>
               <span class="device-badge">SHOP</span>
-              <h2>Настройки страницы Shop.html</h2>
+              <h2>Настройки страницы SHOP</h2>
             </div>
-            <a class="secondary-btn shop-open-link" href="/shop.html" target="_blank" rel="noreferrer">Открыть Shop.html ↗</a>
+            <a class="secondary-btn shop-open-link" href="/shop.html" target="_blank" rel="noreferrer">Открыть SHOP ↗</a>
           </div>
           <div class="shop-settings-grid">
             <label class="field">
               <span>Сколько товаров показывать на одной странице</span>
               <input id="shopPageSize" type="number" min="1" max="100" step="1" value="10">
             </label>
-            <div class="shop-help">Категории работают через одну страницу: <strong>shop.html?category=...</strong>. Отдельные копии страниц создавать не нужно — дизайн остаётся один, а товары фильтруются автоматически.</div>
           </div>
         </section>
 
@@ -253,7 +252,6 @@
             </div>
             <button id="addShopCategory" class="secondary-btn" type="button">+ Добавить раздел</button>
           </div>
-          <div class="shop-help category-help">Для каждого раздела автоматически создаётся ссылка вида <code>/shop.html?category=slug</code>. Можно показывать или скрывать раздел в меню SHOP.</div>
           <div id="shopCategoriesEditor" class="category-list"></div>
         </section>
 
@@ -273,7 +271,7 @@
         </section>
 
         <div class="form-actions shop-actions">
-          <div class="save-note">Настройки Shop.html и категории применятся после сохранения. Товары сохраняются из карточки редактирования.</div>
+          <div class="save-note">Категории и настройки применятся после сохранения. Товары сохраняются из карточки редактирования.</div>
           <button id="saveShopSettings" class="primary-btn large" type="button">Сохранить настройки магазина</button>
         </div>
       </section>
@@ -341,6 +339,6 @@
     </section>
   </div>
 
-  <script src="/assets/js/admin.js?v=20260917-admin-shop-v4"></script>
+  <script src="/assets/js/admin.js?v=20260917-shop-layout-v6"></script>
 </body>
 </html>

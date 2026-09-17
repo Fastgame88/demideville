@@ -69,7 +69,17 @@
     const pageItems=products.slice(start,start+PAGE_SIZE);
     grid.classList.toggle('many-products',pageItems.length>4);
     grid.dataset.count=String(pageItems.length);
-    grid.style.setProperty('--shop-columns',String(Math.min(5,Math.max(1,pageItems.length))));
+
+    /* Adapt card density to the amount of products shown on this page.
+       The footer stays pinned to the bottom; low-count pages use larger
+       product artwork instead of leaving a large unused field. */
+    const count=Math.max(1,pageItems.length);
+    const desktopColumns=count<=5?count:Math.min(5,Math.ceil(count/2));
+    const desktopRows=Math.max(1,Math.ceil(count/desktopColumns));
+    const desktopMedia=count===1?500:count===2?440:count===3?390:count<=5?340:desktopRows===2?295:255;
+    grid.style.setProperty('--shop-columns',String(desktopColumns));
+    grid.style.setProperty('--shop-rows',String(desktopRows));
+    grid.style.setProperty('--shop-media-size',`${desktopMedia}px`);
 
     if(!pageItems.length){
       grid.innerHTML=`<p class="shop-empty">${lang==='ru'?'В этом разделе пока нет товаров.':'No products in this category yet.'}</p>`;
@@ -79,7 +89,9 @@
     grid.innerHTML=pageItems.map((p,i)=>{
       const ref=reference[p.id];
       const primary=(window.ddProductImages?.(p)||[])[0]||p.image||'';
-      const useReference=lang!=='ru'&&ref&&primary===ref.image;
+      /* For one or two products use the real source image so the card can scale up
+         without inheriting transparent padding from the old reference artwork. */
+      const useReference=lang!=='ru'&&ref&&primary===ref.image&&pageItems.length>2;
       const art=useReference?ref.art:primary;
       const copy=productCopy(p);
       const referenceCopy=(useReference&&ref.label)?`<span class="product-reference-copy" aria-hidden="true">
