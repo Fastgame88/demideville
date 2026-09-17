@@ -28,7 +28,7 @@ function defaultDb() {
   return {
     settings: {
       brand: 'DEMI DEVILLE', heroTitle: 'DEMI DEVILLE',
-      heroDesktop: '/assets/images/hero.jpg', heroMobile: '/assets/images/hero-mobile.jpg', loginArt: '/assets/images/login-art.png',
+      heroDesktop: '/assets/images/hero.jpg', heroMobile: '/assets/images/hero-mobile.jpg', loginArt: '/assets/images/login-art.png', homeOverlayOpacity: 35,
       aboutHtml: 'About <mark>DEMI DEVILLE</mark> is a <strong>PIONEERING DESIGN STUDIO BASED</strong> in Paris, specializing in fashion, spatial design, and visual direction.<br><em>Established by Augustine</em> Oh & Jude Lee, the <strong>studio redefines traditional</strong> design frameworks through methods of deconstruction, expansion, and reduction. <strong>By merging</strong> high fashion with a <strong>progressive design</strong> philosophy, DEMI DEVILLE delivers innovative, high-quality work that challenges visual conventions. <strong>The studio collaborates with a wide range of celebrities,</strong> artists, and brands, offering fresh design experiences that resonate with forward-thinking audiences around the world.',
       contact: 'contact@demideville.example', instagram: 'https://instagram.com/', supportText: 'SUPPORT',
       baseFont: 'Arial, Helvetica, sans-serif', displayFont: 'Arial Black, Arial, Helvetica, sans-serif', condensedFont: 'Impact, Haettenschweiler, Arial Narrow Bold, sans-serif',

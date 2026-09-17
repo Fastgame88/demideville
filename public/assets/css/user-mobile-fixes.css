@@ -61,7 +61,8 @@
 
   /* ---------- requested darker mobile home background ---------- */
   .home:after{
-    background:rgba(0,0,0,.16)!important;
+    display:block!important;
+    background:rgba(0,0,0,var(--home-overlay-opacity,.35))!important;
     pointer-events:none!important;
   }
   .home .home-mobile-header{z-index:730!important}
@@ -411,7 +412,7 @@
     align-items:center!important;
     width:min(77vw,333px)!important;
     height:28px!important;
-    margin:0 auto 13px!important;
+    margin:0 auto!important;
     padding:0 15px!important;
     border:1px solid #111!important;
     background:#fff!important;
@@ -425,7 +426,7 @@
     position:static!important;
     width:min(77vw,333px)!important;
     height:auto!important;
-    margin:0 auto 14px!important;
+    margin:0 auto 6px!important;
     padding:0!important;
   }
   body.checkout-page.mobile-order-open .order-side{display:block!important}
@@ -535,7 +536,7 @@
     gap:5px!important;
     width:min(77vw,333px)!important;
     height:auto!important;
-    margin:0 auto 14px!important;
+    margin:5px auto 5px!important;
     padding:0!important;
   }
   body.checkout-page .pay-chip,
@@ -678,4 +679,55 @@
   body.checkout-page .order-side,
   body.checkout-page .pay-methods,
   body.checkout-page #checkoutForm.checkout-form{width:84vw!important}
+}
+
+
+/* 2026-09-17 follow-up: only requested home dimming/menu/cart/checkout corrections. */
+.home:after{
+  display:block!important;
+  z-index:1!important;
+  background:rgba(0,0,0,var(--home-overlay-opacity,.35))!important;
+  pointer-events:none!important;
+}
+.home .hero-image{z-index:0!important}
+
+.global-cart-icon:not(.has-items),.mobile-cart:not(.has-items){display:none!important}
+
+@media (max-width:900px){
+  /* Internal pages intentionally reuse the exact home mobile-menu composition. */
+  .home #homeMobileMenu.home-mobile-menu,
+  body.shared-chrome-page #mobileMenu.mobile-menu{
+    top:18px!important;left:7px!important;width:min(58.2vw,252px)!important;
+    min-height:347px!important;max-height:calc(100dvh - 30px)!important;
+    padding:32px 2px 16px!important;background:rgba(171,171,171,.62)!important;
+    overflow-x:hidden!important;overflow-y:auto!important;
+  }
+  .home #homeMobileMenu .home-mobile-menu-nav,
+  body.shared-chrome-page #mobileMenu .home-mobile-menu-nav{
+    display:flex!important;flex-direction:column!important;align-items:flex-start!important;
+    gap:0!important;margin:0!important;padding:0!important;
+  }
+  .home #homeMobileMenu .home-mobile-menu-nav a,
+  body.shared-chrome-page #mobileMenu .home-mobile-menu-nav a{
+    display:block!important;width:auto!important;max-width:100%!important;
+    margin:0!important;padding:0!important;color:#fff!important;
+    font:400 clamp(15px,4vw,17px)/1.43 Arial,sans-serif!important;
+    letter-spacing:-.035em!important;white-space:nowrap!important;
+    opacity:1!important;transform:none!important;
+  }
+  .home #homeMobileMenu .home-mobile-menu-gap,
+  body.shared-chrome-page #mobileMenu .home-mobile-menu-gap{height:25px!important;flex:none!important}
+  .home #homeMobileMenu .home-mobile-menu-gap.small,
+  body.shared-chrome-page #mobileMenu .home-mobile-menu-gap.small{height:18px!important}
+  .home #homeMobileMenu .menu-label-dark,
+  body.shared-chrome-page #mobileMenu .menu-label-dark{color:#000!important}
+  body.mobile-menu-open .home #homeMenuOpen.home-mobile-menu-button,
+  body.shared-chrome-page.mobile-menu-open #mobileHeader .mobile-menu-btn{color:#000!important}
+
+  /* Closed: payment buttons begin immediately below Order summary.
+     Open: products expand immediately below it and naturally push payment/form downward. */
+  body.checkout-page .mobile-order-toggle{margin-bottom:0!important}
+  body.checkout-page .order-side{margin-top:0!important;margin-bottom:5px!important}
+  body.checkout-page .pay-methods{margin-top:5px!important;margin-bottom:5px!important}
+  body.checkout-page #checkoutForm.checkout-form{margin-top:0!important}
 }

@@ -1,6 +1,9 @@
 (async()=>{
   const site=await SITE;
   const s=site.settings||{};
+  const overlayRaw=Number(s.homeOverlayOpacity);
+  const overlayPct=Number.isFinite(overlayRaw)?Math.max(0,Math.min(100,overlayRaw)):35;
+  document.documentElement.style.setProperty('--home-overlay-opacity',String(overlayPct/100));
   const hero=$('#heroImage');
   const title=$('#heroTitle');
   const mobileBrand=$('#mobileBrand');
