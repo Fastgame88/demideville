@@ -7288,3 +7288,31 @@ body.cart-page.cart-is-empty .empty-cart{
     text-align:center!important;
   }
 }
+
+
+/* =========================================================
+   v15 — legal pages must scroll on desktop/mobile
+   ========================================================= */
+html.legal-root{
+  height:auto!important;
+  min-height:100%!important;
+  overflow-x:hidden!important;
+  overflow-y:auto!important;
+}
+html.legal-root body.terms-page,
+html.legal-root body.privacy-page{
+  position:relative!important;
+  height:auto!important;
+  min-height:100vh!important;
+  max-height:none!important;
+  overflow-x:hidden!important;
+  overflow-y:auto!important;
+}
+html.legal-root body.terms-page .legal-page,
+html.legal-root body.privacy-page .legal-page{
+  position:relative!important;
+  height:auto!important;
+  min-height:0!important;
+  max-height:none!important;
+  overflow:visible!important;
+}

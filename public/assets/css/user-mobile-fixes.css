@@ -1786,3 +1786,110 @@ html body.shop-page .shop-terms{display:block!important;text-decoration:none!imp
     margin:0!important;padding:0!important;transform:none!important;text-align:center!important;
   }
 }
+
+
+/* =========================================================
+   v15 — separate pager underline from legal links + editable mobile legal footer
+   ========================================================= */
+body.shop-page .shop-pagination{position:relative!important}
+body.shop-page .shop-page-number{position:relative!important}
+body.shop-page .shop-page-number.is-active::after{bottom:-2px!important}
+body.shop-page .shop-legal-links{margin-top:18px!important}
+
+@media (max-width:900px){
+  html body.shop-page .shop-wrap{padding-bottom:146px!important}
+  html body.shop-page .shop-footer{
+    position:fixed!important;
+    left:50%!important;
+    right:auto!important;
+    bottom:0!important;
+    width:min(94vw,430px)!important;
+    height:88px!important;
+    margin:0!important;
+    padding:0!important;
+    transform:translateX(-50%)!important;
+    background:rgba(255,255,255,.98)!important;
+    overflow:visible!important;
+    z-index:65!important;
+  }
+  html body.shop-page .shop-pagination{
+    position:absolute!important;
+    left:0!important;
+    right:0!important;
+    top:2px!important;
+    height:38px!important;
+    margin:0!important;
+    padding:0!important;
+    display:flex!important;
+    align-items:flex-start!important;
+    justify-content:center!important;
+    overflow:visible!important;
+  }
+  html body.shop-page .shop-page-number{
+    position:relative!important;
+    min-width:26px!important;
+    height:34px!important;
+    line-height:30px!important;
+    margin:0 3px!important;
+    padding:0!important;
+    background:none!important;
+    border:0!important;
+    text-decoration:none!important;
+  }
+  html body.shop-page .shop-page-number::before{content:none!important;display:none!important}
+  html body.shop-page .shop-page-number.is-active::after{
+    content:""!important;
+    display:block!important;
+    position:absolute!important;
+    left:50%!important;
+    bottom:0!important;
+    width:20px!important;
+    height:2px!important;
+    background:#111!important;
+    transform:translateX(-50%)!important;
+    pointer-events:none!important;
+  }
+  html body.shop-page .shop-footer .shop-page-indicator{display:none!important;opacity:0!important}
+  html body.shop-page .shop-legal-links{
+    position:absolute!important;
+    left:50%!important;
+    bottom:var(--shop-legal-mobile-bottom,2px)!important;
+    transform:translateX(calc(-50% + var(--shop-legal-mobile-offset-x,0px)))!important;
+    display:flex!important;
+    align-items:center!important;
+    justify-content:center!important;
+    gap:4px!important;
+    width:max-content!important;
+    max-width:calc(100vw - 118px)!important;
+    margin:0!important;
+    padding:0!important;
+    white-space:nowrap!important;
+    line-height:1.1!important;
+    z-index:2!important;
+  }
+  html body.shop-page .shop-legal-links a,
+  html body.shop-page .shop-legal-links .legal-separator{
+    font-family:var(--mobile-copy,"Arial Narrow",Arial,sans-serif)!important;
+    font-size:var(--shop-legal-mobile-font-size,10px)!important;
+    line-height:1.1!important;
+    text-decoration:none!important;
+  }
+}
+
+/* v15 final guard: legal documents are normal scrollable documents. */
+html.legal-root,
+html.legal-root body.terms-page,
+html.legal-root body.privacy-page{
+  height:auto!important;
+  min-height:100%!important;
+  max-height:none!important;
+  overflow-x:hidden!important;
+  overflow-y:auto!important;
+}
+html.legal-root body.terms-page .legal-page,
+html.legal-root body.privacy-page .legal-page{
+  height:auto!important;
+  min-height:0!important;
+  max-height:none!important;
+  overflow:visible!important;
+}

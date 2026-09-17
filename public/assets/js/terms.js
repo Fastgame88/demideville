@@ -1,4 +1,5 @@
 (async()=>{
+  document.documentElement.classList.add('legal-root');
   await renderChrome();
   const site=await SITE;
   const sync=()=>{

@@ -6,6 +6,12 @@
   const curr=site.settings?.currency||'$';
   const PAGE_SIZE=Math.max(1,Math.min(8,Math.floor(Number(site.settings?.shopPageSize)||8)));
   const lang=document.documentElement.lang==='ru'?'ru':'en';
+  const legalFontSize=Math.max(6,Math.min(30,Number(site.settings?.shopLegalMobileFontSize)||10));
+  const legalBottom=Math.max(0,Math.min(80,Number(site.settings?.shopLegalMobileBottom)??2));
+  const legalOffsetX=Math.max(-120,Math.min(120,Number(site.settings?.shopLegalMobileOffsetX)||0));
+  document.body.style.setProperty('--shop-legal-mobile-font-size',`${legalFontSize}px`);
+  document.body.style.setProperty('--shop-legal-mobile-bottom',`${Number.isFinite(legalBottom)?legalBottom:2}px`);
+  document.body.style.setProperty('--shop-legal-mobile-offset-x',`${legalOffsetX}px`);
 
   /* On the SHOP page the DEMI DEVILLE title returns to the home page. */
   $$('#desktopHeader .brand, #mobileHeader .brand').forEach(brand=>{
