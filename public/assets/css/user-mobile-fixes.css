@@ -2018,3 +2018,9 @@ body.shared-chrome-page>#sharedSupportLayer .shared-support-window .support-form
     min-height:22px!important;margin:0!important;padding:3px 2px 0!important;font-size:10px!important;
   }
 }
+
+/* v19 — home page SUPPORT button only: white background, black text. */
+.home #supportOpen.home-support-btn{
+  background:#fff!important;
+  color:#000!important;
+}
