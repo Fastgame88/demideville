@@ -33,7 +33,7 @@ function defaultDb() {
       contact: 'contact@demideville.example', instagram: 'https://instagram.com/', supportText: 'SUPPORT',
       contactTitleEn:'CONTACT', contactTitleRu:'КОНТАКТЫ', contactTextEn:'Contact DEMI DEVILLE for orders, collaborations and client support.', contactTextRu:'Свяжитесь с DEMI DEVILLE по вопросам заказов, сотрудничества и поддержки.', contactPhone:'', contactAddressEn:'Paris, France', contactAddressRu:'Париж, Франция',
       baseFont: 'Arial, Helvetica, sans-serif', displayFont: 'Arial Black, Arial, Helvetica, sans-serif', condensedFont: 'Impact, Haettenschweiler, Arial Narrow Bold, sans-serif',
-      baseFontSize: 16, shopPageSize: 10, shipping: 30, currency: '$',
+      baseFontSize: 16, shopPageSize: 8, shipping: 30, currency: '$',
       shopCategories: [
         { id:'jackets-coats', slug:'jackets-coats', labelEn:'JACKETS & COATS', labelRu:'КУРТКИ И ПАЛЬТО', enabled:true, showInMenu:true },
         { id:'jeans-pants-shorts', slug:'jeans-pants-shorts', labelEn:'JEANS, PANTS & SHORTS', labelRu:'ДЖИНСЫ, БРЮКИ И ШОРТЫ', enabled:true, showInMenu:true },
@@ -173,7 +173,7 @@ async function handleApi(req,res,u){
     db.orders.unshift(order);saveDb(db);return sendJson(res,200,{ok:true,order});
   }
   if(m==='GET'&&p==='/api/admin/state'){const a=needUser(req,res,true);if(!a)return;return sendJson(res,200,{settings:a.db.settings,products:a.db.products,gallery:a.db.gallery,sections:a.db.sections,orders:a.db.orders,supportMessages:Array.isArray(a.db.supportMessages)?a.db.supportMessages:[],users:a.db.users.map(sanitizeUser),coupons:(Array.isArray(a.db.coupons)?a.db.coupons:[]).map(sanitizeCoupon)});}
-  if(m==='PUT'&&p==='/api/admin/settings'){const a=needUser(req,res,true);if(!a)return;const b=await readJson(req);a.db.settings={...a.db.settings,...b};saveDb(a.db);return sendJson(res,200,a.db.settings);}
+  if(m==='PUT'&&p==='/api/admin/settings'){const a=needUser(req,res,true);if(!a)return;const b=await readJson(req);if(b.shopPageSize!=null)b.shopPageSize=Math.max(1,Math.min(8,Math.floor(Number(b.shopPageSize)||8)));a.db.settings={...a.db.settings,...b};saveDb(a.db);return sendJson(res,200,a.db.settings);}
   if(m==='POST'&&p==='/api/admin/upload'){const a=needUser(req,res,true);if(!a)return;const b=await readJson(req),match=String(b.dataUrl||'').match(/^data:(image\/[a-zA-Z0-9.+-]+);base64,(.+)$/);if(!match)return sendJson(res,400,{error:'Invalid image data'});const ext=(match[1].split('/')[1]||'png').replace('jpeg','jpg').replace(/[^a-z0-9]/gi,''),safe=String(b.filename||'image').replace(/[^a-zA-Z0-9._-]/g,'-').replace(/\.[^.]+$/,'').slice(0,60)||'image',name=`${Date.now()}-${safe}.${ext}`;fs.mkdirSync(UPLOAD_DIR,{recursive:true});fs.writeFileSync(path.join(UPLOAD_DIR,name),Buffer.from(match[2],'base64'));return sendJson(res,200,{url:`/uploads/${name}`});}
   if(m==='POST'&&p==='/api/admin/change-password'){const a=needUser(req,res,true);if(!a)return;const b=await readJson(req);if(String(b.newPassword||'').length<8)return sendJson(res,400,{error:'New password must be at least 8 characters.'});if(!verifyPassword(String(b.currentPassword||''),a.user.passwordHash))return sendJson(res,400,{error:'Current password is wrong.'});a.user.passwordHash=hashPassword(b.newPassword);saveDb(a.db);return sendJson(res,200,{ok:true});}
   const crud=p.match(/^\/api\/admin\/(products|gallery|sections)(?:\/([^/]+))?$/);

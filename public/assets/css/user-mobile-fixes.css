@@ -1634,3 +1634,50 @@ body.product-detail-page .product-gallery-arrow{
     top:605px!important;
   }
 }
+
+
+/* =========================================================
+   v11 — SHOP 4x2 desktop grid, active-page underline, lighter repaint work
+   ========================================================= */
+body.shop-page .shop-page-indicator{
+  display:none!important;
+}
+body.shop-page .shop-page-number{
+  position:relative!important;
+}
+body.shop-page .shop-page-number.is-active::after{
+  content:""!important;
+  position:absolute!important;
+  left:50%!important;
+  bottom:-4px!important;
+  width:24px!important;
+  height:2px!important;
+  background:#111!important;
+  transform:translateX(-50%)!important;
+  pointer-events:none!important;
+}
+@media (min-width:901px){
+  body.shop-page .product-grid,
+  body.shop-page .product-grid[data-count="1"],
+  body.shop-page .product-grid[data-count="2"]{
+    left:90px!important;
+    right:auto!important;
+    width:auto!important;
+    grid-template-columns:repeat(4,var(--shop-card-width,355px))!important;
+    grid-template-rows:repeat(2,minmax(0,1fr))!important;
+    grid-auto-flow:row!important;
+    grid-auto-rows:minmax(0,1fr)!important;
+    column-gap:var(--shop-column-gap,95px)!important;
+    row-gap:18px!important;
+  }
+  body.shop-page .product-card{
+    contain:layout style;
+  }
+}
+@media (max-width:900px){
+  body.shop-page .shop-page-number.is-active::after{
+    bottom:-3px!important;
+    width:20px!important;
+    height:2px!important;
+  }
+}

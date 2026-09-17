@@ -18,7 +18,7 @@
   const images=window.ddProductImages?.(p)||[p.image].filter(Boolean);
   const displayImage=url=>productImageMap[url]||url;
   const mainImage=$('#productImage');
-  mainImage.src=displayImage(images[0]||p.image||'');mainImage.alt=text('name');
+  mainImage.src=displayImage(images[0]||p.image||'');mainImage.alt=text('name');mainImage.decoding='async';
   $('#productName').innerHTML=`<span class="product-title-shape">${esc(text('name'))}</span>`;
   $('#productPrice').innerHTML=`<span class="product-price-shape">${esc(money(p.price,curr))}</span>`;
   $('#fabricText').textContent=text('fabric')||'—';
@@ -28,7 +28,7 @@
     const visual=$('.product-visual');
     let activeImage=0;
     const gallery=document.createElement('div');gallery.className='product-customer-gallery';
-    gallery.innerHTML=`<div class="product-customer-thumbs">${images.map((url,i)=>`<button class="product-customer-thumb${i===0?' is-active':''}" type="button" data-product-image="${i}" aria-label="${lang==='ru'?'Фото':'Image'} ${i+1}"><img src="${esc(displayImage(url))}" alt=""></button>`).join('')}</div>`;
+    gallery.innerHTML=`<div class="product-customer-thumbs">${images.map((url,i)=>`<button class="product-customer-thumb${i===0?' is-active':''}" type="button" data-product-image="${i}" aria-label="${lang==='ru'?'Фото':'Image'} ${i+1}"><img src="${esc(displayImage(url))}" alt="" ${i<4?'loading="eager"':'loading="lazy"'} decoding="async"></button>`).join('')}</div>`;
     visual.appendChild(gallery);
     const thumbs=$('.product-customer-thumbs',gallery);
     const showImage=index=>{
@@ -83,5 +83,7 @@
   const shell=$('#productPageShell');const page=$('#productPage');const info=$('.product-info');const visual=$('.product-visual');
   function syncProductHeight(){if(window.innerWidth<=900){shell?.style.removeProperty('height');page?.style.removeProperty('height');return}const sy=Number(getComputedStyle(document.body).getPropertyValue('--product-scale-y'))||1;const infoBottom=(info?.offsetTop||0)+(info?.offsetHeight||0)+85;const visualBottom=(visual?.offsetTop||0)+(visual?.offsetHeight||0)+70;const canvasHeight=Math.max(1080,infoBottom,visualBottom);if(page)page.style.height=`${canvasHeight}px`;if(shell)shell.style.height=`${Math.ceil(canvasHeight*sy)}px`}
   const fitPage=()=>{if(window.innerWidth<=900){document.body.style.removeProperty('--gallery-header-scale-x');document.body.style.removeProperty('--gallery-header-scale-y');document.body.style.removeProperty('--product-scale-x');document.body.style.removeProperty('--product-scale-y');syncProductHeight();return}const h=(window.visualViewport&&window.visualViewport.height)||window.innerHeight;const sx=window.innerWidth/1920;const sy=h/1080;document.body.style.setProperty('--gallery-header-scale-x',String(sx));document.body.style.setProperty('--gallery-header-scale-y',String(sy));document.body.style.setProperty('--product-scale-x',String(sx));document.body.style.setProperty('--product-scale-y',String(sy));requestAnimationFrame(syncProductHeight)};
-  fitPage();window.addEventListener('resize',fitPage,{passive:true});window.visualViewport?.addEventListener('resize',fitPage,{passive:true});
+  let fitFrame=0;
+  const scheduleFitPage=()=>{if(fitFrame)return;fitFrame=requestAnimationFrame(()=>{fitFrame=0;fitPage()})};
+  fitPage();window.addEventListener('resize',scheduleFitPage,{passive:true});window.visualViewport?.addEventListener('resize',scheduleFitPage,{passive:true});
 })();

@@ -262,7 +262,7 @@ function productSizesOf(p){
   return (Array.isArray(p?.sizes)?p.sizes:[]).map(size=>({size:String(size),stock:1}));
 }
 function fillShopEditor(){
-  $('#shopPageSize').value=Math.max(1,Math.min(100,Number(settings.shopPageSize)||10));
+  $('#shopPageSize').value=Math.max(1,Math.min(8,Number(settings.shopPageSize)||8));
   renderShopCategories();
   renderProductsAdmin();
 }
@@ -441,7 +441,7 @@ async function saveShopSettings(){
   const slugs=normalized.map(c=>c.slug);if(new Set(slugs).size!==slugs.length)return showNotice('Slug разделов не должны повторяться.','error');
   try{
     setBusy(true);shopCategoriesDraft=normalized;const valid=new Set(shopCategoriesDraft.map(c=>c.slug));
-    const payload={shopPageSize:Math.max(1,Math.min(100,Math.floor(Number($('#shopPageSize').value)||10))),shopCategories:clone(shopCategoriesDraft)};
+    const payload={shopPageSize:Math.max(1,Math.min(8,Math.floor(Number($('#shopPageSize').value)||8))),shopCategories:clone(shopCategoriesDraft)};
     settings=await api('/api/admin/settings',{method:'PUT',body:JSON.stringify(payload)});
     for(let i=0;i<productsDraft.length;i++){
       const p=productsDraft[i];if(!Array.isArray(p.categories))continue;const next=p.categories.filter(c=>valid.has(c));
@@ -451,6 +451,11 @@ async function saveShopSettings(){
   }catch(err){showNotice(err.message,'error')}finally{setBusy(false)}
 }
 $('#saveShopSettings')?.addEventListener('click',saveShopSettings);
+$('#shopPageSize')?.addEventListener('input',e=>{
+  const n=Math.floor(Number(e.target.value)||1);
+  if(n>8)e.target.value='8';
+  if(n<1)e.target.value='1';
+});
 
 
 function galleryFontOptions(current=''){

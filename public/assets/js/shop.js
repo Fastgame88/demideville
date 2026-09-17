@@ -3,9 +3,8 @@
   const site=await SITE;
   const grid=$('#productGrid');
   const pagination=$('#shopPagination');
-  const indicator=$('.shop-page-indicator');
   const curr=site.settings?.currency||'$';
-  const PAGE_SIZE=Math.max(1,Math.min(100,Math.floor(Number(site.settings?.shopPageSize)||10)));
+  const PAGE_SIZE=Math.max(1,Math.min(8,Math.floor(Number(site.settings?.shopPageSize)||8)));
   const lang=document.documentElement.lang==='ru'?'ru':'en';
 
   /* On the SHOP page the DEMI DEVILLE title returns to the home page. */
@@ -74,15 +73,13 @@
        The footer stays pinned to the bottom; low-count pages use larger
        product artwork instead of leaving a large unused field. */
     const count=Math.max(1,pageItems.length);
-    /* Desktop keeps the approved three-card row geometry. Up to six products are
-       arranged as 3 + 3; one or two products stay in the first row. If the admin
-       selects more than six per page, the amount of columns grows only enough to
-       keep the storefront in two rows. */
-    const desktopColumns=count<=6?3:Math.ceil(count/2);
+    /* Desktop SHOP is always a stable 4 x 2 storefront. The first row fills
+       left-to-right with four products before the second row starts. */
+    const desktopColumns=4;
     const desktopRows=2;
-    const desktopMedia=desktopColumns<=3?305:Math.max(175,305-(desktopColumns-3)*28);
-    const desktopGap=desktopColumns<=3?125:48;
-    const desktopCardWidth=desktopColumns<=3?355:Math.max(210,Math.floor((1780-(desktopColumns-1)*desktopGap)/desktopColumns));
+    const desktopMedia=305;
+    const desktopGap=95;
+    const desktopCardWidth=355;
     grid.style.setProperty('--shop-columns',String(desktopColumns));
     grid.style.setProperty('--shop-rows',String(desktopRows));
     grid.style.setProperty('--shop-media-size',`${desktopMedia}px`);
@@ -103,11 +100,12 @@
       const art=useReference?ref.art:primary;
       const copy=productCopy(p);
       const referenceCopy=(useReference&&ref.label)?`<span class="product-reference-copy" aria-hidden="true">
-          <img class="product-reference-label" src="${esc(ref.label)}" alt="">
-          ${ref.detail?`<img class="product-reference-detail" src="${esc(ref.detail)}" alt="">`:''}
+          <img class="product-reference-label" src="${esc(ref.label)}" alt="" loading="lazy" decoding="async">
+          ${ref.detail?`<img class="product-reference-detail" src="${esc(ref.detail)}" alt="" loading="lazy" decoding="async">`:''}
         </span>`:'';
+      const priority=i<4?' loading="eager" fetchpriority="high"':' loading="lazy" fetchpriority="low"';
       return `<a class="product-card product-card-${i+1}${referenceCopy?' has-reference-copy':''}" href="/product.html?id=${encodeURIComponent(p.id)}">
-        <span class="media"><img class="product-art" src="${esc(art)}" alt="${esc(copy.name)}"></span>
+        <span class="media"><img class="product-art" src="${esc(art)}" alt="${esc(copy.name)}"${priority} decoding="async"></span>
         ${referenceCopy}
         <span class="product-live-copy">
           <span class="product-name">${esc(copy.name)}</span>
@@ -142,16 +140,7 @@
         window.scrollTo({top:0,behavior:'smooth'});
       });
     });
-    requestAnimationFrame(moveIndicator);
   }
-  function moveIndicator(){
-    const active=$('.shop-page-number.is-active',pagination);
-    if(!indicator||!active){if(indicator)indicator.style.opacity='0';return}
-    indicator.style.opacity='1';
-    const x=pagination.offsetLeft+active.offsetLeft+(active.offsetWidth-indicator.offsetWidth)/2;
-    indicator.style.transform=`translateX(${x}px)`;
-  }
-
   renderProducts();renderPagination();
 
   const canvas=$('#shopCanvas');const stage=$('#shopStage');
@@ -160,7 +149,9 @@
     if(innerWidth<=900){canvas.style.removeProperty('--shop-scale');canvas.style.removeProperty('--shop-scale-x');canvas.style.removeProperty('--shop-scale-y');return}
     const h=(window.visualViewport&&window.visualViewport.height)||innerHeight;
     const scale=Math.min(innerWidth/1920,h/1080);const scaleX=innerWidth/1920;const scaleY=h/1080;
-    canvas.style.setProperty('--shop-scale',String(scale));canvas.style.setProperty('--shop-scale-x',String(scaleX));canvas.style.setProperty('--shop-scale-y',String(scaleY));canvas.style.setProperty('--shop-inverse-scale',String(1/scale));requestAnimationFrame(moveIndicator);
+    canvas.style.setProperty('--shop-scale',String(scale));canvas.style.setProperty('--shop-scale-x',String(scaleX));canvas.style.setProperty('--shop-scale-y',String(scaleY));canvas.style.setProperty('--shop-inverse-scale',String(1/scale));
   }
-  fitCanvas();addEventListener('resize',fitCanvas,{passive:true});window.visualViewport?.addEventListener('resize',fitCanvas,{passive:true});
+  let resizeFrame=0;
+  const scheduleFit=()=>{if(resizeFrame)return;resizeFrame=requestAnimationFrame(()=>{resizeFrame=0;fitCanvas()})};
+  fitCanvas();addEventListener('resize',scheduleFit,{passive:true});window.visualViewport?.addEventListener('resize',scheduleFit,{passive:true});
 })();
