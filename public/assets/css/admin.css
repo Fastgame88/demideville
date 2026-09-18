@@ -79,3 +79,8 @@ html,body{scroll-behavior:auto}
 .mail-inbox-item:last-child{border-bottom:0}.mail-inbox-item:hover,.mail-inbox-item.active{background:#f2f2f2}.mail-inbox-item strong{font-size:13px}.mail-inbox-item span{font-size:12px;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.mail-inbox-item small{font-size:10px;color:#777}
 .mail-message-panel{min-height:320px;border:1px solid #e1e4e7;border-radius:12px;background:#fff;padding:18px}.mail-message-empty{color:#777}.mail-message-meta{display:flex;justify-content:space-between;gap:14px;font-size:12px}.mail-message-meta span{color:#777}.mail-message-panel h3{margin:14px 0}.mail-message-body{white-space:pre-wrap;word-break:break-word;max-height:300px;overflow:auto;padding:14px;background:#f6f6f6;border-radius:10px;font:13px/1.5 Arial,sans-serif}.mail-reply-form{display:grid;gap:12px;margin-top:18px}
 @media(max-width:900px){.page-background-row{grid-template-columns:1fr}.page-background-row .page-bg-upload,.page-background-row .secondary-btn{width:100%}.mail-inbox-layout{grid-template-columns:1fr}.preview-logo-art{min-width:190px}}
+
+/* v22 requested fix: keep the sidebar geometry, but allow its lower menu items to scroll into view. */
+.side-panel{overflow-y:auto!important;overflow-x:hidden!important;overscroll-behavior:contain;scrollbar-gutter:stable}
+.side-nav{flex:0 0 auto}
+.side-bottom{flex:0 0 auto}

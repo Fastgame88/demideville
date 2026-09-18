@@ -108,32 +108,31 @@ body.checkout-page .order-thumb video{width:100%!important;height:100%!important
   body.gallery-page .gallery-media video{width:100%!important;height:100%!important;max-width:100%!important;max-height:none!important;object-fit:cover!important}
 }
 
-/* ABOUT: main approved/custom media always occupies the original fixed area.
-   Additional rich content starts after the first viewport and can never cover it. */
-body.about-page .about-copy-art,
-body.about-page .about-mobile-approved{object-fit:contain!important}
-body.about-page video.about-copy-art,
-body.about-page video.about-mobile-approved{background:transparent!important}
+/* ABOUT: never modify the approved main canvas when extra admin content exists.
+   On desktop the original canvas stays fixed exactly as before; new content is a separate
+   white section starting after one viewport. On mobile it follows the existing ABOUT block. */
 body.about-page .about-extra-text{overflow-wrap:anywhere}
 body.about-page .about-extra-text p:first-child{margin-top:0}
 body.about-page .about-extra-text p:last-child{margin-bottom:0}
 @media (min-width:901px){
-  body.about-page.about-has-extra{overflow-x:hidden!important;overflow-y:auto!important}
-  body.about-page.about-has-extra .about-wrap{
-    position:relative!important;inset:auto!important;width:100%!important;height:auto!important;
-    min-height:calc(100vh + 160px)!important;margin:0!important;padding:0!important;overflow:visible!important;background:transparent!important;
-  }
-  body.about-page.about-has-extra .about-design-canvas{
-    position:absolute!important;left:0!important;top:0!important;width:1920px!important;height:1080px!important;
-  }
+  body.about-page.about-has-extra{overflow-x:hidden!important;overflow-y:auto!important;min-height:100vh!important}
+  body.about-page.about-has-extra .about-wrap{position:fixed!important;inset:0!important;width:100vw!important;height:100vh!important;overflow:hidden!important;z-index:1!important}
+  body.about-page.about-has-extra .about-design-canvas{position:absolute!important;left:0!important;top:0!important;width:1920px!important;height:1080px!important;z-index:1!important}
+  html:not([lang="ru"]) body.about-page.about-has-extra .about-copy-art{display:block!important;visibility:visible!important;opacity:1!important}
   body.about-page.about-has-extra .about-extra-content{
-    display:block!important;position:relative!important;z-index:2!important;
-    width:min(1520px,calc(100% - 48px))!important;margin:100vh auto 0!important;padding:34px 0 78px!important;
+    display:block!important;position:relative!important;z-index:5!important;box-sizing:border-box!important;
+    width:100%!important;margin:100vh 0 0!important;padding:34px max(24px,calc((100vw - 1520px)/2)) 78px!important;
+    background:#fff!important;color:#000!important;
   }
 }
 @media (max-width:900px){
-  body.about-page.about-has-extra .about-extra-content{display:block!important;position:relative!important;margin:18px auto 0!important;padding:20px 10px 52px!important}
+  body.about-page.about-has-extra{overflow-y:auto!important}
+  body.about-page.about-has-extra .about-extra-content{display:block!important;position:relative!important;margin:18px auto 0!important;padding:20px 10px 52px!important;background:#fff!important}
 }
+
+/* Product background: the legacy product canvas has an ID-level white background.
+   Only when a custom product background is configured, make that canvas transparent. */
+body.product-detail-page.dd-custom-page-bg #productPage.product-page{background:transparent!important}
 
 /* SUPPORT: START A CHAT is removed everywhere. Keep the existing outer window size,
    use the available space for larger fields and even spacing on desktop + phone. */

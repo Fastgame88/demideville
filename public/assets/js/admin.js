@@ -83,7 +83,7 @@ const DEFAULT_PAYMENT_METHODS=[
 ];
 const DEFAULT_COUNTRIES=['Albania','Andorra','Armenia','Austria','Azerbaijan','Belgium','Bosnia and Herzegovina','Bulgaria','Croatia','Cyprus','Czechia','Denmark','Estonia','Finland','France','Georgia','Germany','Greece','Hungary','Iceland','Ireland','Italy','Kazakhstan','Kosovo','Latvia','Liechtenstein','Lithuania','Luxembourg','Malta','Moldova','Monaco','Montenegro','Netherlands','North Macedonia','Norway','Poland','Portugal','Romania','San Marino','Serbia','Slovakia','Slovenia','Spain','Sweden','Switzerland','Turkey','Ukraine','United Kingdom','Vatican City'];
 const PAGE_BACKGROUND_DEFS=[
-  ['home','Главная'],['shop','SHOP'],['product','Карточка товара'],['gallery','Галерея'],['about','ABOUT'],['login','LOGIN / регистрация'],['cart','Корзина'],['checkout','Оплата'],['account','Аккаунт'],['contact','Контакты'],['terms','Terms & Conditions'],['privacy','Privacy Policy'],['section','Дополнительные страницы']
+  ['home','Главная'],['shop','SHOP'],['product','Карточка товара'],['gallery','Галерея'],['about','ABOUT'],['login','LOGIN / регистрация'],['cart','Корзина'],['checkout','Оплата'],['account','Аккаунт'],['contact','Контакты'],['terms','Terms & Conditions'],['privacy','Privacy Policy']
 ];
 let mailInboxDraft=[];
 let selectedMailUid=null;

@@ -13,13 +13,14 @@
     const current=document.querySelector(selector);if(!current||!url)return;
     const wantsVideo=window.ddIsVideo?.(url);
     if(wantsVideo&&current.tagName!=='VIDEO'){
-      const video=document.createElement('video');video.className=current.className;video.autoplay=true;video.muted=true;video.loop=true;video.playsInline=true;video.preload='metadata';video.setAttribute('aria-label',alt);current.replaceWith(video);video.src=url;video.play().catch(()=>{});return;
+      const video=document.createElement('video');video.className=current.className;video.autoplay=true;video.muted=true;video.loop=true;video.playsInline=true;video.preload='auto';video.setAttribute('aria-label',alt);current.replaceWith(video);video.src=url;video.play().catch(()=>{});return;
     }
     if(!wantsVideo&&current.tagName!=='IMG'){
       const img=document.createElement('img');img.className=current.className;img.alt=alt;img.decoding='async';current.replaceWith(img);img.src=url;return;
     }
     current.src=url;
   }
+  window.ddWarmMedia?.(desktopMain);window.ddWarmMedia?.(mobileMain);
   replaceMainMedia('.about-copy-art',desktopMain,'DEMI DEVILLE About');
   replaceMainMedia('.about-mobile-approved',mobileMain,'DEMI DEVILLE About');
 
@@ -48,11 +49,16 @@
   }
 
   const extra=$('#aboutExtraContent'),textEl=$('#aboutExtraText'),mediaEl=$('#aboutExtraMedia');
-  const richRaw=String(lang==='ru'?(settings.aboutExtraHtmlRu||''):(settings.aboutExtraHtmlEn||'')).trim();
-  const legacyText=String(lang==='ru'?(settings.aboutExtraTextRu||settings.aboutExtraTextEn||''):(settings.aboutExtraTextEn||settings.aboutExtraTextRu||'')).trim();
+  const richEn=String(settings.aboutExtraHtmlEn||'').trim(),richRu=String(settings.aboutExtraHtmlRu||'').trim();
+  const richRaw=lang==='ru'?(richRu||richEn):(richEn||richRu);
+  const legacyEn=String(settings.aboutExtraTextEn||'').trim(),legacyRu=String(settings.aboutExtraTextRu||'').trim();
+  const legacyText=lang==='ru'?(legacyRu||legacyEn):(legacyEn||legacyRu);
   const richHtml=sanitizeRichHtml(richRaw||plainToHtml(legacyText));
   const extraMedia=String(settings.aboutExtraMedia||'').trim();
   if(extra&&(richHtml||extraMedia)){
+    // Keep the approved ABOUT canvas untouched. Extra content is detached from the
+    // fixed canvas and placed after it, so saving text can never hide/replace it.
+    const wrap=document.querySelector('.about-wrap');if(wrap?.parentNode&&extra.parentNode===wrap)wrap.insertAdjacentElement('afterend',extra);
     document.body.classList.add('about-has-extra');extra.hidden=false;
     extra.style.setProperty('--about-extra-font',settings.aboutExtraFont||'inherit');
     extra.style.setProperty('--about-extra-size-desktop',`${Math.max(10,Math.min(80,Number(settings.aboutExtraFontSizeDesktop)||24))}px`);
@@ -60,7 +66,8 @@
     if(textEl){textEl.innerHTML=richHtml;textEl.hidden=!richHtml}
     if(mediaEl&&extraMedia){
       mediaEl.hidden=false;
-      mediaEl.innerHTML=window.ddIsVideo?.(extraMedia)?`<video src="${esc(extraMedia)}" autoplay muted loop playsinline preload="metadata"></video>`:`<img src="${esc(extraMedia)}" alt="DEMI DEVILLE About additional media" loading="lazy" decoding="async">`;
+      window.ddWarmMedia?.(extraMedia);
+      mediaEl.innerHTML=window.ddIsVideo?.(extraMedia)?`<video src="${esc(extraMedia)}" autoplay muted loop playsinline preload="auto"></video>`:`<img src="${esc(extraMedia)}" alt="DEMI DEVILLE About additional media" loading="lazy" decoding="async">`;
     }
   }
 

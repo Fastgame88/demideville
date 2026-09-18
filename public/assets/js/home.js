@@ -55,10 +55,11 @@
   const mobileHero=homePageBg||s.heroMobile||'/assets/images/hero-mobile.jpg';
   const syncHero=()=>{
     const next=window.matchMedia('(max-width:900px)').matches?mobileHero:desktopHero;
+    window.ddWarmMedia?.(next);
     let current=document.querySelector('.home .hero-image');
     const wantsVideo=window.ddIsVideo?.(next);
     if(wantsVideo&&current?.tagName!=='VIDEO'){
-      const video=document.createElement('video');video.id='heroImage';video.className='hero-image';video.autoplay=true;video.muted=true;video.loop=true;video.playsInline=true;video.preload='metadata';current?.replaceWith(video);current=video;
+      const video=document.createElement('video');video.id='heroImage';video.className='hero-image';video.autoplay=true;video.muted=true;video.loop=true;video.playsInline=true;video.preload='auto';current?.replaceWith(video);current=video;
     }else if(!wantsVideo&&current?.tagName!=='IMG'){
       const img=document.createElement('img');img.id='heroImage';img.className='hero-image';img.alt='DEMI DEVILLE editorial';img.decoding='async';current?.replaceWith(img);current=img;
     }
@@ -108,11 +109,12 @@
   applyLang();
 
   // SUPPORT keeps the existing layout; when admin selects a video it is used only as the panel background.
+  window.ddWarmMedia?.(s.supportBackgroundImage||'/assets/images/support-cross-pattern.png');
   if(supportWindow){
     const chatBody=supportWindow.querySelector('.support-chat-body');
     chatBody?.querySelector('.support-background-video')?.remove();
     if(chatBody&&window.ddIsVideo?.(s.supportBackgroundImage)){
-      const bg=document.createElement('video');bg.className='support-background-video';bg.src=s.supportBackgroundImage;bg.autoplay=true;bg.muted=true;bg.loop=true;bg.playsInline=true;bg.preload='metadata';
+      const bg=document.createElement('video');bg.className='support-background-video';bg.src=s.supportBackgroundImage;bg.autoplay=true;bg.muted=true;bg.loop=true;bg.playsInline=true;bg.preload='auto';
       chatBody.prepend(bg);bg.play().catch(()=>{});
     }
   }

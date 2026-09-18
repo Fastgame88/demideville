@@ -386,7 +386,7 @@ function serveStatic(req,res,u){
     const etag=`W/"${st.size.toString(16)}-${Math.floor(st.mtimeMs).toString(16)}"`;
     const headers={'Content-Type':MIME[ext]||'application/octet-stream','ETag':etag,'Last-Modified':st.mtime.toUTCString()};
     if(ext==='.html')headers['Cache-Control']='no-cache, must-revalidate';
-    else if(['.jpg','.jpeg','.png','.gif','.webp','.svg','.ico','.woff','.woff2','.ttf','.mp4','.webm','.mov'].includes(ext))headers['Cache-Control']='public, max-age=2592000, immutable';
+    else if(['.jpg','.jpeg','.png','.gif','.webp','.svg','.ico','.woff','.woff2','.ttf','.mp4','.webm','.mov'].includes(ext))headers['Cache-Control']=isUpload?'public, max-age=31536000, immutable':'public, max-age=2592000, immutable';
     else headers['Cache-Control']='public, max-age=604800';
     if(req.headers['if-none-match']===etag&&!req.headers.range){res.writeHead(304,headers);return res.end()}
     const isVideo=['.mp4','.webm','.mov'].includes(ext);

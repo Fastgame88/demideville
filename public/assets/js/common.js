@@ -6,7 +6,7 @@ function money(v,s='$'){ return `${Number(v||0).toFixed(Number(v)%1?2:0)}${s}`; 
 function ddIsVideo(url=''){return /\.(?:mp4|webm|mov|m4v)(?:[?#].*)?$/i.test(String(url||''))}
 function ddMediaHtml(url,{className='',alt='',eager=false,muted=true,loop=true,controls=false}={}){
   const src=esc(url||'');if(!src)return'';
-  if(ddIsVideo(url))return `<video class="${esc(className)}" src="${src}" ${muted?'muted ':''}${loop?'loop ':''}playsinline ${eager?'autoplay preload="metadata"':`preload="none" data-dd-autoplay="${muted&&loop?'1':'0'}"`} ${controls?'controls ':''}aria-label="${esc(alt)}"></video>`;
+  if(ddIsVideo(url))return `<video class="${esc(className)}" src="${src}" ${muted?'muted ':''}${loop?'loop ':''}playsinline ${eager?'autoplay preload="auto"':`preload="none" data-dd-autoplay="${muted&&loop?'1':'0'}"`} ${controls?'controls ':''}aria-label="${esc(alt)}"></video>`;
   return `<img class="${esc(className)}" src="${src}" alt="${esc(alt)}" loading="${eager?'eager':'lazy'}" ${eager?'fetchpriority="high"':'fetchpriority="low"'} decoding="async">`;
 }
 function ddActivateLazyVideos(root=document){
@@ -24,6 +24,20 @@ function ddProductPriceLabel(product,currency='$',lang=(document.documentElement
 function ddProductPurchasable(product){const mode=String(product?.priceMode||'number');return product?.purchasable!==false&&mode!=='hidden'&&Number.isFinite(Number(product?.price))}
 window.ddIsVideo=ddIsVideo;window.ddMediaHtml=ddMediaHtml;window.ddActivateLazyVideos=ddActivateLazyVideos;window.ddProductPriceLabel=ddProductPriceLabel;window.ddProductPurchasable=ddProductPurchasable;
 
+const DD_WARMED_MEDIA=new Set();
+const DD_WARM_MEDIA_NODES=[];
+function ddWarmMedia(url=''){
+  const src=String(url||'').trim();if(!src||DD_WARMED_MEDIA.has(src))return;DD_WARMED_MEDIA.add(src);
+  if(ddIsVideo(src)){
+    const video=document.createElement('video');video.preload='auto';video.muted=true;video.playsInline=true;video.src=src;video.load();DD_WARM_MEDIA_NODES.push(video);
+  }else{
+    const link=document.createElement('link');link.rel='preload';link.as='image';link.href=src;document.head.appendChild(link);
+    const img=new Image();img.decoding='async';img.src=src;DD_WARM_MEDIA_NODES.push(img);
+  }
+}
+window.ddWarmMedia=ddWarmMedia;
+
+
 function ddPageBackgroundKey(){
   const p=location.pathname.toLowerCase();
   if(p==='/'||p.endsWith('/index.html'))return'home';
@@ -38,7 +52,6 @@ function ddPageBackgroundKey(){
   if(p.includes('/contact'))return'contact';
   if(p.includes('/terms'))return'terms';
   if(p.includes('/privacy'))return'privacy';
-  if(p.includes('/section'))return'section';
   return'';
 }
 function ddApplyPageBackground(settings={}){
@@ -47,6 +60,7 @@ function ddApplyPageBackground(settings={}){
   if(!key||key==='home')return;
   const backgrounds=settings.pageBackgrounds&&typeof settings.pageBackgrounds==='object'?settings.pageBackgrounds:{};
   const url=String(backgrounds[key]||'').trim();
+  if(url)ddWarmMedia(url);
   document.getElementById('ddPageBackground')?.remove();
   document.body.classList.toggle('dd-custom-page-bg',!!url);
   if(!url)return;
@@ -56,16 +70,31 @@ function ddApplyPageBackground(settings={}){
     html{background:#fff!important}
     body.dd-custom-page-bg{background:transparent!important}
     body.dd-custom-page-bg>main{position:relative;z-index:1;background-color:transparent!important}
-    body.dd-custom-page-bg .page,body.dd-custom-page-bg .shop-wrap,body.dd-custom-page-bg .product-page,body.dd-custom-page-bg .gallery-wrap,body.dd-custom-page-bg .about-wrap,body.dd-custom-page-bg .login-wrap,body.dd-custom-page-bg .cart-wrap,body.dd-custom-page-bg .checkout-wrap,body.dd-custom-page-bg .legal-page,body.dd-custom-page-bg .section-wrap{background-color:transparent!important}
+    body.dd-custom-page-bg .page,body.dd-custom-page-bg .shop-wrap,body.dd-custom-page-bg .product-page,body.dd-custom-page-bg .gallery-wrap,body.dd-custom-page-bg .about-wrap,body.dd-custom-page-bg .login-wrap,body.dd-custom-page-bg .cart-wrap,body.dd-custom-page-bg .checkout-wrap,body.dd-custom-page-bg .legal-page{background-color:transparent!important}
+    body.product-detail-page.dd-custom-page-bg #productPage.product-page{background:transparent!important}
     #ddPageBackground{position:fixed;inset:0;width:100vw;height:100dvh;object-fit:cover;object-position:center;z-index:0;pointer-events:none;user-select:none}
   `;
   const media=ddIsVideo(url)?document.createElement('video'):document.createElement('img');
   media.id='ddPageBackground';media.src=url;media.setAttribute('aria-hidden','true');
-  if(media.tagName==='VIDEO'){media.autoplay=true;media.muted=true;media.loop=true;media.playsInline=true;media.preload='metadata'}
+  if(media.tagName==='VIDEO'){media.autoplay=true;media.muted=true;media.loop=true;media.playsInline=true;media.preload='auto'}
   else{media.alt='';media.decoding='async'}
   document.body.prepend(media);if(media.tagName==='VIDEO')media.play().catch(()=>{});
 }
 window.ddPageBackgroundKey=ddPageBackgroundKey;window.ddApplyPageBackground=ddApplyPageBackground;
+SITE.then(site=>{
+  const settings=site?.settings||{};
+  const backgrounds=settings.pageBackgrounds&&typeof settings.pageBackgrounds==='object'?settings.pageBackgrounds:{};
+  const key=ddPageBackgroundKey();
+  if(key==='home'){
+    const homeBg=String(backgrounds.home||'').trim();
+    const hero=homeBg||(matchMedia('(max-width:900px)').matches?settings.heroMobile:settings.heroDesktop);
+    ddWarmMedia(hero);
+  }else if(key){
+    ddWarmMedia(backgrounds[key]);
+  }
+  const warmSupport=()=>ddWarmMedia(settings.supportBackgroundImage||'/assets/images/support-cross-pattern.png');
+  if('requestIdleCallback' in window)requestIdleCallback(warmSupport,{timeout:900});else setTimeout(warmSupport,450);
+}).catch(()=>{});
 function getToken(){return localStorage.getItem('dd_token')||sessionStorage.getItem('dd_token')||''}
 function authHeaders(){const t=getToken(); return t?{'Authorization':`Bearer ${t}`}:{}}
 let DD_CURRENT_USER_PROMISE=null;
@@ -396,6 +425,7 @@ function mountSharedChrome(site,menu=getMenuConfig(site.settings||{}),currentUse
   $$('#shopSupportOpen, #supportOpen, [data-support], #shopSupportLayer, #supportLayer').forEach(el=>el.remove());
   const tr=text=>window.ddTranslate?.(text)||text;
   const supportCfg=supportConfig(site.settings||{},lang);
+  ddWarmMedia(supportCfg.backgroundImage);
   applySupportRuntimeStyles(site.settings||{});
   const shell=document.createElement('div');
   shell.className='shared-support-root';
@@ -406,7 +436,7 @@ function mountSharedChrome(site,menu=getMenuConfig(site.settings||{}),currentUse
         <div class="support-panel">
           <div class="support-brand">DEMI DEVILLE</div>
           <div class="support-chat-body support-email-body">
-            ${ddIsVideo(supportCfg.backgroundImage)?`<video class="support-background-video" src="${esc(supportCfg.backgroundImage)}" autoplay muted loop playsinline preload="metadata"></video>`:''}
+            ${ddIsVideo(supportCfg.backgroundImage)?`<video class="support-background-video" src="${esc(supportCfg.backgroundImage)}" autoplay muted loop playsinline preload="auto"></video>`:''}
             <div class="support-mobile-intro">${esc(supportCfg.greeting)}</div>
             <form id="sharedSupportForm" class="support-form" novalidate>
               <input id="sharedSupportEmail" class="support-form-input" name="email" type="email" autocomplete="email" required placeholder="${esc(supportCfg.emailPlaceholder)}">
