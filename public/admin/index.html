@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>DEMI DEVILLE — Админ-панель</title>
-  <link rel="stylesheet" href="/assets/css/admin.css?v=20260918-requested">
+  <link rel="stylesheet" href="/assets/css/admin.css?v=20260918-v21">
 </head>
 <body>
   <section id="loginView" class="auth-screen">
@@ -31,6 +31,7 @@
       <div class="side-caption">АДМИН</div>
       <nav class="side-nav">
         <button class="nav-item active" type="button" data-admin-tab="home">Главная страница</button>
+        <button class="nav-item" type="button" data-admin-tab="backgrounds">ФОНЫ СТРАНИЦ</button>
         <button class="nav-item" type="button" data-admin-tab="shop">SHOP</button>
         <button class="nav-item" type="button" data-admin-tab="gallery">ГАЛЕРЕЯ</button>
         <button class="nav-item" type="button" data-admin-tab="about">ABOUT</button>
@@ -76,7 +77,7 @@
             <div class="preview desktop-preview" id="desktopPreview">
               <div class="preview-overlay" id="desktopPreviewOverlay"></div>
               <div class="preview-ui">
-                <div class="preview-logo">DEMI DEVILLE</div>
+                <div class="preview-logo preview-logo-art" aria-label="DEMI DEVILLE"></div>
                 <div class="preview-menu"><span>SHOP</span><span>LOGIN</span></div>
                 <div class="preview-support">SUPPORT</div>
               </div>
@@ -236,6 +237,15 @@
         </div>
       </form>
 
+      <section id="backgroundsEditor" class="editor-form" hidden>
+        <section class="device-card">
+          <div class="device-card-head"><div><span class="device-badge">ФОНЫ</span><h2>Фоны страниц — фото или видео</h2></div></div>
+          <p class="admin-help-text">Можно задать отдельный фон страницы. Поддерживаются изображения, MP4, WebM и MOV. Если поле пустое — используется текущий дизайн страницы без изменений.</p>
+          <div id="pageBackgroundsEditor" class="page-backgrounds-editor"></div>
+        </section>
+        <div class="form-actions"><div class="save-note">Фон применяется только к выбранной странице и не меняет её масштаб/разметку.</div><button id="savePageBackgrounds" class="primary-btn large" type="button">Сохранить фоны</button></div>
+      </section>
+
       <section id="shopEditor" class="editor-form shop-editor" hidden>
         <section class="device-card shop-settings-card">
           <div class="device-card-head">
@@ -324,19 +334,51 @@
 
       <section id="aboutEditor" class="editor-form" hidden>
         <section class="device-card">
-          <div class="device-card-head"><div><span class="device-badge">ABOUT</span><h2>Дополнительный контент ABOUT</h2></div><a class="secondary-btn" href="/about.html" target="_blank" rel="noreferrer">Открыть ABOUT ↗</a></div>
-          <p class="admin-help-text">Утверждённый текущий ABOUT не меняется. Новый текст и фото/видео выводятся отдельным блоком ниже него и не накладываются на существующее изображение.</p>
-          <div class="contact-admin-grid">
-            <label class="field span-2"><span>Дополнительный текст EN</span><textarea id="aboutExtraTextEn" rows="8"></textarea></label>
-            <label class="field span-2"><span>Дополнительный текст RU</span><textarea id="aboutExtraTextRu" rows="8"></textarea></label>
-            <label class="field"><span>Шрифт</span><select id="aboutExtraFont" class="font-select" data-default-label="Текущий дизайн"></select></label>
-            <label class="field"><span>Размер текста на ПК, px</span><input id="aboutExtraFontSizeDesktop" type="number" min="10" max="80" step="1" value="24"></label>
-            <label class="field"><span>Размер текста на телефоне, px</span><input id="aboutExtraFontSizeMobile" type="number" min="10" max="48" step="1" value="18"></label>
-            <label class="field span-2"><span>Дополнительное фото / видео</span><input id="aboutExtraMedia" placeholder="/uploads/about-media.jpg"></label>
-            <label class="upload-btn span-2"><input id="aboutExtraMediaFile" type="file" accept="image/*,video/mp4,video/webm,video/quicktime"><span>Загрузить фото / видео</span></label>
+          <div class="device-card-head"><div><span class="device-badge">ABOUT</span><h2>Редактор ABOUT</h2></div><a class="secondary-btn" href="/about.html" target="_blank" rel="noreferrer">Открыть ABOUT ↗</a></div>
+          <p class="admin-help-text">Основное изображение всегда остаётся первым блоком. Дополнительное фото/видео и текст выводятся только ниже него и никогда не накладываются на основное изображение.</p>
+          <div class="contact-admin-grid about-main-media-grid">
+            <label class="field span-2"><span>Основное изображение / видео — ПК</span><input id="aboutMainMediaDesktop" placeholder="/assets/images/about-copy-psd.png"></label>
+            <label class="upload-btn span-2"><input id="aboutMainMediaDesktopFile" type="file" accept="image/*,video/mp4,video/webm,video/quicktime"><span>Загрузить основное медиа для ПК</span></label>
+            <label class="field span-2"><span>Основное изображение / видео — телефон</span><input id="aboutMainMediaMobile" placeholder="/assets/images/about-mobile-approved.jpg"></label>
+            <label class="upload-btn span-2"><input id="aboutMainMediaMobileFile" type="file" accept="image/*,video/mp4,video/webm,video/quicktime"><span>Загрузить основное медиа для телефона</span></label>
           </div>
         </section>
-        <div class="form-actions"><div class="save-note">Существующий дизайн ABOUT остаётся без изменений.</div><button id="saveAboutSettings" class="primary-btn large" type="button">Сохранить ABOUT</button></div>
+
+        <section class="device-card">
+          <div class="device-card-head"><div><span class="device-badge">ТЕКСТ</span><h2>Дополнительный контент ниже изображения</h2></div></div>
+          <div class="about-rich-admin-grid">
+            <section class="about-rich-language">
+              <h3>Текст EN</h3>
+              <div class="about-rich-toolbar" data-rich-target="aboutExtraHtmlEnEditor">
+                <select class="font-select" data-rich-font data-default-label="Шрифт"></select>
+                <select data-rich-size><option value="">Размер</option><option value="2">12–14</option><option value="3">16</option><option value="4">18–20</option><option value="5">24</option><option value="6">30</option><option value="7">36+</option></select>
+                <button type="button" data-rich-cmd="bold"><b>B</b></button><button type="button" data-rich-cmd="italic"><i>I</i></button><button type="button" data-rich-cmd="underline"><u>U</u></button>
+                <label class="rich-color-label">Текст <input type="color" data-rich-color="foreColor" value="#000000"></label>
+                <label class="rich-color-label">Фон <input type="color" data-rich-color="hiliteColor" value="#ffffff"></label>
+              </div>
+              <div id="aboutExtraHtmlEnEditor" class="about-rich-editor" contenteditable="true" spellcheck="true"></div>
+            </section>
+            <section class="about-rich-language">
+              <h3>Текст RU</h3>
+              <div class="about-rich-toolbar" data-rich-target="aboutExtraHtmlRuEditor">
+                <select class="font-select" data-rich-font data-default-label="Шрифт"></select>
+                <select data-rich-size><option value="">Размер</option><option value="2">12–14</option><option value="3">16</option><option value="4">18–20</option><option value="5">24</option><option value="6">30</option><option value="7">36+</option></select>
+                <button type="button" data-rich-cmd="bold"><b>B</b></button><button type="button" data-rich-cmd="italic"><i>I</i></button><button type="button" data-rich-cmd="underline"><u>U</u></button>
+                <label class="rich-color-label">Текст <input type="color" data-rich-color="foreColor" value="#000000"></label>
+                <label class="rich-color-label">Фон <input type="color" data-rich-color="hiliteColor" value="#ffffff"></label>
+              </div>
+              <div id="aboutExtraHtmlRuEditor" class="about-rich-editor" contenteditable="true" spellcheck="true"></div>
+            </section>
+          </div>
+          <div class="contact-admin-grid" style="margin-top:18px">
+            <label class="field"><span>Базовый шрифт блока</span><select id="aboutExtraFont" class="font-select" data-default-label="Текущий дизайн"></select></label>
+            <label class="field"><span>Размер текста на ПК, px</span><input id="aboutExtraFontSizeDesktop" type="number" min="10" max="80" step="1" value="24"></label>
+            <label class="field"><span>Размер текста на телефоне, px</span><input id="aboutExtraFontSizeMobile" type="number" min="10" max="48" step="1" value="18"></label>
+            <label class="field span-2"><span>Дополнительное фото / видео (ниже основной картинки)</span><input id="aboutExtraMedia" placeholder="/uploads/about-media.jpg"></label>
+            <label class="upload-btn span-2"><input id="aboutExtraMediaFile" type="file" accept="image/*,video/mp4,video/webm,video/quicktime"><span>Загрузить дополнительное фото / видео</span></label>
+          </div>
+        </section>
+        <div class="form-actions"><div class="save-note">Основное изображение остаётся сверху. Весь новый контент будет ниже него.</div><button id="saveAboutSettings" class="primary-btn large" type="button">Сохранить ABOUT</button></div>
       </section>
 
       <section id="instagramEditor" class="editor-form" hidden>
@@ -378,8 +420,6 @@
               <div class="form-grid two">
                 <label class="field"><span>Текст кнопки EN</span><input id="supportButtonTextEn" value="SUPPORT"></label>
                 <label class="field"><span>Текст кнопки RU</span><input id="supportButtonTextRu" value="ПОДДЕРЖКА"></label>
-                <label class="field"><span>Заголовок EN</span><input id="supportTitleEn" value="START A CHAT"></label>
-                <label class="field"><span>Заголовок RU</span><input id="supportTitleRu" value="НАЧАТЬ ЧАТ"></label>
                 <label class="field span-2"><span>Сообщение EN</span><input id="supportGreetingEn" value="Thanks for stopping by! How can I help you?"></label>
                 <label class="field span-2"><span>Сообщение RU</span><input id="supportGreetingRu" value="Спасибо, что заглянули! Чем я могу помочь?"></label>
                 <label class="field"><span>Поле email EN</span><input id="supportEmailPlaceholderEn" value="YOUR EMAIL"></label>
@@ -392,7 +432,7 @@
 
               <h3>Фон, поля и шрифты</h3>
               <div class="form-grid two">
-                <label class="field span-2"><span>Фоновое изображение окна</span><input id="supportBackgroundImage" placeholder="/assets/images/support-cross-pattern.png"></label>
+                <label class="field span-2"><span>Фон окна — фото или видео</span><input id="supportBackgroundImage" placeholder="/assets/images/support-cross-pattern.png"></label>
                 <label class="upload-btn span-2"><input id="supportBackgroundFile" type="file" accept="image/*,video/mp4,video/webm,video/quicktime"><span>Загрузить фото / видео для фона</span></label>
                 <label class="field"><span>Фон кнопки</span><input id="supportButtonBg" type="color" value="#000000"></label>
                 <label class="field"><span>Цвет текста кнопки</span><input id="supportButtonColor" type="color" value="#ffffff"></label>
@@ -407,7 +447,6 @@
               <div id="supportAdminPreview" class="support-admin-preview">
                 <div class="support-preview-brand">DEMI DEVILLE</div>
                 <div class="support-preview-body">
-                  <div id="supportPreviewTitle" class="support-preview-title">START A CHAT</div>
                   <div id="supportPreviewGreeting" class="support-preview-greeting">Thanks for stopping by! How can I help you?</div>
                   <div id="supportPreviewEmail" class="support-preview-field">YOUR EMAIL</div>
                   <div id="supportPreviewMessage" class="support-preview-field support-preview-message">HOW CAN WE HELP?</div>
@@ -449,9 +488,9 @@
           </div>
           <div id="paymentMethodsEditor" class="payment-methods-editor"></div>
           <div class="simple-admin-form" style="margin-top:22px">
-            <h3>Дополнительные страны доставки</h3>
-            <p class="admin-help-text">Все страны Европы уже добавлены автоматически. Здесь можно добавить другие страны — по одной на строку.</p>
-            <label class="field"><span>Дополнительные страны</span><textarea id="checkoutCountriesExtra" rows="7" placeholder="United States&#10;Canada&#10;Japan"></textarea></label>
+            <h3>Страны доставки</h3>
+            <p class="admin-help-text">Россия и Беларусь исключены. Список полностью редактируемый: чтобы удалить страну — удалите строку, чтобы добавить — впишите новую страну с новой строки.</p>
+            <label class="field"><span>Страны — по одной на строку</span><textarea id="checkoutCountriesList" rows="14"></textarea></label>
           </div>
         </section>
         <div class="form-actions payment-actions">
@@ -463,12 +502,33 @@
       <section id="mailEditor" class="editor-form" hidden>
         <section class="device-card">
           <div class="device-card-head"><div><span class="device-badge">ПОЧТА</span><h2>Рассылки клиентам</h2></div></div>
-          <div class="simple-admin-form">
-            <p class="admin-help-text">Почта подключается через SMTP-переменные Railway. Пароль от почты в админке не хранится.</p>
+          <div class="simple-admin-form mail-admin-form">
+            <p class="admin-help-text">Рассылка отправляется всем клиентам с email, которые есть в базе сайта. SMTP/IMAP подключаются через переменные Railway; пароли в админке не хранятся.</p>
             <label class="field"><span>Тема рассылки</span><input id="newsletterSubject" value="DEMI DEVILLE"></label>
             <label class="field"><span>Текст рассылки</span><textarea id="newsletterMessage" rows="10"></textarea></label>
-            <button id="sendNewsletter" class="primary-btn" type="button">Отправить подписчикам</button>
+            <button id="sendNewsletter" class="primary-btn" type="button">Отправить всем клиентам</button>
             <div id="newsletterResult" class="notice" aria-live="polite"></div>
+          </div>
+        </section>
+
+        <section class="device-card mail-inbox-card">
+          <div class="device-card-head"><div><span class="device-badge">INBOX</span><h2>Входящие письма</h2></div><button id="refreshMailInbox" class="secondary-btn" type="button">Обновить входящие</button></div>
+          <p class="admin-help-text">Для чтения входящих нужен IMAP. Выберите письмо слева — справа можно сразу написать ответ.</p>
+          <div class="mail-inbox-layout">
+            <div id="mailInboxList" class="mail-inbox-list"><div class="empty-admin-list">Нажмите «Обновить входящие».</div></div>
+            <div id="mailMessagePanel" class="mail-message-panel">
+              <div class="mail-message-empty">Выберите письмо.</div>
+              <div id="mailMessageContent" hidden>
+                <div class="mail-message-meta"><strong id="mailMessageFrom"></strong><span id="mailMessageDate"></span></div>
+                <h3 id="mailMessageSubject"></h3>
+                <pre id="mailMessageBody" class="mail-message-body"></pre>
+                <div class="mail-reply-form">
+                  <label class="field"><span>Ответ</span><textarea id="mailReplyText" rows="7" placeholder="Введите ответ..."></textarea></label>
+                  <button id="sendMailReply" class="primary-btn" type="button">Ответить</button>
+                  <div id="mailReplyResult" class="notice" aria-live="polite"></div>
+                </div>
+              </div>
+            </div>
           </div>
         </section>
       </section>
@@ -541,6 +601,6 @@
     </section>
   </div>
 
-  <script src="/assets/js/admin.js?v=20260918-requested"></script>
+  <script src="/assets/js/admin.js?v=20260918-v21"></script>
 </body>
 </html>

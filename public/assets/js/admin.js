@@ -81,9 +81,14 @@ const DEFAULT_PAYMENT_METHODS=[
   {id:'crypto',labelEn:'Crypto payment',labelRu:'Оплата криптовалютой',enabled:true},
   {id:'card',labelEn:'Card payment',labelRu:'Оплата картой',enabled:true}
 ];
+const DEFAULT_COUNTRIES=['Albania','Andorra','Armenia','Austria','Azerbaijan','Belgium','Bosnia and Herzegovina','Bulgaria','Croatia','Cyprus','Czechia','Denmark','Estonia','Finland','France','Georgia','Germany','Greece','Hungary','Iceland','Ireland','Italy','Kazakhstan','Kosovo','Latvia','Liechtenstein','Lithuania','Luxembourg','Malta','Moldova','Monaco','Montenegro','Netherlands','North Macedonia','Norway','Poland','Portugal','Romania','San Marino','Serbia','Slovakia','Slovenia','Spain','Sweden','Switzerland','Turkey','Ukraine','United Kingdom','Vatican City'];
+const PAGE_BACKGROUND_DEFS=[
+  ['home','Главная'],['shop','SHOP'],['product','Карточка товара'],['gallery','Галерея'],['about','ABOUT'],['login','LOGIN / регистрация'],['cart','Корзина'],['checkout','Оплата'],['account','Аккаунт'],['contact','Контакты'],['terms','Terms & Conditions'],['privacy','Privacy Policy'],['section','Дополнительные страницы']
+];
+let mailInboxDraft=[];
+let selectedMailUid=null;
 const DEFAULT_SUPPORT_SETTINGS={
   supportButtonTextEn:'SUPPORT',supportButtonTextRu:'ПОДДЕРЖКА',
-  supportTitleEn:'START A CHAT',supportTitleRu:'НАЧАТЬ ЧАТ',
   supportGreetingEn:'Thanks for stopping by! How can I help you?',supportGreetingRu:'Спасибо, что заглянули! Чем я могу помочь?',
   supportEmailPlaceholderEn:'YOUR EMAIL',supportEmailPlaceholderRu:'ВАША ПОЧТА',
   supportMessagePlaceholderEn:'HOW CAN WE HELP?',supportMessagePlaceholderRu:'ЧЕМ МЫ МОЖЕМ ПОМОЧЬ?',
@@ -126,7 +131,7 @@ async function boot(){
     const me=await api('/api/auth/me');
     if(me.user.role!=='admin')throw new Error('Доступ разрешён только администратору');
     $('#adminUser').textContent=me.user.email;$('#loginView').hidden=true;$('#loginView').style.display='none';$('#adminView').hidden=false;window.scrollTo(0,0);
-    const state=await api('/api/admin/state');adminState=state||{};settings=state.settings||{};productsDraft=Array.isArray(state.products)?state.products.map(clone):[];galleryDraft=Array.isArray(state.gallery)?state.gallery.map(clone):[];shopCategoriesDraft=normalizeShopCategories(settings.shopCategories);paymentMethodsDraft=normalizePaymentMethods(settings.paymentMethods);fillForm();fillShopEditor();fillGalleryEditor();fillAboutEditor();fillExternalEditors();fillSupportEditor();renderOrdersAdmin();renderClientsAdmin();renderPaymentEditor();switchAdminTab(currentAdminTab);
+    const state=await api('/api/admin/state');adminState=state||{};settings=state.settings||{};productsDraft=Array.isArray(state.products)?state.products.map(clone):[];galleryDraft=Array.isArray(state.gallery)?state.gallery.map(clone):[];shopCategoriesDraft=normalizeShopCategories(settings.shopCategories);paymentMethodsDraft=normalizePaymentMethods(settings.paymentMethods);fillForm();fillShopEditor();fillGalleryEditor();fillAboutEditor();fillExternalEditors();fillSupportEditor();renderOrdersAdmin();renderClientsAdmin();renderPaymentEditor();renderPageBackgroundsEditor();switchAdminTab(currentAdminTab);
   }catch(e){token='';showLogin(e.message)}
 }
 $('#adminLogin').addEventListener('submit',async e=>{
@@ -252,7 +257,7 @@ async function save(){
   try{setBusy(true);settings=await api('/api/admin/settings',{method:'PUT',body:JSON.stringify(payload())});fillForm();showNotice('Изменения сохранены.')}catch(e){showNotice(e.message,'error')}finally{setBusy(false)}
 }
 $('#homeSettingsForm').addEventListener('submit',async e=>{e.preventDefault();await save()});
-$('#saveTop').addEventListener('click',()=>currentAdminTab==='shop'?saveShopSettings():currentAdminTab==='gallery'?saveGallerySettings():currentAdminTab==='about'?saveAboutSettings():currentAdminTab==='instagram'?saveInstagramSettings():currentAdminTab==='contact'?saveContactSettings():currentAdminTab==='support'?saveSupportSettings():currentAdminTab==='payment'?savePaymentSettings():(currentAdminTab==='clients'||currentAdminTab==='orders'||currentAdminTab==='mail')?Promise.resolve():save());
+$('#saveTop').addEventListener('click',()=>currentAdminTab==='backgrounds'?savePageBackgrounds():currentAdminTab==='shop'?saveShopSettings():currentAdminTab==='gallery'?saveGallerySettings():currentAdminTab==='about'?saveAboutSettings():currentAdminTab==='instagram'?saveInstagramSettings():currentAdminTab==='contact'?saveContactSettings():currentAdminTab==='support'?saveSupportSettings():currentAdminTab==='payment'?savePaymentSettings():(currentAdminTab==='clients'||currentAdminTab==='orders'||currentAdminTab==='mail')?Promise.resolve():save());
 
 function slugify(value){
   return String(value||'').trim().toLowerCase()
@@ -292,10 +297,11 @@ function fillShopEditor(){
   renderProductsAdmin();
 }
 function switchAdminTab(tab){
-  const allowed=['home','shop','gallery','about','instagram','contact','support','orders','clients','payment','mail'];
+  const allowed=['home','backgrounds','shop','gallery','about','instagram','contact','support','orders','clients','payment','mail'];
   currentAdminTab=allowed.includes(tab)?tab:'home';
   $$('#adminView [data-admin-tab]').forEach(btn=>btn.classList.toggle('active',btn.dataset.adminTab===currentAdminTab));
   $('#homeSettingsForm').hidden=currentAdminTab!=='home';
+  $('#backgroundsEditor').hidden=currentAdminTab!=='backgrounds';
   $('#shopEditor').hidden=currentAdminTab!=='shop';
   $('#galleryEditor').hidden=currentAdminTab!=='gallery';
   $('#aboutEditor').hidden=currentAdminTab!=='about';
@@ -306,15 +312,36 @@ function switchAdminTab(tab){
   $('#clientsEditor').hidden=currentAdminTab!=='clients';
   $('#paymentEditor').hidden=currentAdminTab!=='payment';
   $('#mailEditor').hidden=currentAdminTab!=='mail';
-  const titles={home:'Главная страница',shop:'SHOP',gallery:'Галерея',about:'ABOUT',instagram:'Instagram',contact:'Контакты',support:'Поддержка',orders:'Заказы',clients:'Клиенты',payment:'Оплата',mail:'Почта'};
+  const titles={home:'Главная страница',backgrounds:'Фоны страниц',shop:'SHOP',gallery:'Галерея',about:'ABOUT',instagram:'Instagram',contact:'Контакты',support:'Поддержка',orders:'Заказы',clients:'Клиенты',payment:'Оплата',mail:'Почта'};
   $('#workspaceTitle').textContent=titles[currentAdminTab]||'Главная страница';
   const saveTop=$('#saveTop');saveTop.hidden=currentAdminTab==='clients'||currentAdminTab==='orders'||currentAdminTab==='mail';
-  saveTop.textContent=currentAdminTab==='shop'?'Сохранить магазин':currentAdminTab==='gallery'?'Сохранить галерею':currentAdminTab==='about'?'Сохранить ABOUT':currentAdminTab==='instagram'?'Сохранить Instagram':currentAdminTab==='contact'?'Сохранить контакты':currentAdminTab==='support'?'Сохранить поддержку':currentAdminTab==='payment'?'Сохранить оплату':'Сохранить';
+  saveTop.textContent=currentAdminTab==='backgrounds'?'Сохранить фоны':currentAdminTab==='shop'?'Сохранить магазин':currentAdminTab==='gallery'?'Сохранить галерею':currentAdminTab==='about'?'Сохранить ABOUT':currentAdminTab==='instagram'?'Сохранить Instagram':currentAdminTab==='contact'?'Сохранить контакты':currentAdminTab==='support'?'Сохранить поддержку':currentAdminTab==='payment'?'Сохранить оплату':'Сохранить';
   if(currentAdminTab==='clients')renderClientsAdmin();
   if(currentAdminTab==='orders')renderOrdersAdmin();
   if(currentAdminTab==='support')updateSupportPreview();
+  if(currentAdminTab==='backgrounds')renderPageBackgroundsEditor();
+  if(currentAdminTab==='mail'&&!mailInboxDraft.length)loadMailInbox(false);
 }
 $$('[data-admin-tab]').forEach(btn=>btn.addEventListener('click',()=>switchAdminTab(btn.dataset.adminTab)));
+
+function normalizedPageBackgrounds(){
+  const raw=settings.pageBackgrounds&&typeof settings.pageBackgrounds==='object'?settings.pageBackgrounds:{};
+  const out={};for(const [key] of PAGE_BACKGROUND_DEFS)out[key]=String(raw[key]||'').trim();return out;
+}
+function renderPageBackgroundsEditor(){
+  const box=$('#pageBackgroundsEditor');if(!box)return;const current=normalizedPageBackgrounds();
+  box.innerHTML=PAGE_BACKGROUND_DEFS.map(([key,label])=>`<div class="page-background-row" data-page-bg-row="${esc(key)}"><label class="field"><span>${esc(label)} — фон фото / видео</span><input data-page-bg-key="${esc(key)}" value="${esc(current[key])}" placeholder="Оставьте пустым для текущего фона"></label><label class="upload-btn page-bg-upload"><input type="file" data-page-bg-upload="${esc(key)}" accept="image/*,video/mp4,video/webm,video/quicktime"><span>Загрузить фото / видео</span></label><button class="secondary-btn small" type="button" data-page-bg-clear="${esc(key)}">Сбросить</button></div>`).join('');
+}
+$('#pageBackgroundsEditor')?.addEventListener('click',e=>{const btn=e.target.closest('[data-page-bg-clear]');if(!btn)return;const input=$(`[data-page-bg-key="${CSS.escape(btn.dataset.pageBgClear)}"]`);if(input)input.value=''});
+$('#pageBackgroundsEditor')?.addEventListener('change',async e=>{
+  const input=e.target.closest('[data-page-bg-upload]');if(!input)return;const file=input.files?.[0];if(!file)return;
+  try{input.disabled=true;const dataUrl=await new Promise((resolve,reject)=>{const r=new FileReader();r.onload=()=>resolve(r.result);r.onerror=reject;r.readAsDataURL(file)});const out=await api('/api/admin/upload',{method:'POST',body:JSON.stringify({dataUrl,filename:file.name})});const target=$(`[data-page-bg-key="${CSS.escape(input.dataset.pageBgUpload)}"]`);if(target)target.value=out.url;showNotice('Фон загружен. Нажмите «Сохранить фоны».')}catch(err){showNotice(err.message,'error')}finally{input.disabled=false;input.value=''}
+});
+async function savePageBackgrounds(){
+  const pageBackgrounds={};PAGE_BACKGROUND_DEFS.forEach(([key])=>{pageBackgrounds[key]=String($(`[data-page-bg-key="${CSS.escape(key)}"]`)?.value||'').trim()});
+  try{setBusy(true);settings=await api('/api/admin/settings',{method:'PUT',body:JSON.stringify({pageBackgrounds})});renderPageBackgroundsEditor();showNotice('Фоны страниц сохранены.')}catch(err){showNotice(err.message,'error')}finally{setBusy(false)}
+}
+$('#savePageBackgrounds')?.addEventListener('click',savePageBackgrounds);
 
 function categoryField(label,value,field){return `<label class="field"><span>${esc(label)}</span><input data-category-field="${field}" value="${esc(value||'')}"></label>`}
 function renderShopCategories(){
@@ -597,15 +624,38 @@ async function saveGallerySettings(){
 }
 $('#saveGallerySettings')?.addEventListener('click',saveGallerySettings);
 
+function plainToRich(value){return esc(String(value||'')).replace(/\n/g,'<br>')}
 function fillAboutEditor(){
   const set=(id,value)=>{const el=$(id);if(el)el.value=value??''};
-  set('#aboutExtraTextEn',settings.aboutExtraTextEn||'');set('#aboutExtraTextRu',settings.aboutExtraTextRu||'');
+  set('#aboutMainMediaDesktop',settings.aboutMainMediaDesktop||'/assets/images/about-copy-psd.png');
+  set('#aboutMainMediaMobile',settings.aboutMainMediaMobile||'/assets/images/about-mobile-approved.jpg');
+  const en=$('#aboutExtraHtmlEnEditor'),ru=$('#aboutExtraHtmlRuEditor');
+  if(en)en.innerHTML=String(settings.aboutExtraHtmlEn||'').trim()||plainToRich(settings.aboutExtraTextEn||'');
+  if(ru)ru.innerHTML=String(settings.aboutExtraHtmlRu||'').trim()||plainToRich(settings.aboutExtraTextRu||'');
   selectValue($('#aboutExtraFont'),settings.aboutExtraFont||'');set('#aboutExtraFontSizeDesktop',settings.aboutExtraFontSizeDesktop||24);set('#aboutExtraFontSizeMobile',settings.aboutExtraFontSizeMobile||18);set('#aboutExtraMedia',settings.aboutExtraMedia||'');
 }
-$('#aboutExtraMediaFile')?.addEventListener('change',async e=>{const file=e.target.files?.[0];if(!file)return;try{e.target.disabled=true;const dataUrl=await new Promise((resolve,reject)=>{const r=new FileReader();r.onload=()=>resolve(r.result);r.onerror=reject;r.readAsDataURL(file)});const out=await api('/api/admin/upload',{method:'POST',body:JSON.stringify({dataUrl,filename:file.name})});$('#aboutExtraMedia').value=out.url;showNotice('Медиа ABOUT загружено. Нажмите «Сохранить ABOUT».')}catch(err){showNotice(err.message,'error')}finally{e.target.disabled=false;e.target.value=''}});
+async function uploadAboutMedia(file,targetSelector,label){
+  const dataUrl=await new Promise((resolve,reject)=>{const r=new FileReader();r.onload=()=>resolve(r.result);r.onerror=reject;r.readAsDataURL(file)});const out=await api('/api/admin/upload',{method:'POST',body:JSON.stringify({dataUrl,filename:file.name})});const target=$(targetSelector);if(target)target.value=out.url;showNotice(`${label} загружено. Нажмите «Сохранить ABOUT».`);
+}
+[['#aboutMainMediaDesktopFile','#aboutMainMediaDesktop','Основное медиа ПК'],['#aboutMainMediaMobileFile','#aboutMainMediaMobile','Основное медиа телефона'],['#aboutExtraMediaFile','#aboutExtraMedia','Дополнительное медиа']].forEach(([fileId,targetId,label])=>{
+  $(fileId)?.addEventListener('change',async e=>{const file=e.target.files?.[0];if(!file)return;try{e.target.disabled=true;await uploadAboutMedia(file,targetId,label)}catch(err){showNotice(err.message,'error')}finally{e.target.disabled=false;e.target.value=''}})
+});
+const richSelections={};
+function rememberRichSelection(targetId){const target=$('#'+targetId),sel=window.getSelection();if(!target||!sel||!sel.rangeCount)return;const range=sel.getRangeAt(0);if(target.contains(range.commonAncestorContainer))richSelections[targetId]=range.cloneRange()}
+function richExec(targetId,command,value=null){const target=$('#'+targetId);if(!target)return;target.focus();const saved=richSelections[targetId],sel=window.getSelection();if(saved&&sel){sel.removeAllRanges();sel.addRange(saved)}document.execCommand(command,false,value);rememberRichSelection(targetId)}
+$$('.about-rich-editor').forEach(editor=>['keyup','mouseup','input'].forEach(eventName=>editor.addEventListener(eventName,()=>rememberRichSelection(editor.id))));
+$$('.about-rich-toolbar').forEach(toolbar=>{
+  const targetId=toolbar.dataset.richTarget;
+  toolbar.addEventListener('mousedown',e=>{if(e.target.closest('button'))e.preventDefault()});
+  toolbar.addEventListener('click',e=>{const btn=e.target.closest('[data-rich-cmd]');if(!btn)return;richExec(targetId,btn.dataset.richCmd)});
+  toolbar.querySelector('[data-rich-font]')?.addEventListener('change',e=>{if(e.target.value)richExec(targetId,'fontName',e.target.value)});
+  toolbar.querySelector('[data-rich-size]')?.addEventListener('change',e=>{if(e.target.value)richExec(targetId,'fontSize',e.target.value)});
+  toolbar.querySelectorAll('[data-rich-color]').forEach(input=>input.addEventListener('input',e=>richExec(targetId,e.target.dataset.richColor,e.target.value)));
+});
 async function saveAboutSettings(){
-  const payload={aboutExtraTextEn:$('#aboutExtraTextEn').value,aboutExtraTextRu:$('#aboutExtraTextRu').value,aboutExtraFont:$('#aboutExtraFont').value,aboutExtraFontSizeDesktop:clampNumber($('#aboutExtraFontSizeDesktop').value,10,80,24),aboutExtraFontSizeMobile:clampNumber($('#aboutExtraFontSizeMobile').value,10,48,18),aboutExtraMedia:$('#aboutExtraMedia').value.trim()};
-  try{setBusy(true);settings=await api('/api/admin/settings',{method:'PUT',body:JSON.stringify(payload)});fillAboutEditor();showNotice('ABOUT сохранён. Дополнительный блок будет ниже текущего изображения.')}catch(err){showNotice(err.message,'error')}finally{setBusy(false)}
+  const enEditor=$('#aboutExtraHtmlEnEditor'),ruEditor=$('#aboutExtraHtmlRuEditor');
+  const payload={aboutMainMediaDesktop:$('#aboutMainMediaDesktop')?.value.trim()||'/assets/images/about-copy-psd.png',aboutMainMediaMobile:$('#aboutMainMediaMobile')?.value.trim()||'/assets/images/about-mobile-approved.jpg',aboutExtraHtmlEn:enEditor?.innerHTML||'',aboutExtraHtmlRu:ruEditor?.innerHTML||'',aboutExtraTextEn:enEditor?.innerText||'',aboutExtraTextRu:ruEditor?.innerText||'',aboutExtraFont:$('#aboutExtraFont')?.value||'',aboutExtraFontSizeDesktop:clampNumber($('#aboutExtraFontSizeDesktop')?.value,10,80,24),aboutExtraFontSizeMobile:clampNumber($('#aboutExtraFontSizeMobile')?.value,10,48,18),aboutExtraMedia:$('#aboutExtraMedia')?.value.trim()||''};
+  try{setBusy(true);settings=await api('/api/admin/settings',{method:'PUT',body:JSON.stringify(payload)});fillAboutEditor();showNotice('ABOUT сохранён. Основное изображение остаётся первым, дополнительный контент идёт ниже.')}catch(err){showNotice(err.message,'error')}finally{setBusy(false)}
 }
 $('#saveAboutSettings')?.addEventListener('click',saveAboutSettings);
 
@@ -651,7 +701,7 @@ function supportSetting(key){
   return value==null||value===''?DEFAULT_SUPPORT_SETTINGS[key]:value;
 }
 function fillSupportEditor(){
-  const textIds=['supportButtonTextEn','supportButtonTextRu','supportTitleEn','supportTitleRu','supportGreetingEn','supportGreetingRu','supportEmailPlaceholderEn','supportEmailPlaceholderRu','supportMessagePlaceholderEn','supportMessagePlaceholderRu','supportSendTextEn','supportSendTextRu','supportBackgroundImage','supportButtonBg','supportButtonColor','supportFieldBg','supportFieldColor'];
+  const textIds=['supportButtonTextEn','supportButtonTextRu','supportGreetingEn','supportGreetingRu','supportEmailPlaceholderEn','supportEmailPlaceholderRu','supportMessagePlaceholderEn','supportMessagePlaceholderRu','supportSendTextEn','supportSendTextRu','supportBackgroundImage','supportButtonBg','supportButtonColor','supportFieldBg','supportFieldColor'];
   textIds.forEach(id=>{const el=$('#'+id);if(el)el.value=supportSetting(id)||''});
   selectValue($('#supportButtonFont'),settings.supportButtonFont||'');
   selectValue($('#supportWindowFont'),settings.supportWindowFont||'');
@@ -667,8 +717,7 @@ function updateSupportPreview(){
     if(mediaIsVideo(bg)){const v=document.createElement('video');v.className='support-preview-bg-video';v.src=bg;v.autoplay=true;v.muted=true;v.loop=true;v.playsInline=true;v.style.cssText='position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:0;pointer-events:none';previewBody.style.position='relative';previewBody.prepend(v);[...previewBody.children].forEach(el=>{if(el!==v){el.style.position='relative';el.style.zIndex='1'}});}
   }
   preview.style.fontFamily=g('supportWindowFont')||'';
-  const title=$('#supportPreviewTitle'),greeting=$('#supportPreviewGreeting'),email=$('#supportPreviewEmail'),message=$('#supportPreviewMessage'),send=$('#supportPreviewSend'),btn=$('#supportPreviewButton');
-  if(title){title.textContent=g('supportTitleEn')||DEFAULT_SUPPORT_SETTINGS.supportTitleEn;title.style.background=g('supportFieldBg')||'#000';title.style.color=g('supportFieldColor')||'#fff'}
+  const greeting=$('#supportPreviewGreeting'),email=$('#supportPreviewEmail'),message=$('#supportPreviewMessage'),send=$('#supportPreviewSend'),btn=$('#supportPreviewButton');
   if(greeting){greeting.textContent=g('supportGreetingEn')||DEFAULT_SUPPORT_SETTINGS.supportGreetingEn;greeting.style.background=g('supportFieldBg')||'#000';greeting.style.color=g('supportFieldColor')||'#fff'}
   [email,message].forEach((el,i)=>{if(!el)return;el.textContent=g(i?'supportMessagePlaceholderEn':'supportEmailPlaceholderEn')||DEFAULT_SUPPORT_SETTINGS[i?'supportMessagePlaceholderEn':'supportEmailPlaceholderEn'];el.style.background=g('supportFieldBg')||'#000';el.style.color=g('supportFieldColor')||'#fff'});
   if(send){send.textContent=g('supportSendTextEn')||DEFAULT_SUPPORT_SETTINGS.supportSendTextEn;send.style.background=g('supportFieldBg')||'#000';send.style.color=g('supportFieldColor')||'#fff'}
@@ -681,7 +730,7 @@ $('#supportBackgroundFile')?.addEventListener('change',async e=>{
   try{e.target.disabled=true;const dataUrl=await new Promise((resolve,reject)=>{const r=new FileReader();r.onload=()=>resolve(r.result);r.onerror=reject;r.readAsDataURL(file)});const out=await api('/api/admin/upload',{method:'POST',body:JSON.stringify({dataUrl,filename:file.name})});$('#supportBackgroundImage').value=out.url;updateSupportPreview();showNotice('Фон поддержки загружен.')}catch(err){showNotice(err.message,'error')}finally{e.target.disabled=false;e.target.value=''}
 });
 async function saveSupportSettings(){
-  const ids=['supportButtonTextEn','supportButtonTextRu','supportTitleEn','supportTitleRu','supportGreetingEn','supportGreetingRu','supportEmailPlaceholderEn','supportEmailPlaceholderRu','supportMessagePlaceholderEn','supportMessagePlaceholderRu','supportSendTextEn','supportSendTextRu','supportBackgroundImage','supportButtonBg','supportButtonColor','supportFieldBg','supportFieldColor','supportButtonFont','supportWindowFont'];
+  const ids=['supportButtonTextEn','supportButtonTextRu','supportGreetingEn','supportGreetingRu','supportEmailPlaceholderEn','supportEmailPlaceholderRu','supportMessagePlaceholderEn','supportMessagePlaceholderRu','supportSendTextEn','supportSendTextRu','supportBackgroundImage','supportButtonBg','supportButtonColor','supportFieldBg','supportFieldColor','supportButtonFont','supportWindowFont'];
   const payload={};ids.forEach(id=>{const el=$('#'+id);payload[id]=String(el?.value||'').trim()});
   payload.supportText=payload.supportButtonTextEn||'SUPPORT';
   try{setBusy(true);settings=await api('/api/admin/settings',{method:'PUT',body:JSON.stringify(payload)});fillSupportEditor();showNotice('Настройки поддержки сохранены.')}catch(err){showNotice(err.message,'error')}finally{setBusy(false)}
@@ -719,7 +768,7 @@ function normalizePaymentMethods(raw){
   }));
 }
 function renderPaymentEditor(){
-  const countries=$('#checkoutCountriesExtra');if(countries)countries.value=(Array.isArray(settings.checkoutCountriesExtra)?settings.checkoutCountriesExtra:[]).join('\n');
+  const countries=$('#checkoutCountriesList');if(countries){const source=Array.isArray(settings.checkoutCountries)&&settings.checkoutCountries.length?settings.checkoutCountries:[...DEFAULT_COUNTRIES,...(Array.isArray(settings.checkoutCountriesExtra)?settings.checkoutCountriesExtra:[])];countries.value=[...new Set(source.map(x=>String(x||'').trim()).filter(x=>x&&!/^(russia|belarus)$/i.test(x)))].join('\n')}
   const box=$('#paymentMethodsEditor');if(!box)return;
   if(!paymentMethodsDraft.length){box.innerHTML='<div class="empty-admin-list">Нет способов оплаты. Добавьте хотя бы один.</div>';return}
   box.innerHTML=paymentMethodsDraft.map((m,i)=>`<div class="payment-method-row" data-payment-index="${i}">
@@ -749,14 +798,36 @@ $('#addPaymentMethod')?.addEventListener('click',()=>{paymentMethodsDraft.push({
 async function savePaymentSettings(){
   const methods=normalizePaymentMethods(paymentMethodsDraft).filter(m=>m.labelEn||m.labelRu);
   if(!methods.length||!methods.some(m=>m.enabled!==false))return showNotice('Оставьте минимум один включённый способ оплаты.','error');
-  const checkoutCountriesExtra=[...new Set(String($('#checkoutCountriesExtra')?.value||'').split(/\r?\n/).map(x=>x.trim()).filter(Boolean))];
-  try{setBusy(true);settings=await api('/api/admin/settings',{method:'PUT',body:JSON.stringify({paymentMethods:methods,checkoutCountriesExtra})});paymentMethodsDraft=normalizePaymentMethods(settings.paymentMethods);renderPaymentEditor();showNotice('Способы оплаты и страны сохранены.')}catch(err){showNotice(err.message,'error')}finally{setBusy(false)}
+  const checkoutCountries=[...new Set(String($('#checkoutCountriesList')?.value||'').split(/\r?\n/).map(x=>x.trim()).filter(x=>x&&!/^(russia|belarus)$/i.test(x)))];
+  if(!checkoutCountries.length)return showNotice('Добавьте минимум одну страну доставки.','error');
+  try{setBusy(true);settings=await api('/api/admin/settings',{method:'PUT',body:JSON.stringify({paymentMethods:methods,checkoutCountries,checkoutCountriesExtra:[]})});paymentMethodsDraft=normalizePaymentMethods(settings.paymentMethods);renderPaymentEditor();showNotice('Способы оплаты и страны сохранены.')}catch(err){showNotice(err.message,'error')}finally{setBusy(false)}
 }
 $('#savePaymentSettings')?.addEventListener('click',savePaymentSettings);
 $('#sendNewsletter')?.addEventListener('click',async()=>{
   const subject=$('#newsletterSubject')?.value.trim()||'DEMI DEVILLE',message=$('#newsletterMessage')?.value.trim()||'';if(!message)return showNotice('Введите текст рассылки.','error');
-  if(!confirm('Отправить письмо всем клиентам, которые согласились на рассылку?'))return;
+  if(!confirm('Отправить письмо всем клиентам с email, которые есть в базе сайта?'))return;
   try{const out=await api('/api/admin/newsletter',{method:'POST',body:JSON.stringify({subject,message})});const el=$('#newsletterResult');if(el){el.textContent=`Получателей: ${out.recipients}. Отправлено: ${out.sent}. Ошибок: ${out.failed}.`;el.className='notice show ok'}showNotice('Рассылка завершена.')}catch(err){showNotice(err.message,'error')}
+});
+function renderMailInbox(){
+  const box=$('#mailInboxList');if(!box)return;
+  if(!mailInboxDraft.length){box.innerHTML='<div class="empty-admin-list">Входящих писем нет или IMAP ещё не подключён.</div>';return}
+  box.innerHTML=mailInboxDraft.map(m=>`<button type="button" class="mail-inbox-item${String(selectedMailUid)===String(m.uid)?' active':''}" data-mail-uid="${esc(m.uid)}"><strong>${esc(m.fromName||m.from||'Без имени')}</strong><span>${esc(m.subject||'(без темы)')}</span><small>${m.date?new Date(m.date).toLocaleString('ru-RU'):''}</small></button>`).join('');
+}
+function showMailMessage(uid){
+  selectedMailUid=uid;const msg=mailInboxDraft.find(m=>String(m.uid)===String(uid));renderMailInbox();
+  const content=$('#mailMessageContent'),empty=$('#mailMessagePanel .mail-message-empty');if(!msg){if(content)content.hidden=true;if(empty)empty.hidden=false;return}
+  if(empty)empty.hidden=true;if(content)content.hidden=false;
+  $('#mailMessageFrom').textContent=msg.fromName?`${msg.fromName} <${msg.from||''}>`:(msg.from||'');$('#mailMessageDate').textContent=msg.date?new Date(msg.date).toLocaleString('ru-RU'):'';$('#mailMessageSubject').textContent=msg.subject||'(без темы)';$('#mailMessageBody').textContent=msg.text||'';$('#mailReplyText').value='';
+}
+async function loadMailInbox(showResult=true){
+  const box=$('#mailInboxList');if(box)box.innerHTML='<div class="empty-admin-list">Загрузка...</div>';
+  try{const out=await api('/api/admin/mail/inbox');mailInboxDraft=Array.isArray(out.messages)?out.messages:[];selectedMailUid=null;renderMailInbox();showMailMessage(null);if(showResult)showNotice(`Входящих: ${mailInboxDraft.length}.`)}catch(err){mailInboxDraft=[];selectedMailUid=null;if(box)box.innerHTML=`<div class="empty-admin-list">${esc(err.message)}<br>Проверьте IMAP-переменные Railway.</div>`;if(showResult)showNotice(err.message,'error')}
+}
+$('#refreshMailInbox')?.addEventListener('click',()=>loadMailInbox(true));
+$('#mailInboxList')?.addEventListener('click',e=>{const item=e.target.closest('[data-mail-uid]');if(item)showMailMessage(item.dataset.mailUid)});
+$('#sendMailReply')?.addEventListener('click',async()=>{
+  const msg=mailInboxDraft.find(m=>String(m.uid)===String(selectedMailUid));const message=$('#mailReplyText')?.value.trim()||'';if(!msg)return showNotice('Сначала выберите письмо.','error');if(!message)return showNotice('Введите текст ответа.','error');
+  const result=$('#mailReplyResult');try{const out=await api('/api/admin/mail/reply',{method:'POST',body:JSON.stringify({to:msg.from,subject:/^re:/i.test(msg.subject||'')?msg.subject:`Re: ${msg.subject||'DEMI DEVILLE'}`,message,inReplyTo:msg.messageId||''})});if(result){result.textContent='Ответ отправлен.';result.className='notice show ok'}$('#mailReplyText').value='';showNotice('Ответ отправлен.')}catch(err){if(result){result.textContent=err.message;result.className='notice show error'}showNotice(err.message,'error')}
 });
 
 boot();

@@ -13,9 +13,9 @@
   let appliedCoupon=null;
   let discountAmount=0;
   const currentUser=window.ddCurrentUser?await window.ddCurrentUser():null;
-  const EUROPE_COUNTRIES=['Albania','Andorra','Armenia','Austria','Azerbaijan','Belarus','Belgium','Bosnia and Herzegovina','Bulgaria','Croatia','Cyprus','Czechia','Denmark','Estonia','Finland','France','Georgia','Germany','Greece','Hungary','Iceland','Ireland','Italy','Kazakhstan','Kosovo','Latvia','Liechtenstein','Lithuania','Luxembourg','Malta','Moldova','Monaco','Montenegro','Netherlands','North Macedonia','Norway','Poland','Portugal','Romania','Russia','San Marino','Serbia','Slovakia','Slovenia','Spain','Sweden','Switzerland','Turkey','Ukraine','United Kingdom','Vatican City'];
-  const extraCountries=Array.isArray(site.settings?.checkoutCountriesExtra)?site.settings.checkoutCountriesExtra:[];
-  const countries=[...new Set([...EUROPE_COUNTRIES,...extraCountries.map(x=>String(x||'').trim()).filter(Boolean)])];
+  const EUROPE_COUNTRIES=['Albania','Andorra','Armenia','Austria','Azerbaijan','Belgium','Bosnia and Herzegovina','Bulgaria','Croatia','Cyprus','Czechia','Denmark','Estonia','Finland','France','Georgia','Germany','Greece','Hungary','Iceland','Ireland','Italy','Kazakhstan','Kosovo','Latvia','Liechtenstein','Lithuania','Luxembourg','Malta','Moldova','Monaco','Montenegro','Netherlands','North Macedonia','Norway','Poland','Portugal','Romania','San Marino','Serbia','Slovakia','Slovenia','Spain','Sweden','Switzerland','Turkey','Ukraine','United Kingdom','Vatican City'];
+  const configuredCountries=Array.isArray(site.settings?.checkoutCountries)&&site.settings.checkoutCountries.length?site.settings.checkoutCountries:[...EUROPE_COUNTRIES,...(Array.isArray(site.settings?.checkoutCountriesExtra)?site.settings.checkoutCountriesExtra:[])];
+  const countries=[...new Set(configuredCountries.map(x=>String(x||'').trim()).filter(x=>x&&!/^(russia|belarus)$/i.test(x)))];
   const countrySelect=document.querySelector('#checkoutForm [name=country]');
   if(countrySelect){countrySelect.innerHTML=countries.map(name=>`<option value="${esc(name)}">${esc(name)}</option>`).join('');const preferred=['Ukraine','Germany','Poland'].find(name=>countries.includes(name));if(preferred)countrySelect.value=preferred}
   if(currentUser?.email){const emailInput=document.querySelector('#checkoutForm [name=email]');if(emailInput)emailInput.value=currentUser.email}

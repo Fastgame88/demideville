@@ -31,7 +31,6 @@
   const supportMessage=$('#supportMessage');
   const supportSubmit=$('#supportSubmit');
   const supportFormStatus=$('#supportFormStatus');
-  const supportHeading=$('#supportHeading');
   const supportGreeting=$('#supportGreeting');
   if(currentUser?.email&&supportSenderEmail)supportSenderEmail.value=currentUser.email;
   const mobileMenu=$('#homeMobileMenu');
@@ -40,7 +39,9 @@
 
   const brand=s.heroTitle||s.brand||'DEMI DEVILLE';
   if(title){
-    title.textContent=brand;title.classList.add('reference-brand','home-brand-interactive');title.tabIndex=0;title.setAttribute('role','button');
+    // The desktop brand is always the approved PNG artwork. Keeping the element empty
+    // prevents a text flash before JavaScript finishes loading.
+    title.textContent='';title.classList.add('reference-brand','home-brand-interactive');title.tabIndex=0;title.setAttribute('role','button');title.setAttribute('aria-label',brand);
     let reloadTimer=0;
     const shimmerAndReload=()=>{clearTimeout(reloadTimer);title.classList.remove('brand-flash');void title.offsetWidth;title.classList.add('brand-flash');reloadTimer=setTimeout(()=>location.reload(),300)};
     title.addEventListener('click',shimmerAndReload);
@@ -48,8 +49,10 @@
   }
   if(mobileBrand)mobileBrand.textContent=s.brand||'DEMI DEVILLE';
 
-  const desktopHero=s.heroDesktop||'/assets/images/hero.jpg';
-  const mobileHero=s.heroMobile||'/assets/images/hero-mobile.jpg';
+  const pageBackgrounds=(s.pageBackgrounds&&typeof s.pageBackgrounds==='object')?s.pageBackgrounds:{};
+  const homePageBg=String(pageBackgrounds.home||'').trim();
+  const desktopHero=homePageBg||s.heroDesktop||'/assets/images/hero.jpg';
+  const mobileHero=homePageBg||s.heroMobile||'/assets/images/hero-mobile.jpg';
   const syncHero=()=>{
     const next=window.matchMedia('(max-width:900px)').matches?mobileHero:desktopHero;
     let current=document.querySelector('.home .hero-image');
@@ -64,8 +67,8 @@
   syncHero();addEventListener('resize',syncHero,{passive:true});
 
   const dict={
-    en:{support:'SUPPORT',sendMessage:'SEND A MESSAGE',startChat:'START A CHAT',greeting:'Thanks for stopping by! How can I help you?',yourEmail:'YOUR EMAIL',yourMessage:'HOW CAN WE HELP?',send:'SEND',sending:'SENDING…',sent:'THANK YOU. YOUR MESSAGE HAS BEEN SENT.',sendError:'PLEASE CHECK YOUR EMAIL AND MESSAGE.'},
-    ru:{support:'ПОДДЕРЖКА',sendMessage:'ОТПРАВИТЬ СООБЩЕНИЕ',startChat:'НАЧАТЬ ЧАТ',greeting:'Спасибо, что заглянули! Чем я могу помочь?',yourEmail:'ВАША ПОЧТА',yourMessage:'ЧЕМ МЫ МОЖЕМ ПОМОЧЬ?',send:'ОТПРАВИТЬ',sending:'ОТПРАВКА…',sent:'СПАСИБО. СООБЩЕНИЕ ОТПРАВЛЕНО.',sendError:'ПРОВЕРЬТЕ ПОЧТУ И ТЕКСТ СООБЩЕНИЯ.'}
+    en:{support:'SUPPORT',sendMessage:'SEND A MESSAGE',greeting:'Thanks for stopping by! How can I help you?',yourEmail:'YOUR EMAIL',yourMessage:'HOW CAN WE HELP?',send:'SEND',sending:'SENDING…',sent:'THANK YOU. YOUR MESSAGE HAS BEEN SENT.',sendError:'PLEASE CHECK YOUR EMAIL AND MESSAGE.'},
+    ru:{support:'ПОДДЕРЖКА',sendMessage:'ОТПРАВИТЬ СООБЩЕНИЕ',greeting:'Спасибо, что заглянули! Чем я могу помочь?',yourEmail:'ВАША ПОЧТА',yourMessage:'ЧЕМ МЫ МОЖЕМ ПОМОЧЬ?',send:'ОТПРАВИТЬ',sending:'ОТПРАВКА…',sent:'СПАСИБО. СООБЩЕНИЕ ОТПРАВЛЕНО.',sendError:'ПРОВЕРЬТЕ ПОЧТУ И ТЕКСТ СООБЩЕНИЯ.'}
   };
   let lang=new URLSearchParams(location.search).get('lang')||localStorage.getItem('demi-lang')||((navigator.language||'').toLowerCase().startsWith('ru')?'ru':'en');
   if(!dict[lang])lang='en';
@@ -92,9 +95,8 @@
     renderMenus();
     document.querySelectorAll('[data-i18n]').forEach(el=>{const k=el.dataset.i18n;if(dict[lang][k])el.textContent=dict[lang][k]});
     document.querySelectorAll('[data-i18n-placeholder]').forEach(el=>{const k=el.dataset.i18nPlaceholder;if(dict[lang][k])el.placeholder=dict[lang][k]});
-    const cfg=window.ddSupportConfig?window.ddSupportConfig(s,lang):{buttonText:dict[lang].support,title:dict[lang].startChat,greeting:dict[lang].greeting,emailPlaceholder:dict[lang].yourEmail,messagePlaceholder:dict[lang].yourMessage,send:dict[lang].send};
+    const cfg=window.ddSupportConfig?window.ddSupportConfig(s,lang):{buttonText:dict[lang].support,greeting:dict[lang].greeting,emailPlaceholder:dict[lang].yourEmail,messagePlaceholder:dict[lang].yourMessage,send:dict[lang].send};
     if(supportOpen)supportOpen.textContent=cfg.buttonText;
-    if(supportHeading)supportHeading.textContent=cfg.title;
     if(supportGreeting)supportGreeting.textContent=cfg.greeting;
     if(supportSenderEmail)supportSenderEmail.placeholder=cfg.emailPlaceholder;
     if(supportMessage)supportMessage.placeholder=cfg.messagePlaceholder;

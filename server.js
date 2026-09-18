@@ -14,6 +14,7 @@ const DATABASE_URL = String(process.env.DATABASE_URL || '').trim();
 const USE_POSTGRES = !!DATABASE_URL;
 let PG_POOL = null;
 let DB_SAVE_QUEUE = Promise.resolve();
+const DEFAULT_CHECKOUT_COUNTRIES=['Albania','Andorra','Armenia','Austria','Azerbaijan','Belgium','Bosnia and Herzegovina','Bulgaria','Croatia','Cyprus','Czechia','Denmark','Estonia','Finland','France','Georgia','Germany','Greece','Hungary','Iceland','Ireland','Italy','Kazakhstan','Kosovo','Latvia','Liechtenstein','Lithuania','Luxembourg','Malta','Moldova','Monaco','Montenegro','Netherlands','North Macedonia','Norway','Poland','Portugal','Romania','San Marino','Serbia','Slovakia','Slovenia','Spain','Sweden','Switzerland','Turkey','Ukraine','United Kingdom','Vatican City'];
 
 let DB_CACHE = null;
 let DB_CACHE_MTIME = -1;
@@ -39,7 +40,7 @@ function defaultDb() {
       heroDesktop: '/assets/images/hero.jpg', heroMobile: '/assets/images/hero-mobile.jpg', loginArt: '/assets/images/login-art.png', homeOverlayOpacity: 35,
       aboutHtml: 'About <mark>DEMI DEVILLE</mark> is a <strong>PIONEERING DESIGN STUDIO BASED</strong> in Paris, specializing in fashion, spatial design, and visual direction.<br><em>Established by Augustine</em> Oh & Jude Lee, the <strong>studio redefines traditional</strong> design frameworks through methods of deconstruction, expansion, and reduction. <strong>By merging</strong> high fashion with a <strong>progressive design</strong> philosophy, DEMI DEVILLE delivers innovative, high-quality work that challenges visual conventions. <strong>The studio collaborates with a wide range of celebrities,</strong> artists, and brands, offering fresh design experiences that resonate with forward-thinking audiences around the world.',
       contact: 'contact@demideville.example', instagram: 'https://instagram.com/', supportText: 'SUPPORT',
-      supportButtonTextEn:'SUPPORT', supportButtonTextRu:'ПОДДЕРЖКА', supportTitleEn:'START A CHAT', supportTitleRu:'НАЧАТЬ ЧАТ',
+      supportButtonTextEn:'SUPPORT', supportButtonTextRu:'ПОДДЕРЖКА',
       supportGreetingEn:'Thanks for stopping by! How can I help you?', supportGreetingRu:'Спасибо, что заглянули! Чем я могу помочь?',
       supportEmailPlaceholderEn:'YOUR EMAIL', supportEmailPlaceholderRu:'ВАША ПОЧТА', supportMessagePlaceholderEn:'HOW CAN WE HELP?', supportMessagePlaceholderRu:'ЧЕМ МЫ МОЖЕМ ПОМОЧЬ?',
       supportSendTextEn:'SEND', supportSendTextRu:'ОТПРАВИТЬ', supportBackgroundImage:'/assets/images/support-cross-pattern.png',
@@ -47,8 +48,9 @@ function defaultDb() {
       contactTitleEn:'CONTACT', contactTitleRu:'КОНТАКТЫ', contactTextEn:'Contact DEMI DEVILLE for orders, collaborations and client support.', contactTextRu:'Свяжитесь с DEMI DEVILLE по вопросам заказов, сотрудничества и поддержки.', contactPhone:'', contactAddressEn:'Paris, France', contactAddressRu:'Париж, Франция',
       baseFont: 'Arial, Helvetica, sans-serif', displayFont: 'Arial Black, Arial, Helvetica, sans-serif', condensedFont: 'Impact, Haettenschweiler, Arial Narrow Bold, sans-serif',
       baseFontSize: 16, shopPageSize: 8, shipping: 30, currency: '$',
+      aboutMainMediaDesktop:'/assets/images/about-copy-psd.png', aboutMainMediaMobile:'/assets/images/about-mobile-approved.jpg', aboutExtraHtmlEn:'', aboutExtraHtmlRu:'',
       aboutExtraTextEn:'', aboutExtraTextRu:'', aboutExtraFont:'', aboutExtraFontSizeDesktop:24, aboutExtraFontSizeMobile:18, aboutExtraMedia:'',
-      checkoutCountriesExtra:[], mailFrom:'', supportTo:'', newsletterSubjectEn:'DEMI DEVILLE', newsletterSubjectRu:'DEMI DEVILLE',
+      checkoutCountries:[...DEFAULT_CHECKOUT_COUNTRIES], checkoutCountriesExtra:[], pageBackgrounds:{}, mailFrom:'', supportTo:'', newsletterSubjectEn:'DEMI DEVILLE', newsletterSubjectRu:'DEMI DEVILLE',
       sellerName:'BOHDAN DROBOT ALEKSANDROVICH', sellerAddress:'', sellerCountry:'', legalEmail:'',
 
       paymentMethods: [
@@ -84,6 +86,10 @@ function ensureDbShape(db) {
   }
   db.settings.shopPageSize=Math.max(1,Math.min(8,Math.floor(Number(db.settings.shopPageSize)||8)));
   if(!Array.isArray(db.settings.paymentMethods)||!db.settings.paymentMethods.length)db.settings.paymentMethods=base.settings.paymentMethods.map(x=>({...x}));
+  const countries=[...(Array.isArray(db.settings.checkoutCountries)&&db.settings.checkoutCountries.length?db.settings.checkoutCountries:DEFAULT_CHECKOUT_COUNTRIES),...(Array.isArray(db.settings.checkoutCountriesExtra)?db.settings.checkoutCountriesExtra:[])];
+  db.settings.checkoutCountries=[...new Set(countries.map(x=>String(x||'').trim()).filter(x=>x&&!/^(russia|belarus)$/i.test(x)))];
+  if(!db.settings.checkoutCountries.length)db.settings.checkoutCountries=[...DEFAULT_CHECKOUT_COUNTRIES];
+  if(!db.settings.pageBackgrounds||typeof db.settings.pageBackgrounds!=='object'||Array.isArray(db.settings.pageBackgrounds))db.settings.pageBackgrounds={};
   // Migrate legacy product records without dropping user content. Duplicate IDs used by
   // old test data are made unique so product links and admin edits remain deterministic.
   const seenProductIds=new Set();
@@ -203,14 +209,34 @@ function sendPublicSite(req,res,db){
 function readJson(req,maxBytes=2*1024*1024){return new Promise((resolve,reject)=>{let size=0,parts=[];req.on('data',c=>{size+=c.length;if(size>maxBytes){reject(new Error('Body too large'));req.destroy();return}parts.push(c)});req.on('end',()=>{if(!parts.length)return resolve({});try{resolve(JSON.parse(Buffer.concat(parts).toString('utf8')))}catch{reject(new Error('Invalid JSON'))}});req.on('error',reject)})}
 function needUser(req,res,admin=false){const db=loadDb(),user=currentUser(req,db);if(!user){sendJson(res,401,{error:'Unauthorized'});return null}if(admin&&user.role!=='admin'){sendJson(res,403,{error:'Admin only'});return null}return {db,user}}
 
-async function sendTransactionalMail({to,subject,text,html,replyTo}){
+async function sendTransactionalMail({to,subject,text,html,replyTo,inReplyTo,references}){
   const host=String(process.env.SMTP_HOST||'').trim(),user=String(process.env.SMTP_USER||'').trim(),pass=String(process.env.SMTP_PASS||'');
   if(!host||!user||!pass||!to)return false;
   const nodemailer=require('nodemailer');
   const port=Number(process.env.SMTP_PORT||587),secure=String(process.env.SMTP_SECURE||'').toLowerCase()==='true'||port===465;
   const transporter=nodemailer.createTransport({host,port,secure,auth:{user,pass}});
-  await transporter.sendMail({from:process.env.MAIL_FROM||user,to,replyTo:replyTo||undefined,subject,text,html});
+  await transporter.sendMail({from:process.env.MAIL_FROM||user,to,replyTo:replyTo||undefined,subject,text,html,inReplyTo:inReplyTo||undefined,references:references||undefined});
   return true;
+}
+async function loadInboxMessages(limit=40){
+  const host=String(process.env.IMAP_HOST||'').trim(),user=String(process.env.IMAP_USER||'').trim(),pass=String(process.env.IMAP_PASS||'');
+  if(!host||!user||!pass)throw new Error('IMAP is not configured. Add IMAP_HOST, IMAP_USER and IMAP_PASS in Railway Variables.');
+  const {ImapFlow}=require('imapflow');const {simpleParser}=require('mailparser');
+  const port=Number(process.env.IMAP_PORT||993),secure=String(process.env.IMAP_SECURE||'true').toLowerCase()!=='false';
+  const client=new ImapFlow({host,port,secure,auth:{user,pass},logger:false});
+  const messages=[];await client.connect();let lock;
+  try{
+    lock=await client.getMailboxLock(String(process.env.IMAP_MAILBOX||'INBOX'));
+    const exists=Number(client.mailbox?.exists||0);if(!exists)return messages;
+    const start=Math.max(1,exists-Math.max(1,Math.min(60,Number(limit)||40))+1);
+    for await (const msg of client.fetch(`${start}:*`,{uid:true,envelope:true,internalDate:true,source:true})){
+      let parsed={};try{parsed=await simpleParser(msg.source)}catch{}
+      const fromObj=parsed.from?.value?.[0]||msg.envelope?.from?.[0]||{};
+      const from=String(fromObj.address||'').trim();
+      messages.push({uid:msg.uid,from,fromName:String(fromObj.name||'').trim(),subject:String(parsed.subject||msg.envelope?.subject||'(без темы)'),date:(parsed.date||msg.internalDate||new Date()).toISOString(),text:String(parsed.text||'').slice(0,100000),messageId:String(parsed.messageId||msg.envelope?.messageId||'')});
+    }
+  }finally{try{lock?.release()}catch{}try{await client.logout()}catch{}}
+  messages.sort((a,b)=>new Date(b.date)-new Date(a.date));return messages;
 }
 async function handleApi(req,res,u){
   const p=u.pathname, m=req.method;
@@ -289,7 +315,7 @@ async function handleApi(req,res,u){
     return sendJson(res,200,{ok:true,order});
   }
   if(m==='GET'&&p==='/api/admin/state'){const a=needUser(req,res,true);if(!a)return;return sendJson(res,200,{settings:a.db.settings,products:a.db.products,gallery:a.db.gallery,sections:a.db.sections,orders:a.db.orders,supportMessages:Array.isArray(a.db.supportMessages)?a.db.supportMessages:[],users:a.db.users.map(sanitizeUser),coupons:(Array.isArray(a.db.coupons)?a.db.coupons:[]).map(sanitizeCoupon)});}
-  if(m==='PUT'&&p==='/api/admin/settings'){const a=needUser(req,res,true);if(!a)return;const b=await readJson(req);if(b.shopPageSize!=null)b.shopPageSize=Math.max(1,Math.min(8,Math.floor(Number(b.shopPageSize)||8)));a.db.settings={...a.db.settings,...b};await saveDb(a.db);return sendJson(res,200,a.db.settings);}
+  if(m==='PUT'&&p==='/api/admin/settings'){const a=needUser(req,res,true);if(!a)return;const b=await readJson(req);if(b.shopPageSize!=null)b.shopPageSize=Math.max(1,Math.min(8,Math.floor(Number(b.shopPageSize)||8)));if(Array.isArray(b.checkoutCountries)){b.checkoutCountries=[...new Set(b.checkoutCountries.map(x=>String(x||'').trim()).filter(x=>x&&!/^(russia|belarus)$/i.test(x)))];if(!b.checkoutCountries.length)b.checkoutCountries=[...DEFAULT_CHECKOUT_COUNTRIES]}if(b.pageBackgrounds!=null&&(!b.pageBackgrounds||typeof b.pageBackgrounds!=='object'||Array.isArray(b.pageBackgrounds)))b.pageBackgrounds={};a.db.settings={...a.db.settings,...b};await saveDb(a.db);return sendJson(res,200,a.db.settings);}
   if(m==='POST'&&p==='/api/admin/upload'){const a=needUser(req,res,true);if(!a)return;const uploadLimit=Math.max(5,Number(process.env.MAX_UPLOAD_MB||60))*1024*1024*1.45;const b=await readJson(req,uploadLimit),match=String(b.dataUrl||'').match(/^data:((?:image|video)\/[a-zA-Z0-9.+-]+);base64,(.+)$/);if(!match)return sendJson(res,400,{error:'Invalid image/video data'});const mime=match[1];let ext=(mime.split('/')[1]||'bin').replace('jpeg','jpg').replace('quicktime','mov').replace(/[^a-z0-9]/gi,'');if(mime==='video/mp4')ext='mp4';if(mime==='video/webm')ext='webm';const safe=String(b.filename||'media').replace(/[^a-zA-Z0-9._-]/g,'-').replace(/\.[^.]+$/,'').slice(0,60)||'media',name=`${Date.now()}-${safe}.${ext}`;fs.mkdirSync(UPLOAD_DIR,{recursive:true});fs.writeFileSync(path.join(UPLOAD_DIR,name),Buffer.from(match[2],'base64'));return sendJson(res,200,{url:`/uploads/${name}`});}
   if(m==='POST'&&p==='/api/admin/change-password'){const a=needUser(req,res,true);if(!a)return;const b=await readJson(req);if(String(b.newPassword||'').length<8)return sendJson(res,400,{error:'New password must be at least 8 characters.'});if(!verifyPassword(String(b.currentPassword||''),a.user.passwordHash))return sendJson(res,400,{error:'Current password is wrong.'});a.user.passwordHash=hashPassword(b.newPassword);await saveDb(a.db);return sendJson(res,200,{ok:true});}
   const crud=p.match(/^\/api\/admin\/(products|gallery|sections)(?:\/([^/]+))?$/);
@@ -317,9 +343,18 @@ async function handleApi(req,res,u){
   }
   if(m==='POST'&&p==='/api/admin/newsletter'){
     const a=needUser(req,res,true);if(!a)return;const b=await readJson(req);const subject=String(b.subject||'DEMI DEVILLE').trim().slice(0,180),message=String(b.message||'').trim();if(message.length<2)return sendJson(res,400,{error:'Введите текст рассылки.'});
-    const recipients=a.db.users.filter(u=>u.role!=='admin'&&u.newsletter&&u.email).map(u=>u.email);let sent=0,failed=0;
+    const recipients=[...new Set([...a.db.users.filter(u=>u.role!=='admin').map(u=>u.email),...a.db.orders.map(o=>o.email)].map(v=>String(v||'').trim().toLowerCase()).filter(v=>v&&v.includes('@')))];let sent=0,failed=0;
     for(const email of recipients){try{const ok=await sendTransactionalMail({to:email,subject,text:message,html:`<div style="white-space:pre-wrap;font-family:Arial,sans-serif">${message.replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]))}</div>`});if(ok)sent++;else failed++}catch{failed++}}
     return sendJson(res,200,{ok:true,recipients:recipients.length,sent,failed});
+  }
+  if(m==='GET'&&p==='/api/admin/mail/inbox'){
+    const a=needUser(req,res,true);if(!a)return;
+    try{const messages=await loadInboxMessages(Math.min(60,Math.max(1,Number(u.searchParams.get('limit')||40))));return sendJson(res,200,{messages})}catch(err){console.error('IMAP inbox failed:',err.message);return sendJson(res,503,{error:err.message||'Не удалось получить входящие письма.'})}
+  }
+  if(m==='POST'&&p==='/api/admin/mail/reply'){
+    const a=needUser(req,res,true);if(!a)return;const b=await readJson(req);const to=String(b.to||'').trim(),subject=String(b.subject||'Re: DEMI DEVILLE').trim().slice(0,200),message=String(b.message||'').trim();
+    if(!to.includes('@')||!message)return sendJson(res,400,{error:'Укажите получателя и текст ответа.'});
+    try{const ok=await sendTransactionalMail({to,subject,text:message,inReplyTo:String(b.inReplyTo||'').trim()||undefined,references:String(b.inReplyTo||'').trim()||undefined});if(!ok)return sendJson(res,503,{error:'SMTP is not configured. Add SMTP variables in Railway.'});return sendJson(res,200,{ok:true})}catch(err){console.error('Mail reply failed:',err.message);return sendJson(res,503,{error:err.message||'Не удалось отправить ответ.'})}
   }
   if(m==='POST'&&p==='/api/admin/coupons'){
     const a=needUser(req,res,true);if(!a)return;const b=await readJson(req);const user=a.db.users.find(u=>String(u.id)===String(b.userId)&&u.role!=='admin');

@@ -23,6 +23,49 @@ function ddProductPriceLabel(product,currency='$',lang=(document.documentElement
 }
 function ddProductPurchasable(product){const mode=String(product?.priceMode||'number');return product?.purchasable!==false&&mode!=='hidden'&&Number.isFinite(Number(product?.price))}
 window.ddIsVideo=ddIsVideo;window.ddMediaHtml=ddMediaHtml;window.ddActivateLazyVideos=ddActivateLazyVideos;window.ddProductPriceLabel=ddProductPriceLabel;window.ddProductPurchasable=ddProductPurchasable;
+
+function ddPageBackgroundKey(){
+  const p=location.pathname.toLowerCase();
+  if(p==='/'||p.endsWith('/index.html'))return'home';
+  if(p.includes('/product'))return'product';
+  if(p.includes('/shop'))return'shop';
+  if(p.includes('/gallery'))return'gallery';
+  if(p.includes('/about'))return'about';
+  if(p.includes('/login'))return'login';
+  if(p.includes('/cart'))return'cart';
+  if(p.includes('/checkout'))return'checkout';
+  if(p.includes('/account'))return'account';
+  if(p.includes('/contact'))return'contact';
+  if(p.includes('/terms'))return'terms';
+  if(p.includes('/privacy'))return'privacy';
+  if(p.includes('/section'))return'section';
+  return'';
+}
+function ddApplyPageBackground(settings={}){
+  const key=ddPageBackgroundKey();
+  // HOME uses the same media as its hero so the existing composition is not re-scaled.
+  if(!key||key==='home')return;
+  const backgrounds=settings.pageBackgrounds&&typeof settings.pageBackgrounds==='object'?settings.pageBackgrounds:{};
+  const url=String(backgrounds[key]||'').trim();
+  document.getElementById('ddPageBackground')?.remove();
+  document.body.classList.toggle('dd-custom-page-bg',!!url);
+  if(!url)return;
+  let style=document.getElementById('dd-page-background-style');
+  if(!style){style=document.createElement('style');style.id='dd-page-background-style';document.head.appendChild(style)}
+  style.textContent=`
+    html{background:#fff!important}
+    body.dd-custom-page-bg{background:transparent!important}
+    body.dd-custom-page-bg>main{position:relative;z-index:1;background-color:transparent!important}
+    body.dd-custom-page-bg .page,body.dd-custom-page-bg .shop-wrap,body.dd-custom-page-bg .product-page,body.dd-custom-page-bg .gallery-wrap,body.dd-custom-page-bg .about-wrap,body.dd-custom-page-bg .login-wrap,body.dd-custom-page-bg .cart-wrap,body.dd-custom-page-bg .checkout-wrap,body.dd-custom-page-bg .legal-page,body.dd-custom-page-bg .section-wrap{background-color:transparent!important}
+    #ddPageBackground{position:fixed;inset:0;width:100vw;height:100dvh;object-fit:cover;object-position:center;z-index:0;pointer-events:none;user-select:none}
+  `;
+  const media=ddIsVideo(url)?document.createElement('video'):document.createElement('img');
+  media.id='ddPageBackground';media.src=url;media.setAttribute('aria-hidden','true');
+  if(media.tagName==='VIDEO'){media.autoplay=true;media.muted=true;media.loop=true;media.playsInline=true;media.preload='metadata'}
+  else{media.alt='';media.decoding='async'}
+  document.body.prepend(media);if(media.tagName==='VIDEO')media.play().catch(()=>{});
+}
+window.ddPageBackgroundKey=ddPageBackgroundKey;window.ddApplyPageBackground=ddApplyPageBackground;
 function getToken(){return localStorage.getItem('dd_token')||sessionStorage.getItem('dd_token')||''}
 function authHeaders(){const t=getToken(); return t?{'Authorization':`Bearer ${t}`}:{}}
 let DD_CURRENT_USER_PROMISE=null;
@@ -170,7 +213,6 @@ function supportConfig(settings={},lang=menuLang()){
   const pick=(en,ru,fallbackEn,fallbackRu)=>lang==='ru'?String(settings[ru]||fallbackRu):String(settings[en]||fallbackEn);
   return {
     buttonText:pick('supportButtonTextEn','supportButtonTextRu',settings.supportText||'SUPPORT','ПОДДЕРЖКА'),
-    title:pick('supportTitleEn','supportTitleRu','START A CHAT','НАЧАТЬ ЧАТ'),
     greeting:pick('supportGreetingEn','supportGreetingRu','Thanks for stopping by! How can I help you?','Спасибо, что заглянули! Чем я могу помочь?'),
     emailPlaceholder:pick('supportEmailPlaceholderEn','supportEmailPlaceholderRu','YOUR EMAIL','ВАША ПОЧТА'),
     messagePlaceholder:pick('supportMessagePlaceholderEn','supportMessagePlaceholderRu','HOW CAN WE HELP?','ЧЕМ МЫ МОЖЕМ ПОМОЧЬ?'),
@@ -291,6 +333,7 @@ async function renderChrome({home=false}={}){
   }
   applyMenuRuntimeStyles(s);
   applySupportRuntimeStyles(s);
+  ddApplyPageBackground(s);
   document.documentElement.style.setProperty('--font',s.baseFont||'Arial, Helvetica, sans-serif');
   document.documentElement.style.setProperty('--display',s.displayFont||'Arial Black, Arial, sans-serif');
   document.documentElement.style.setProperty('--condensed',s.condensedFont||'Impact, Arial Narrow, sans-serif');
@@ -364,7 +407,6 @@ function mountSharedChrome(site,menu=getMenuConfig(site.settings||{}),currentUse
           <div class="support-brand">DEMI DEVILLE</div>
           <div class="support-chat-body support-email-body">
             ${ddIsVideo(supportCfg.backgroundImage)?`<video class="support-background-video" src="${esc(supportCfg.backgroundImage)}" autoplay muted loop playsinline preload="metadata"></video>`:''}
-            <div class="support-start support-form-heading">${esc(supportCfg.title)}</div>
             <div class="support-mobile-intro">${esc(supportCfg.greeting)}</div>
             <form id="sharedSupportForm" class="support-form" novalidate>
               <input id="sharedSupportEmail" class="support-form-input" name="email" type="email" autocomplete="email" required placeholder="${esc(supportCfg.emailPlaceholder)}">
