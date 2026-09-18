@@ -3,7 +3,7 @@
   const site=await SITE;
   const curr=site.settings?.currency||'$';
   const byId=Object.fromEntries((site.products||[]).map(p=>[String(p.id),p]));
-  const cart=cartGet().filter(x=>{const p=byId[String(x.productId)];return p&&(!window.ddProductPurchasable||window.ddProductPurchasable(p));});
+  const cart=cartGet().filter(x=>{const p=byId[String(x.productId)];return p&&(window.ddProductPurchasable?window.ddProductPurchasable(p):true)});
   const list=$('#orderList');
   const DEFAULT_PAYMENT_METHODS=[{id:'paypal',labelEn:'PayPal',labelRu:'PayPal',enabled:true},{id:'applepay',labelEn:'ApplePay',labelRu:'ApplePay',enabled:true},{id:'googlepay',labelEn:'GooglePay',labelRu:'GooglePay',enabled:true},{id:'crypto',labelEn:'Crypto payment',labelRu:'Оплата криптовалютой',enabled:true},{id:'card',labelEn:'Card payment',labelRu:'Оплата картой',enabled:true}];
   const configured=Array.isArray(site.settings?.paymentMethods)&&site.settings.paymentMethods.length?site.settings.paymentMethods:DEFAULT_PAYMENT_METHODS;
@@ -13,6 +13,11 @@
   let appliedCoupon=null;
   let discountAmount=0;
   const currentUser=window.ddCurrentUser?await window.ddCurrentUser():null;
+  const EUROPE_COUNTRIES=['Albania','Andorra','Armenia','Austria','Azerbaijan','Belarus','Belgium','Bosnia and Herzegovina','Bulgaria','Croatia','Cyprus','Czechia','Denmark','Estonia','Finland','France','Georgia','Germany','Greece','Hungary','Iceland','Ireland','Italy','Kazakhstan','Kosovo','Latvia','Liechtenstein','Lithuania','Luxembourg','Malta','Moldova','Monaco','Montenegro','Netherlands','North Macedonia','Norway','Poland','Portugal','Romania','Russia','San Marino','Serbia','Slovakia','Slovenia','Spain','Sweden','Switzerland','Turkey','Ukraine','United Kingdom','Vatican City'];
+  const extraCountries=Array.isArray(site.settings?.checkoutCountriesExtra)?site.settings.checkoutCountriesExtra:[];
+  const countries=[...new Set([...EUROPE_COUNTRIES,...extraCountries.map(x=>String(x||'').trim()).filter(Boolean)])];
+  const countrySelect=document.querySelector('#checkoutForm [name=country]');
+  if(countrySelect){countrySelect.innerHTML=countries.map(name=>`<option value="${esc(name)}">${esc(name)}</option>`).join('');const preferred=['Ukraine','Germany','Poland'].find(name=>countries.includes(name));if(preferred)countrySelect.value=preferred}
   if(currentUser?.email){const emailInput=document.querySelector('#checkoutForm [name=email]');if(emailInput)emailInput.value=currentUser.email}
 
   const preferredCheckoutImage=p=>{
@@ -22,7 +27,7 @@
       'lobby-hoody':'/assets/images/product-hoodie-ref.png',
       'inside-jeans':'/assets/images/product-jeans-ref.png'
     };
-    const list=window.ddProductImages?.(p)||[];return list.find(x=>!window.ddIsVideo?.(x))||known[p.id]||p.image||list[0];
+    return (window.ddProductImages?.(p)||[])[0]||known[p.id]||p.image;
   };
   const productName=p=>window.ddProductText?window.ddProductText(p,'name'):(p?.name||'');
 
@@ -51,7 +56,7 @@
       const qty=Math.max(1,Number(x.qty)||1);
       return `<div class="order-line">
         <div class="order-thumb">
-          ${(()=>{const media=preferredCheckoutImage(p);return window.ddIsVideo?.(media)?`<video src="${esc(media)}" muted playsinline preload="metadata"></video>`:`<img src="${esc(media)}" alt="${esc(productName(p))}">`})()}
+          ${window.ddIsVideo?.(preferredCheckoutImage(p))?`<video src="${esc(preferredCheckoutImage(p))}" muted loop autoplay playsinline preload="metadata"></video>`:`<img src="${esc(preferredCheckoutImage(p))}" alt="${esc(productName(p))}">`}
           <div class="order-qty-stack"><b class="qty-badge">${qty}</b><span class="size-badge">${esc(x.size||'')}</span></div>
         </div>
         <div class="order-meta"><div>${esc(productName(p))}</div><div>${esc(window.ddProductPriceLabel?window.ddProductPriceLabel(p,curr,document.documentElement.lang==='ru'?'ru':'en'):money(p.price,curr))}</div></div>
@@ -107,7 +112,6 @@
         phone:f.get('phone')
       }
     };
-    if(currentUser&&f.get('newsletter')){fetch('/api/account/preferences',{method:'PUT',headers:{'Content-Type':'application/json',...authHeaders()},body:JSON.stringify({newsletter:true})}).catch(()=>{});}
     const r=await fetch('/api/orders',{method:'POST',headers:{'Content-Type':'application/json',...authHeaders()},body:JSON.stringify(body)});
     const d=await r.json().catch(()=>({}));
     if(!r.ok)return alert(window.ddTranslate?.(d.error||'Could not create order')||d.error||'Could not create order');

@@ -14,7 +14,7 @@
     "displayFont": "Arial Black, Arial, Helvetica, sans-serif",
     "condensedFont": "Impact, Haettenschweiler, Arial Narrow Bold, sans-serif",
     "baseFontSize": 16,
-    "shopPageSize": 8,
+    "shopPageSize": 12,
     "shipping": 30,
     "currency": "$"
   },
@@ -34,15 +34,7 @@
         "XL"
       ],
       "active": true,
-      "sort": 1,
-      "categories": [
-        "tops"
-      ],
-      "images": [
-        "/assets/images/product-tshirt.jpg"
-      ],
-      "priceMode": "number",
-      "purchasable": true
+      "sort": 1
     },
     {
       "id": "human-uniform",
@@ -59,15 +51,7 @@
         "XL"
       ],
       "active": true,
-      "sort": 2,
-      "categories": [
-        "tops"
-      ],
-      "images": [
-        "/assets/images/product-longsleeve.jpg"
-      ],
-      "priceMode": "number",
-      "purchasable": true
+      "sort": 2
     },
     {
       "id": "lobby-hoody",
@@ -83,15 +67,7 @@
         "XL"
       ],
       "active": true,
-      "sort": 3,
-      "categories": [
-        "jackets-coats"
-      ],
-      "images": [
-        "/assets/images/product-hoodie.jpg"
-      ],
-      "priceMode": "number",
-      "purchasable": true
+      "sort": 3
     },
     {
       "id": "inside-jeans",
@@ -108,15 +84,7 @@
         "XL"
       ],
       "active": true,
-      "sort": 4,
-      "categories": [
-        "jeans-pants-shorts"
-      ],
-      "images": [
-        "/assets/images/product-jeans.jpg"
-      ],
-      "priceMode": "number",
-      "purchasable": true
+      "sort": 4
     },
     {
       "id": "rrrr",
@@ -130,17 +98,11 @@
         "L"
       ],
       "fabric": "",
-      "active": false,
-      "description": "",
-      "categories": [],
-      "images": [
-        "/uploads/1789408738913-ChatGPT-Image-7----.-2026--.--10_06_28--2-.png"
-      ],
-      "priceMode": "number",
-      "purchasable": true
+      "active": true,
+      "description": ""
     },
     {
-      "id": "rrrr-2",
+      "id": "rrrr",
       "name": "rere",
       "price": 0,
       "sort": 6,
@@ -151,14 +113,8 @@
         "L"
       ],
       "fabric": "",
-      "active": false,
-      "description": "",
-      "categories": [],
-      "images": [
-        "/uploads/1789408754296-01_schwabenland_water_only.gif"
-      ],
-      "priceMode": "number",
-      "purchasable": true
+      "active": true,
+      "description": ""
     }
   ],
   "gallery": [
@@ -167,8 +123,7 @@
       "image": "/assets/images/gallery.jpg",
       "caption": "Always up to date: unsigned1",
       "sort": 1,
-      "active": true,
-      "media": "/assets/images/gallery.jpg"
+      "active": true
     }
   ],
   "sections": [],

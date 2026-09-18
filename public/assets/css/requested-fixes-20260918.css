@@ -1,0 +1,81 @@
+/* Requested fixes only — 18.09.2026.
+   Existing storefront scale, typography and approved desktop/mobile geometry remain untouched
+   except for the specific gallery order, mobile HOME support window and new functional overlays/content. */
+
+/* 5 — DEMI DEVILLE home title: flash opacity only; never swap its font/artwork. */
+@keyframes dd-home-brand-flash{0%,100%{opacity:1;filter:none}45%{opacity:.42;filter:brightness(1.28)}}
+.home #heroTitle.home-brand-interactive.brand-flash{animation:dd-home-brand-flash .28s ease-out 1!important}
+.home #heroTitle.home-brand-interactive{cursor:pointer}
+.home video.hero-image{content:normal!important}
+
+/* 3 — desktop gallery reads left-to-right, then naturally continues downward. */
+@media (min-width:901px){
+  body.gallery-page .gallery-list{
+    display:flex!important;
+    flex-flow:row wrap!important;
+    align-items:flex-start!important;
+    align-content:flex-start!important;
+    gap:55px!important;
+  }
+  body.gallery-page .gallery-item{flex:0 0 auto!important}
+}
+body.gallery-page .gallery-media video{
+  width:100%!important;height:100%!important;object-fit:contain!important;
+  transform:rotate(var(--gallery-rotation,0deg));transform-origin:center center;
+}
+
+/* 4 — product image click zoom. This layer sits over the existing product page and does not resize it. */
+body.product-detail-page #productImage{cursor:zoom-in!important;pointer-events:auto!important}
+body.product-detail-page video#productImage{object-fit:contain!important;object-position:center center!important;background:transparent!important}
+body.product-detail-page .product-customer-thumb video{width:100%!important;height:100%!important;object-fit:contain!important;display:block!important}
+.dd-product-zoom{
+  position:fixed;inset:0;z-index:5000;display:none;align-items:center;justify-content:center;
+  background:rgba(255,255,255,.97);overflow:hidden;touch-action:none;
+}
+.dd-product-zoom.open{display:flex}
+.dd-product-zoom-image{display:block;max-width:94vw;max-height:94vh;width:auto;height:auto;object-fit:contain;transform-origin:center center;cursor:grab;user-select:none;-webkit-user-drag:none;touch-action:none;will-change:transform}
+.dd-product-zoom-image:active{cursor:grabbing}
+.dd-product-zoom-close{position:fixed;right:18px;top:14px;z-index:2;width:42px;height:42px;border:0;background:transparent;color:#000;font:300 38px/42px Arial,sans-serif;cursor:pointer;padding:0}
+body.dd-zoom-open{overflow:hidden!important}
+
+/* 6 — optional ABOUT content is always below the approved artwork, never on top of it. */
+body.about-page .about-extra-content{
+  box-sizing:border-box;width:min(1520px,calc(100% - 48px));margin:0 auto;padding:28px 0 70px;
+  text-align:center;font-family:var(--about-extra-font,inherit);font-size:var(--about-extra-size-desktop,24px);line-height:1.35;
+  white-space:pre-wrap;color:#000;
+}
+body.about-page .about-extra-media{width:100%;margin:0 auto 28px;display:flex;justify-content:center;align-items:center}
+body.about-page .about-extra-media img,body.about-page .about-extra-media video{display:block;width:auto;max-width:100%;max-height:70vh;height:auto;object-fit:contain}
+@media (min-width:901px){
+  body.about-page.about-has-extra{overflow-y:auto!important;overflow-x:hidden!important}
+  body.about-page.about-has-extra .about-wrap{position:relative!important;inset:auto!important;height:auto!important;min-height:100vh!important;overflow:visible!important}
+  body.about-page.about-has-extra .about-extra-content{margin-top:100vh!important}
+}
+@media (max-width:900px){
+  body.about-page .about-extra-content{width:100%;margin:18px auto 0;padding:20px 10px 42px;font-size:var(--about-extra-size-mobile,18px)}
+  body.about-page .about-extra-media{margin-bottom:18px}
+  body.about-page .about-extra-media img,body.about-page .about-extra-media video{max-height:62vh}
+}
+
+/* 15 — uploaded video can be used anywhere the current UI accepts a background/media file. */
+.support-chat-body{isolation:isolate}
+.support-chat-body>.support-background-video{position:absolute!important;inset:0!important;width:100%!important;height:100%!important;object-fit:cover!important;z-index:-1!important;pointer-events:none!important}
+.support-chat-body:has(>.support-background-video){background-image:none!important;background-color:transparent!important}
+.shop-page .product-card video.product-art{display:block;object-fit:contain}
+
+/* 13 — HOME mobile SUPPORT: keep the current design, but keep the expanded window and close button inside the viewport. */
+@media (max-width:900px){
+  .home #supportLayer .support-window,
+  .home #supportLayer.open .support-window{
+    left:auto!important;right:7px!important;top:auto!important;bottom:46px!important;
+    width:min(334px,calc(100vw - 14px))!important;
+    height:min(490px,calc(100dvh - 100px))!important;
+    max-height:calc(100dvh - 100px)!important;transform:none!important;
+  }
+  .home #supportLayer .support-close{
+    left:auto!important;right:6px!important;top:6px!important;width:34px!important;height:34px!important;
+    z-index:30!important;font-size:31px!important;line-height:31px!important;background:#fff!important;
+  }
+}
+body.cart-page .cart-card-media video{width:100%!important;height:100%!important;object-fit:contain!important;display:block!important}
+body.checkout-page .order-thumb video{width:100%!important;height:100%!important;object-fit:contain!important;display:block!important}

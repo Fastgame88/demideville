@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>DEMI DEVILLE — Админ-панель</title>
-  <link rel="stylesheet" href="/assets/css/admin.css?v=20260918-v22">
+  <link rel="stylesheet" href="/assets/css/admin.css?v=20260918-requested">
 </head>
 <body>
   <section id="loginView" class="auth-screen">
@@ -15,11 +15,11 @@
       <div id="loginNotice" class="notice" aria-live="polite"></div>
       <label class="field">
         <span>Электронная почта</span>
-        <input required type="email" name="email" autocomplete="off" placeholder="admin@example.com" readonly data-autofill-guard>
+        <input required type="email" name="email" autocomplete="off" placeholder="admin@example.com">
       </label>
       <label class="field">
         <span>Пароль</span>
-        <input required type="password" name="password" autocomplete="new-password" placeholder="Пароль" readonly data-autofill-guard>
+        <input required type="password" name="password" autocomplete="new-password" placeholder="Пароль">
       </label>
       <button class="primary-btn wide" type="submit">Войти</button>
     </form>
@@ -322,21 +322,21 @@
         </div>
       </section>
 
-
       <section id="aboutEditor" class="editor-form" hidden>
         <section class="device-card">
-          <div class="device-card-head"><div><span class="device-badge">ABOUT</span><h2>Редактор страницы ABOUT</h2></div><a class="secondary-btn" href="/about.html" target="_blank" rel="noreferrer">Открыть ABOUT ↗</a></div>
+          <div class="device-card-head"><div><span class="device-badge">ABOUT</span><h2>Дополнительный контент ABOUT</h2></div><a class="secondary-btn" href="/about.html" target="_blank" rel="noreferrer">Открыть ABOUT ↗</a></div>
+          <p class="admin-help-text">Утверждённый текущий ABOUT не меняется. Новый текст и фото/видео выводятся отдельным блоком ниже него и не накладываются на существующее изображение.</p>
           <div class="contact-admin-grid">
-            <label class="field span-2"><span>Текст EN (можно использовать HTML: &lt;strong&gt;, &lt;em&gt;, &lt;u&gt;, &lt;mark&gt;)</span><textarea id="aboutHtmlAdmin" rows="10"></textarea></label>
-            <label class="field span-2"><span>Текст RU</span><textarea id="aboutHtmlRuAdmin" rows="10"></textarea></label>
-            <label class="field"><span>Основной шрифт</span><select id="aboutFontAdmin" class="font-select" data-default-label="Текущий дизайн"></select></label>
-            <label class="field"><span>Размер текста на ПК, px</span><input id="aboutFontSizeDesktop" type="number" min="12" max="90" step="1" value="36"></label>
-            <label class="field"><span>Размер текста на телефоне, px</span><input id="aboutFontSizeMobile" type="number" min="10" max="60" step="1" value="24"></label>
-            <label class="field span-2"><span>Фото / видео страницы</span><input id="aboutMediaAdmin" placeholder="/assets/images/about-copy-psd.png"></label>
-            <label class="upload-btn span-2"><input id="aboutMediaFile" type="file" accept="image/*,video/mp4,video/webm,video/quicktime"><span>Загрузить фото / видео</span></label>
+            <label class="field span-2"><span>Дополнительный текст EN</span><textarea id="aboutExtraTextEn" rows="8"></textarea></label>
+            <label class="field span-2"><span>Дополнительный текст RU</span><textarea id="aboutExtraTextRu" rows="8"></textarea></label>
+            <label class="field"><span>Шрифт</span><select id="aboutExtraFont" class="font-select" data-default-label="Текущий дизайн"></select></label>
+            <label class="field"><span>Размер текста на ПК, px</span><input id="aboutExtraFontSizeDesktop" type="number" min="10" max="80" step="1" value="24"></label>
+            <label class="field"><span>Размер текста на телефоне, px</span><input id="aboutExtraFontSizeMobile" type="number" min="10" max="48" step="1" value="18"></label>
+            <label class="field span-2"><span>Дополнительное фото / видео</span><input id="aboutExtraMedia" placeholder="/uploads/about-media.jpg"></label>
+            <label class="upload-btn span-2"><input id="aboutExtraMediaFile" type="file" accept="image/*,video/mp4,video/webm,video/quicktime"><span>Загрузить фото / видео</span></label>
           </div>
         </section>
-        <div class="form-actions"><div class="save-note">Текст и медиа применятся после сохранения.</div><button id="saveAboutSettings" class="primary-btn large" type="button">Сохранить ABOUT</button></div>
+        <div class="form-actions"><div class="save-note">Существующий дизайн ABOUT остаётся без изменений.</div><button id="saveAboutSettings" class="primary-btn large" type="button">Сохранить ABOUT</button></div>
       </section>
 
       <section id="instagramEditor" class="editor-form" hidden>
@@ -361,11 +361,6 @@
             <label class="field"><span>Телефон</span><input id="contactPhoneAdmin" placeholder="+33 ..."></label>
             <label class="field"><span>Адрес EN</span><input id="contactAddressEn"></label>
             <label class="field"><span>Адрес RU</span><input id="contactAddressRu"></label>
-            <div class="span-2 legal-seller-admin-title"><strong>Данные частного продавца для Terms / Privacy</strong><small>Не указывайте компанию, если продажи ведёт физическое лицо. Заполните реальными данными перед запуском.</small></div>
-            <label class="field"><span>ФИО продавца</span><input id="sellerNameAdmin" autocomplete="off"></label>
-            <label class="field"><span>Страна проживания</span><input id="sellerCountryAdmin" autocomplete="off"></label>
-            <label class="field span-2"><span>Адрес продавца</span><input id="sellerAddressAdmin" autocomplete="off"></label>
-            <label class="field span-2"><span>Email для юридических запросов</span><input id="legalEmailAdmin" type="email" autocomplete="off"></label>
           </div>
         </section>
       </section>
@@ -383,6 +378,8 @@
               <div class="form-grid two">
                 <label class="field"><span>Текст кнопки EN</span><input id="supportButtonTextEn" value="SUPPORT"></label>
                 <label class="field"><span>Текст кнопки RU</span><input id="supportButtonTextRu" value="ПОДДЕРЖКА"></label>
+                <label class="field"><span>Заголовок EN</span><input id="supportTitleEn" value="START A CHAT"></label>
+                <label class="field"><span>Заголовок RU</span><input id="supportTitleRu" value="НАЧАТЬ ЧАТ"></label>
                 <label class="field span-2"><span>Сообщение EN</span><input id="supportGreetingEn" value="Thanks for stopping by! How can I help you?"></label>
                 <label class="field span-2"><span>Сообщение RU</span><input id="supportGreetingRu" value="Спасибо, что заглянули! Чем я могу помочь?"></label>
                 <label class="field"><span>Поле email EN</span><input id="supportEmailPlaceholderEn" value="YOUR EMAIL"></label>
@@ -410,6 +407,7 @@
               <div id="supportAdminPreview" class="support-admin-preview">
                 <div class="support-preview-brand">DEMI DEVILLE</div>
                 <div class="support-preview-body">
+                  <div id="supportPreviewTitle" class="support-preview-title">START A CHAT</div>
                   <div id="supportPreviewGreeting" class="support-preview-greeting">Thanks for stopping by! How can I help you?</div>
                   <div id="supportPreviewEmail" class="support-preview-field">YOUR EMAIL</div>
                   <div id="supportPreviewMessage" class="support-preview-field support-preview-message">HOW CAN WE HELP?</div>
@@ -450,6 +448,11 @@
             <button id="addPaymentMethod" class="secondary-btn" type="button">+ Добавить способ</button>
           </div>
           <div id="paymentMethodsEditor" class="payment-methods-editor"></div>
+          <div class="simple-admin-form" style="margin-top:22px">
+            <h3>Дополнительные страны доставки</h3>
+            <p class="admin-help-text">Все страны Европы уже добавлены автоматически. Здесь можно добавить другие страны — по одной на строку.</p>
+            <label class="field"><span>Дополнительные страны</span><textarea id="checkoutCountriesExtra" rows="7" placeholder="United States&#10;Canada&#10;Japan"></textarea></label>
+          </div>
         </section>
         <div class="form-actions payment-actions">
           <div class="save-note">На странице оплаты должен оставаться минимум один способ.</div>
@@ -459,9 +462,9 @@
 
       <section id="mailEditor" class="editor-form" hidden>
         <section class="device-card">
-          <div class="device-card-head"><div><span class="device-badge">ПОЧТА</span><h2>Рассылки</h2></div></div>
+          <div class="device-card-head"><div><span class="device-badge">ПОЧТА</span><h2>Рассылки клиентам</h2></div></div>
           <div class="simple-admin-form">
-            <p class="admin-help-text">SMTP подключается через переменные Railway: SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASS, MAIL_FROM и SUPPORT_TO. Пароль почты в админке не хранится.</p>
+            <p class="admin-help-text">Почта подключается через SMTP-переменные Railway. Пароль от почты в админке не хранится.</p>
             <label class="field"><span>Тема рассылки</span><input id="newsletterSubject" value="DEMI DEVILLE"></label>
             <label class="field"><span>Текст рассылки</span><textarea id="newsletterMessage" rows="10"></textarea></label>
             <button id="sendNewsletter" class="primary-btn" type="button">Отправить подписчикам</button>
@@ -538,6 +541,6 @@
     </section>
   </div>
 
-  <script src="/assets/js/admin.js?v=20260918-v22"></script>
+  <script src="/assets/js/admin.js?v=20260918-requested"></script>
 </body>
 </html>

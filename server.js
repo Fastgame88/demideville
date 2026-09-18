@@ -47,9 +47,9 @@ function defaultDb() {
       contactTitleEn:'CONTACT', contactTitleRu:'КОНТАКТЫ', contactTextEn:'Contact DEMI DEVILLE for orders, collaborations and client support.', contactTextRu:'Свяжитесь с DEMI DEVILLE по вопросам заказов, сотрудничества и поддержки.', contactPhone:'', contactAddressEn:'Paris, France', contactAddressRu:'Париж, Франция',
       baseFont: 'Arial, Helvetica, sans-serif', displayFont: 'Arial Black, Arial, Helvetica, sans-serif', condensedFont: 'Impact, Haettenschweiler, Arial Narrow Bold, sans-serif',
       baseFontSize: 16, shopPageSize: 8, shipping: 30, currency: '$',
-      aboutHtmlRu:'DEMI DEVILLE — новаторская студия дизайна из Парижа. Мы работаем с модой, пространством и визуальным стилем.', aboutFont:'', aboutFontSizeDesktop:36, aboutFontSizeMobile:24, aboutImage:'',
-      mailFrom:'', supportTo:'', newsletterSubjectEn:'DEMI DEVILLE', newsletterSubjectRu:'DEMI DEVILLE',
-      sellerName:'', sellerAddress:'', sellerCountry:'', legalEmail:'',
+      aboutExtraTextEn:'', aboutExtraTextRu:'', aboutExtraFont:'', aboutExtraFontSizeDesktop:24, aboutExtraFontSizeMobile:18, aboutExtraMedia:'',
+      checkoutCountriesExtra:[], mailFrom:'', supportTo:'', newsletterSubjectEn:'DEMI DEVILLE', newsletterSubjectRu:'DEMI DEVILLE',
+      sellerName:'BOHDAN DROBOT ALEKSANDROVICH', sellerAddress:'', sellerCountry:'', legalEmail:'',
 
       paymentMethods: [
         {id:'paypal',labelEn:'PayPal',labelRu:'PayPal',enabled:true},

@@ -31,6 +31,7 @@
   const supportMessage=$('#supportMessage');
   const supportSubmit=$('#supportSubmit');
   const supportFormStatus=$('#supportFormStatus');
+  const supportHeading=$('#supportHeading');
   const supportGreeting=$('#supportGreeting');
   if(currentUser?.email&&supportSenderEmail)supportSenderEmail.value=currentUser.email;
   const mobileMenu=$('#homeMobileMenu');
@@ -40,9 +41,10 @@
   const brand=s.heroTitle||s.brand||'DEMI DEVILLE';
   if(title){
     title.textContent=brand;title.classList.add('reference-brand','home-brand-interactive');title.tabIndex=0;title.setAttribute('role','button');
-    const shimmer=()=>{title.classList.remove('brand-flash');void title.offsetWidth;title.classList.add('brand-flash');setTimeout(()=>title.classList.remove('brand-flash'),360)};
-    title.addEventListener('click',shimmer);
-    title.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();shimmer()}});
+    let reloadTimer=0;
+    const shimmerAndReload=()=>{clearTimeout(reloadTimer);title.classList.remove('brand-flash');void title.offsetWidth;title.classList.add('brand-flash');reloadTimer=setTimeout(()=>location.reload(),300)};
+    title.addEventListener('click',shimmerAndReload);
+    title.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();shimmerAndReload()}});
   }
   if(mobileBrand)mobileBrand.textContent=s.brand||'DEMI DEVILLE';
 
@@ -92,6 +94,7 @@
     document.querySelectorAll('[data-i18n-placeholder]').forEach(el=>{const k=el.dataset.i18nPlaceholder;if(dict[lang][k])el.placeholder=dict[lang][k]});
     const cfg=window.ddSupportConfig?window.ddSupportConfig(s,lang):{buttonText:dict[lang].support,title:dict[lang].startChat,greeting:dict[lang].greeting,emailPlaceholder:dict[lang].yourEmail,messagePlaceholder:dict[lang].yourMessage,send:dict[lang].send};
     if(supportOpen)supportOpen.textContent=cfg.buttonText;
+    if(supportHeading)supportHeading.textContent=cfg.title;
     if(supportGreeting)supportGreeting.textContent=cfg.greeting;
     if(supportSenderEmail)supportSenderEmail.placeholder=cfg.emailPlaceholder;
     if(supportMessage)supportMessage.placeholder=cfg.messagePlaceholder;
@@ -102,16 +105,13 @@
   }
   applyLang();
 
-  // Home support accepts either the original repeating image or an uploaded video.
+  // SUPPORT keeps the existing layout; when admin selects a video it is used only as the panel background.
   if(supportWindow){
-    const panel=supportWindow.querySelector('.support-panel');
-    const oldVideo=panel?.querySelector('.support-background-video');
-    oldVideo?.remove();
-    if(panel&&window.ddIsVideo?.(s.supportBackgroundImage)){
-      const bg=document.createElement('video');
-      bg.className='support-background-video';bg.src=s.supportBackgroundImage;bg.autoplay=true;bg.muted=true;bg.loop=true;bg.playsInline=true;bg.preload='metadata';
-      panel.insertBefore(bg,panel.querySelector('.support-chat-body'));
-      bg.play().catch(()=>{});
+    const chatBody=supportWindow.querySelector('.support-chat-body');
+    chatBody?.querySelector('.support-background-video')?.remove();
+    if(chatBody&&window.ddIsVideo?.(s.supportBackgroundImage)){
+      const bg=document.createElement('video');bg.className='support-background-video';bg.src=s.supportBackgroundImage;bg.autoplay=true;bg.muted=true;bg.loop=true;bg.playsInline=true;bg.preload='metadata';
+      chatBody.prepend(bg);bg.play().catch(()=>{});
     }
   }
 

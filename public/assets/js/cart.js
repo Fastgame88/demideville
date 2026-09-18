@@ -41,7 +41,7 @@
 
   function draw(){
     cart=mergeSameCartItems(cart).filter(x=>{
-      const p=byId[x.productId];if(!p||(window.ddProductPurchasable&&!window.ddProductPurchasable(p)))return false;const stock=maxStock(p,x.size);if(stock<=0)return false;if(Number.isFinite(stock))x.qty=Math.max(1,Math.min(Math.floor(stock),Number(x.qty)||1));return true;
+      const p=byId[x.productId];if(!p||!(window.ddProductPurchasable?window.ddProductPurchasable(p):true))return false;const stock=maxStock(p,x.size);if(stock<=0)return false;if(Number.isFinite(stock))x.qty=Math.max(1,Math.min(Math.floor(stock),Number(x.qty)||1));return true;
     });
     cartSet(cart);
     document.body.classList.toggle('cart-is-empty',!cart.length);
@@ -55,7 +55,7 @@
       const qty=Math.max(1,Number(x.qty)||1);
       return `<article class="cart-card" data-cart-index="${i}">
         <button class="cart-card-remove" type="button" data-cart-remove="${i}" aria-label="Remove item">×</button>
-        <div class="cart-card-media">${window.ddMediaHtml?window.ddMediaHtml(preferredCartImage(p),{className:'cart-product-media',alt:productName(p),eager:i<2}):`<img src="${esc(preferredCartImage(p))}" alt="${esc(productName(p))}">`}</div>
+        <div class="cart-card-media">${window.ddIsVideo?.(preferredCartImage(p))?`<video src="${esc(preferredCartImage(p))}" muted loop autoplay playsinline preload="metadata"></video>`:`<img src="${esc(preferredCartImage(p))}" alt="${esc(productName(p))}">`}</div>
         <div class="cart-card-copy">
           <div class="cart-card-name">${esc(productName(p))}</div>
           <div class="cart-card-price">${esc(window.ddProductPriceLabel?window.ddProductPriceLabel(p,curr,document.documentElement.lang==='ru'?'ru':'en'):money(p.price,curr))}</div>

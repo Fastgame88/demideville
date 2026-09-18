@@ -362,8 +362,9 @@ function mountSharedChrome(site,menu=getMenuConfig(site.settings||{}),currentUse
         <button id="sharedSupportClose" class="support-close" type="button" aria-label="${tr('Close support')}">×</button>
         <div class="support-panel">
           <div class="support-brand">DEMI DEVILLE</div>
-          ${ddIsVideo(supportCfg.backgroundImage)?`<video class="support-background-video" src="${esc(supportCfg.backgroundImage)}" autoplay muted loop playsinline preload="metadata"></video>`:''}
           <div class="support-chat-body support-email-body">
+            ${ddIsVideo(supportCfg.backgroundImage)?`<video class="support-background-video" src="${esc(supportCfg.backgroundImage)}" autoplay muted loop playsinline preload="metadata"></video>`:''}
+            <div class="support-start support-form-heading">${esc(supportCfg.title)}</div>
             <div class="support-mobile-intro">${esc(supportCfg.greeting)}</div>
             <form id="sharedSupportForm" class="support-form" novalidate>
               <input id="sharedSupportEmail" class="support-form-input" name="email" type="email" autocomplete="email" required placeholder="${esc(supportCfg.emailPlaceholder)}">

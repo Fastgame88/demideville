@@ -13,7 +13,6 @@
   clearAdminAutofill();
   setTimeout(clearAdminAutofill,120);
   setTimeout(clearAdminAutofill,700);
-  document.querySelectorAll('[data-autofill-guard]').forEach(input=>{const unlock=()=>{input.readOnly=false};input.addEventListener('pointerdown',unlock,{once:true});input.addEventListener('focus',unlock,{once:true})});
 
   /* Header and support are provided by renderChrome() in common.js. */
 

@@ -15,6 +15,7 @@ const $=(s,r=document)=>r.querySelector(s);
 const $$=(s,r=document)=>[...r.querySelectorAll(s)];
 const esc=v=>String(v??'').replace(/[&<>'"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;","'":"&#39;",'"':'&quot;'}[c]));
 const adminMoney=(v,s='$')=>`${Number(v||0).toFixed(Number(v)%1?2:0)}${s}`;
+const mediaIsVideo=url=>/\.(mp4|webm|mov|m4v)(?:[?#].*)?$/i.test(String(url||''));
 
 const FONT_OPTIONS=[
   ['Arial','Arial, Helvetica, sans-serif'],['Arial Black','"Arial Black", Arial, sans-serif'],['Arial Narrow','"Arial Narrow", Arial, sans-serif'],
@@ -119,13 +120,6 @@ function populateFonts(){
 }
 populateFonts();
 
-// Browser password managers must not expose saved admin credentials to every visitor.
-(function guardAdminAutofill(){
-  const form=$('#adminLogin');if(!form)return;const inputs=[...form.querySelectorAll('[data-autofill-guard]')];
-  const unlock=e=>{e.currentTarget.readOnly=false};inputs.forEach(input=>{input.value='';input.addEventListener('pointerdown',unlock,{once:true});input.addEventListener('focus',unlock,{once:true})});
-  [80,350,900].forEach(ms=>setTimeout(()=>{if(!token)inputs.forEach(input=>{if(document.activeElement!==input)input.value=''})},ms));
-})();
-
 async function boot(){
   if(!token)return showLogin();
   try{
@@ -172,7 +166,7 @@ function fillForm(){
 }
 function updatePreview(){
   const dImg=$('#heroDesktop').value.trim(),mImg=$('#heroMobile').value.trim();
-  const applyPreviewMedia=(preview,url)=>{if(!preview)return;preview.querySelector('.admin-preview-video')?.remove();const isVideo=/\.(mp4|webm|mov|m4v)(?:[?#].*)?$/i.test(url);preview.style.backgroundImage=isVideo?'none':cssImage(url);if(isVideo){const v=document.createElement('video');v.className='admin-preview-video';v.src=url;v.autoplay=true;v.muted=true;v.loop=true;v.playsInline=true;v.preload='metadata';preview.prepend(v);v.play().catch(()=>{})}};
+  const applyPreviewMedia=(preview,url)=>{if(!preview)return;preview.querySelector('.admin-preview-video')?.remove();preview.style.backgroundImage=mediaIsVideo(url)?'none':cssImage(url);if(mediaIsVideo(url)){const v=document.createElement('video');v.className='admin-preview-video';v.src=url;v.autoplay=true;v.muted=true;v.loop=true;v.playsInline=true;v.preload='metadata';v.style.cssText='position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:0;pointer-events:none';preview.prepend(v);v.play().catch(()=>{})}};
   applyPreviewMedia($('#desktopPreview'),dImg);applyPreviewMedia($('#mobilePreview'),mImg);
   const d=clampPercent($('#homeDesktopOverlayOpacity').value,35),m=clampPercent($('#homeMobileOverlayOpacity').value,35);$('#desktopPreviewOverlay').style.background=`rgba(0,0,0,${d/100})`;$('#mobilePreviewOverlay').style.background=`rgba(0,0,0,${m/100})`;
   const df=$('#homeDesktopFont').value,mf=$('#homeMobileFont').value;$('#desktopPreview').style.fontFamily=df||'';$('#desktopFontSample').style.fontFamily=df||'';$('#mobilePreview').style.fontFamily=mf||'';$('#mobileFontSample').style.fontFamily=mf||'';
@@ -258,7 +252,7 @@ async function save(){
   try{setBusy(true);settings=await api('/api/admin/settings',{method:'PUT',body:JSON.stringify(payload())});fillForm();showNotice('Изменения сохранены.')}catch(e){showNotice(e.message,'error')}finally{setBusy(false)}
 }
 $('#homeSettingsForm').addEventListener('submit',async e=>{e.preventDefault();await save()});
-$('#saveTop').addEventListener('click',()=>currentAdminTab==='shop'?saveShopSettings():currentAdminTab==='gallery'?saveGallerySettings():currentAdminTab==='about'?saveAboutSettings():currentAdminTab==='instagram'?saveInstagramSettings():currentAdminTab==='contact'?saveContactSettings():currentAdminTab==='support'?saveSupportSettings():currentAdminTab==='payment'?savePaymentSettings():(currentAdminTab==='clients'||currentAdminTab==='orders')?Promise.resolve():save());
+$('#saveTop').addEventListener('click',()=>currentAdminTab==='shop'?saveShopSettings():currentAdminTab==='gallery'?saveGallerySettings():currentAdminTab==='about'?saveAboutSettings():currentAdminTab==='instagram'?saveInstagramSettings():currentAdminTab==='contact'?saveContactSettings():currentAdminTab==='support'?saveSupportSettings():currentAdminTab==='payment'?savePaymentSettings():(currentAdminTab==='clients'||currentAdminTab==='orders'||currentAdminTab==='mail')?Promise.resolve():save());
 
 function slugify(value){
   return String(value||'').trim().toLowerCase()
@@ -379,7 +373,7 @@ function renderProductsAdmin(){
   box.innerHTML=list.map(p=>{
     const images=productImagesOf(p),sizes=productSizesOf(p),stock=sizes.reduce((a,v)=>a+Math.max(0,Number(v.stock)||0),0),cats=productCategoriesOf(p);
     return `<article class="product-admin-row${p.active===false?' is-hidden-product':''}" data-product-id="${esc(p.id)}">
-      <div class="product-admin-thumb">${images[0]?`<img src="${esc(images[0])}" alt="">`:'—'}</div>
+      <div class="product-admin-thumb">${images[0]?(mediaIsVideo(images[0])?`<video src="${esc(images[0])}" muted loop autoplay playsinline style="width:100%;height:100%;object-fit:contain"></video>`:`<img src="${esc(images[0])}" alt="">`):'—'}</div>
       <div class="product-admin-copy">
         <div class="product-admin-name">${esc(p.name||'Без названия')}</div>
         <div class="product-admin-ru">${esc(p.nameRu||'RU не заполнено')}</div>
@@ -403,7 +397,7 @@ function selectedProductCategories(){return $$('#productCategoryChecks input[typ
 function renderProductImages(){
   const box=$('#productImagesPreview');if(!box)return;
   box.innerHTML=productImagesDraft.map((url,i)=>`<div class="product-image-admin-card${i===0?' is-primary':''}" data-image-index="${i}">
-    ${i===0?'<span class="image-primary-label">ОСНОВНОЕ</span>':''}${/\.(mp4|webm|mov|m4v)(?:[?#].*)?$/i.test(url)?`<video src="${esc(url)}" muted loop autoplay playsinline></video>`:`<img src="${esc(url)}" alt="">`}
+    ${i===0?'<span class="image-primary-label">ОСНОВНОЕ</span>':''}${mediaIsVideo(url)?`<video src="${esc(url)}" muted loop autoplay playsinline style="display:block;width:100%;aspect-ratio:1/1.15;object-fit:contain;background:#fff;border-radius:7px"></video>`:`<img src="${esc(url)}" alt="">`}
     <div class="product-image-admin-actions"><button type="button" data-make-primary ${i===0?'disabled':''}>${i===0?'Основное':'Сделать главным'}</button><button class="image-remove" type="button" data-remove-image>×</button></div>
   </div>`).join('')||'<div class="empty-admin-list">Медиа ещё не добавлены.</div>';
 }
@@ -532,7 +526,7 @@ function renderGalleryAdmin(){
   const box=$('#galleryAdminList');if(!box)return;
   if(!galleryDraft.length){box.innerHTML='<div class="empty-admin-list">В галерее пока нет изображений.</div>';return}
   box.innerHTML=galleryDraft.map((g,i)=>`<article class="gallery-admin-item${g.active===false?' is-hidden-gallery':''}" data-gallery-index="${i}">
-    <div class="gallery-admin-preview">${/\.(mp4|webm|mov|m4v)(?:[?#].*)?$/i.test(g.media||g.image)?`<video src="${esc(g.media||g.image)}" muted loop autoplay playsinline style="transform:rotate(${Number(g.rotation)||0}deg)"></video>`:`<img src="${esc(g.media||g.image)}" alt="" style="transform:rotate(${Number(g.rotation)||0}deg)">`}</div>
+    <div class="gallery-admin-preview">${mediaIsVideo(g.media||g.image)?`<video src="${esc(g.media||g.image)}" muted loop autoplay playsinline style="width:100%;height:100%;object-fit:contain;transform:rotate(${Number(g.rotation)||0}deg)"></video>`:`<img src="${esc(g.media||g.image)}" alt="" style="transform:rotate(${Number(g.rotation)||0}deg)">`}</div>
     <div class="gallery-admin-fields">
       <label class="field"><span>Описание / подпись EN</span><textarea data-gallery-field="caption" rows="3">${esc(g.caption)}</textarea></label>
       <label class="field"><span>Описание / подпись RU</span><textarea data-gallery-field="captionRu" rows="3">${esc(g.captionRu)}</textarea></label>
@@ -605,13 +599,13 @@ $('#saveGallerySettings')?.addEventListener('click',saveGallerySettings);
 
 function fillAboutEditor(){
   const set=(id,value)=>{const el=$(id);if(el)el.value=value??''};
-  set('#aboutHtmlAdmin',settings.aboutHtml||DEFAULT_ABOUT_EN);set('#aboutHtmlRuAdmin',settings.aboutHtmlRu||DEFAULT_ABOUT_RU);
-  selectValue($('#aboutFontAdmin'),settings.aboutFont||'');set('#aboutFontSizeDesktop',settings.aboutFontSizeDesktop||36);set('#aboutFontSizeMobile',settings.aboutFontSizeMobile||24);set('#aboutMediaAdmin',settings.aboutImage||'');
+  set('#aboutExtraTextEn',settings.aboutExtraTextEn||'');set('#aboutExtraTextRu',settings.aboutExtraTextRu||'');
+  selectValue($('#aboutExtraFont'),settings.aboutExtraFont||'');set('#aboutExtraFontSizeDesktop',settings.aboutExtraFontSizeDesktop||24);set('#aboutExtraFontSizeMobile',settings.aboutExtraFontSizeMobile||18);set('#aboutExtraMedia',settings.aboutExtraMedia||'');
 }
-$('#aboutMediaFile')?.addEventListener('change',async e=>{const file=e.target.files?.[0];if(!file)return;try{e.target.disabled=true;const dataUrl=await new Promise((resolve,reject)=>{const r=new FileReader();r.onload=()=>resolve(r.result);r.onerror=reject;r.readAsDataURL(file)});const out=await api('/api/admin/upload',{method:'POST',body:JSON.stringify({dataUrl,filename:file.name})});$('#aboutMediaAdmin').value=out.url;showNotice('Медиа ABOUT загружено.')}catch(err){showNotice(err.message,'error')}finally{e.target.disabled=false;e.target.value=''}});
+$('#aboutExtraMediaFile')?.addEventListener('change',async e=>{const file=e.target.files?.[0];if(!file)return;try{e.target.disabled=true;const dataUrl=await new Promise((resolve,reject)=>{const r=new FileReader();r.onload=()=>resolve(r.result);r.onerror=reject;r.readAsDataURL(file)});const out=await api('/api/admin/upload',{method:'POST',body:JSON.stringify({dataUrl,filename:file.name})});$('#aboutExtraMedia').value=out.url;showNotice('Медиа ABOUT загружено. Нажмите «Сохранить ABOUT».')}catch(err){showNotice(err.message,'error')}finally{e.target.disabled=false;e.target.value=''}});
 async function saveAboutSettings(){
-  const payload={aboutHtml:$('#aboutHtmlAdmin').value,aboutHtmlRu:$('#aboutHtmlRuAdmin').value,aboutFont:$('#aboutFontAdmin').value,aboutFontSizeDesktop:clampNumber($('#aboutFontSizeDesktop').value,12,90,36),aboutFontSizeMobile:clampNumber($('#aboutFontSizeMobile').value,10,60,24),aboutImage:$('#aboutMediaAdmin').value.trim()};
-  try{setBusy(true);settings=await api('/api/admin/settings',{method:'PUT',body:JSON.stringify(payload)});fillAboutEditor();showNotice('ABOUT сохранён.')}catch(err){showNotice(err.message,'error')}finally{setBusy(false)}
+  const payload={aboutExtraTextEn:$('#aboutExtraTextEn').value,aboutExtraTextRu:$('#aboutExtraTextRu').value,aboutExtraFont:$('#aboutExtraFont').value,aboutExtraFontSizeDesktop:clampNumber($('#aboutExtraFontSizeDesktop').value,10,80,24),aboutExtraFontSizeMobile:clampNumber($('#aboutExtraFontSizeMobile').value,10,48,18),aboutExtraMedia:$('#aboutExtraMedia').value.trim()};
+  try{setBusy(true);settings=await api('/api/admin/settings',{method:'PUT',body:JSON.stringify(payload)});fillAboutEditor();showNotice('ABOUT сохранён. Дополнительный блок будет ниже текущего изображения.')}catch(err){showNotice(err.message,'error')}finally{setBusy(false)}
 }
 $('#saveAboutSettings')?.addEventListener('click',saveAboutSettings);
 
@@ -622,13 +616,12 @@ function fillExternalEditors(){
   set('#contactTextEn',settings.contactTextEn||'');set('#contactTextRu',settings.contactTextRu||'');
   set('#contactEmailAdmin',settings.contact||'');set('#contactPhoneAdmin',settings.contactPhone||'');
   set('#contactAddressEn',settings.contactAddressEn||'');set('#contactAddressRu',settings.contactAddressRu||'');
-  set('#sellerNameAdmin',settings.sellerName||'');set('#sellerCountryAdmin',settings.sellerCountry||'');set('#sellerAddressAdmin',settings.sellerAddress||'');set('#legalEmailAdmin',settings.legalEmail||settings.contact||'');
 }
 async function saveInstagramSettings(){
   try{setBusy(true);settings=await api('/api/admin/settings',{method:'PUT',body:JSON.stringify({instagram:$('#instagramUrl').value.trim()})});fillExternalEditors();showNotice('Ссылка Instagram сохранена.')}catch(err){showNotice(err.message,'error')}finally{setBusy(false)}
 }
 async function saveContactSettings(){
-  try{setBusy(true);const payload={contactTitleEn:$('#contactTitleEn').value.trim(),contactTitleRu:$('#contactTitleRu').value.trim(),contactTextEn:$('#contactTextEn').value.trim(),contactTextRu:$('#contactTextRu').value.trim(),contact:$('#contactEmailAdmin').value.trim(),contactPhone:$('#contactPhoneAdmin').value.trim(),contactAddressEn:$('#contactAddressEn').value.trim(),contactAddressRu:$('#contactAddressRu').value.trim(),sellerName:$('#sellerNameAdmin').value.trim(),sellerCountry:$('#sellerCountryAdmin').value.trim(),sellerAddress:$('#sellerAddressAdmin').value.trim(),legalEmail:$('#legalEmailAdmin').value.trim()};settings=await api('/api/admin/settings',{method:'PUT',body:JSON.stringify(payload)});fillExternalEditors();showNotice('Страница контактов сохранена.')}catch(err){showNotice(err.message,'error')}finally{setBusy(false)}
+  try{setBusy(true);const payload={contactTitleEn:$('#contactTitleEn').value.trim(),contactTitleRu:$('#contactTitleRu').value.trim(),contactTextEn:$('#contactTextEn').value.trim(),contactTextRu:$('#contactTextRu').value.trim(),contact:$('#contactEmailAdmin').value.trim(),contactPhone:$('#contactPhoneAdmin').value.trim(),contactAddressEn:$('#contactAddressEn').value.trim(),contactAddressRu:$('#contactAddressRu').value.trim()};settings=await api('/api/admin/settings',{method:'PUT',body:JSON.stringify(payload)});fillExternalEditors();showNotice('Страница контактов сохранена.')}catch(err){showNotice(err.message,'error')}finally{setBusy(false)}
 }
 function renderClientsAdmin(){
   const box=$('#clientsAdminList');if(!box)return;
@@ -658,7 +651,7 @@ function supportSetting(key){
   return value==null||value===''?DEFAULT_SUPPORT_SETTINGS[key]:value;
 }
 function fillSupportEditor(){
-  const textIds=['supportButtonTextEn','supportButtonTextRu','supportGreetingEn','supportGreetingRu','supportEmailPlaceholderEn','supportEmailPlaceholderRu','supportMessagePlaceholderEn','supportMessagePlaceholderRu','supportSendTextEn','supportSendTextRu','supportBackgroundImage','supportButtonBg','supportButtonColor','supportFieldBg','supportFieldColor'];
+  const textIds=['supportButtonTextEn','supportButtonTextRu','supportTitleEn','supportTitleRu','supportGreetingEn','supportGreetingRu','supportEmailPlaceholderEn','supportEmailPlaceholderRu','supportMessagePlaceholderEn','supportMessagePlaceholderRu','supportSendTextEn','supportSendTextRu','supportBackgroundImage','supportButtonBg','supportButtonColor','supportFieldBg','supportFieldColor'];
   textIds.forEach(id=>{const el=$('#'+id);if(el)el.value=supportSetting(id)||''});
   selectValue($('#supportButtonFont'),settings.supportButtonFont||'');
   selectValue($('#supportWindowFont'),settings.supportWindowFont||'');
@@ -669,14 +662,13 @@ function updateSupportPreview(){
   const preview=$('#supportAdminPreview');if(!preview)return;
   const previewBody=preview.querySelector('.support-preview-body');
   if(previewBody){
-    const bg=g('supportBackgroundImage')||DEFAULT_SUPPORT_SETTINGS.supportBackgroundImage;
-    const isVideo=/\.(mp4|webm|mov|m4v)(?:[?#].*)?$/i.test(bg);
-    previewBody.style.backgroundImage=isVideo?'none':`url(${JSON.stringify(bg)})`;
-    previewBody.querySelector('.support-preview-bg-video')?.remove();
-    if(isVideo){const v=document.createElement('video');v.className='support-preview-bg-video';v.src=bg;v.autoplay=true;v.muted=true;v.loop=true;v.playsInline=true;v.style.cssText='position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:0;pointer-events:none';previewBody.style.position='relative';previewBody.prepend(v);[...previewBody.children].forEach(el=>{if(el!==v){el.style.position='relative';el.style.zIndex='1'}});}
+    const bg=g('supportBackgroundImage')||DEFAULT_SUPPORT_SETTINGS.supportBackgroundImage;previewBody.querySelector('.support-preview-bg-video')?.remove();
+    previewBody.style.backgroundImage=mediaIsVideo(bg)?'none':`url(${JSON.stringify(bg)})`;
+    if(mediaIsVideo(bg)){const v=document.createElement('video');v.className='support-preview-bg-video';v.src=bg;v.autoplay=true;v.muted=true;v.loop=true;v.playsInline=true;v.style.cssText='position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:0;pointer-events:none';previewBody.style.position='relative';previewBody.prepend(v);[...previewBody.children].forEach(el=>{if(el!==v){el.style.position='relative';el.style.zIndex='1'}});}
   }
   preview.style.fontFamily=g('supportWindowFont')||'';
-  const greeting=$('#supportPreviewGreeting'),email=$('#supportPreviewEmail'),message=$('#supportPreviewMessage'),send=$('#supportPreviewSend'),btn=$('#supportPreviewButton');
+  const title=$('#supportPreviewTitle'),greeting=$('#supportPreviewGreeting'),email=$('#supportPreviewEmail'),message=$('#supportPreviewMessage'),send=$('#supportPreviewSend'),btn=$('#supportPreviewButton');
+  if(title){title.textContent=g('supportTitleEn')||DEFAULT_SUPPORT_SETTINGS.supportTitleEn;title.style.background=g('supportFieldBg')||'#000';title.style.color=g('supportFieldColor')||'#fff'}
   if(greeting){greeting.textContent=g('supportGreetingEn')||DEFAULT_SUPPORT_SETTINGS.supportGreetingEn;greeting.style.background=g('supportFieldBg')||'#000';greeting.style.color=g('supportFieldColor')||'#fff'}
   [email,message].forEach((el,i)=>{if(!el)return;el.textContent=g(i?'supportMessagePlaceholderEn':'supportEmailPlaceholderEn')||DEFAULT_SUPPORT_SETTINGS[i?'supportMessagePlaceholderEn':'supportEmailPlaceholderEn'];el.style.background=g('supportFieldBg')||'#000';el.style.color=g('supportFieldColor')||'#fff'});
   if(send){send.textContent=g('supportSendTextEn')||DEFAULT_SUPPORT_SETTINGS.supportSendTextEn;send.style.background=g('supportFieldBg')||'#000';send.style.color=g('supportFieldColor')||'#fff'}
@@ -689,7 +681,7 @@ $('#supportBackgroundFile')?.addEventListener('change',async e=>{
   try{e.target.disabled=true;const dataUrl=await new Promise((resolve,reject)=>{const r=new FileReader();r.onload=()=>resolve(r.result);r.onerror=reject;r.readAsDataURL(file)});const out=await api('/api/admin/upload',{method:'POST',body:JSON.stringify({dataUrl,filename:file.name})});$('#supportBackgroundImage').value=out.url;updateSupportPreview();showNotice('Фон поддержки загружен.')}catch(err){showNotice(err.message,'error')}finally{e.target.disabled=false;e.target.value=''}
 });
 async function saveSupportSettings(){
-  const ids=['supportButtonTextEn','supportButtonTextRu','supportGreetingEn','supportGreetingRu','supportEmailPlaceholderEn','supportEmailPlaceholderRu','supportMessagePlaceholderEn','supportMessagePlaceholderRu','supportSendTextEn','supportSendTextRu','supportBackgroundImage','supportButtonBg','supportButtonColor','supportFieldBg','supportFieldColor','supportButtonFont','supportWindowFont'];
+  const ids=['supportButtonTextEn','supportButtonTextRu','supportTitleEn','supportTitleRu','supportGreetingEn','supportGreetingRu','supportEmailPlaceholderEn','supportEmailPlaceholderRu','supportMessagePlaceholderEn','supportMessagePlaceholderRu','supportSendTextEn','supportSendTextRu','supportBackgroundImage','supportButtonBg','supportButtonColor','supportFieldBg','supportFieldColor','supportButtonFont','supportWindowFont'];
   const payload={};ids.forEach(id=>{const el=$('#'+id);payload[id]=String(el?.value||'').trim()});
   payload.supportText=payload.supportButtonTextEn||'SUPPORT';
   try{setBusy(true);settings=await api('/api/admin/settings',{method:'PUT',body:JSON.stringify(payload)});fillSupportEditor();showNotice('Настройки поддержки сохранены.')}catch(err){showNotice(err.message,'error')}finally{setBusy(false)}
@@ -727,6 +719,7 @@ function normalizePaymentMethods(raw){
   }));
 }
 function renderPaymentEditor(){
+  const countries=$('#checkoutCountriesExtra');if(countries)countries.value=(Array.isArray(settings.checkoutCountriesExtra)?settings.checkoutCountriesExtra:[]).join('\n');
   const box=$('#paymentMethodsEditor');if(!box)return;
   if(!paymentMethodsDraft.length){box.innerHTML='<div class="empty-admin-list">Нет способов оплаты. Добавьте хотя бы один.</div>';return}
   box.innerHTML=paymentMethodsDraft.map((m,i)=>`<div class="payment-method-row" data-payment-index="${i}">
@@ -756,7 +749,8 @@ $('#addPaymentMethod')?.addEventListener('click',()=>{paymentMethodsDraft.push({
 async function savePaymentSettings(){
   const methods=normalizePaymentMethods(paymentMethodsDraft).filter(m=>m.labelEn||m.labelRu);
   if(!methods.length||!methods.some(m=>m.enabled!==false))return showNotice('Оставьте минимум один включённый способ оплаты.','error');
-  try{setBusy(true);settings=await api('/api/admin/settings',{method:'PUT',body:JSON.stringify({paymentMethods:methods})});paymentMethodsDraft=normalizePaymentMethods(settings.paymentMethods);renderPaymentEditor();showNotice('Способы оплаты сохранены.')}catch(err){showNotice(err.message,'error')}finally{setBusy(false)}
+  const checkoutCountriesExtra=[...new Set(String($('#checkoutCountriesExtra')?.value||'').split(/\r?\n/).map(x=>x.trim()).filter(Boolean))];
+  try{setBusy(true);settings=await api('/api/admin/settings',{method:'PUT',body:JSON.stringify({paymentMethods:methods,checkoutCountriesExtra})});paymentMethodsDraft=normalizePaymentMethods(settings.paymentMethods);renderPaymentEditor();showNotice('Способы оплаты и страны сохранены.')}catch(err){showNotice(err.message,'error')}finally{setBusy(false)}
 }
 $('#savePaymentSettings')?.addEventListener('click',savePaymentSettings);
 $('#sendNewsletter')?.addEventListener('click',async()=>{
@@ -764,6 +758,5 @@ $('#sendNewsletter')?.addEventListener('click',async()=>{
   if(!confirm('Отправить письмо всем клиентам, которые согласились на рассылку?'))return;
   try{const out=await api('/api/admin/newsletter',{method:'POST',body:JSON.stringify({subject,message})});const el=$('#newsletterResult');if(el){el.textContent=`Получателей: ${out.recipients}. Отправлено: ${out.sent}. Ошибок: ${out.failed}.`;el.className='notice show ok'}showNotice('Рассылка завершена.')}catch(err){showNotice(err.message,'error')}
 });
-
 
 boot();
