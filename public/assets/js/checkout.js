@@ -3,7 +3,7 @@
   const site=await SITE;
   const curr=site.settings?.currency||'$';
   const byId=Object.fromEntries((site.products||[]).map(p=>[String(p.id),p]));
-  const cart=cartGet().filter(x=>byId[String(x.productId)]);
+  const cart=cartGet().filter(x=>{const p=byId[String(x.productId)];return p&&(!window.ddProductPurchasable||window.ddProductPurchasable(p));});
   const list=$('#orderList');
   const DEFAULT_PAYMENT_METHODS=[{id:'paypal',labelEn:'PayPal',labelRu:'PayPal',enabled:true},{id:'applepay',labelEn:'ApplePay',labelRu:'ApplePay',enabled:true},{id:'googlepay',labelEn:'GooglePay',labelRu:'GooglePay',enabled:true},{id:'crypto',labelEn:'Crypto payment',labelRu:'Оплата криптовалютой',enabled:true},{id:'card',labelEn:'Card payment',labelRu:'Оплата картой',enabled:true}];
   const configured=Array.isArray(site.settings?.paymentMethods)&&site.settings.paymentMethods.length?site.settings.paymentMethods:DEFAULT_PAYMENT_METHODS;
@@ -22,7 +22,7 @@
       'lobby-hoody':'/assets/images/product-hoodie-ref.png',
       'inside-jeans':'/assets/images/product-jeans-ref.png'
     };
-    return (window.ddProductImages?.(p)||[])[0]||known[p.id]||p.image;
+    const list=window.ddProductImages?.(p)||[];return list.find(x=>!window.ddIsVideo?.(x))||known[p.id]||p.image||list[0];
   };
   const productName=p=>window.ddProductText?window.ddProductText(p,'name'):(p?.name||'');
 
@@ -51,10 +51,10 @@
       const qty=Math.max(1,Number(x.qty)||1);
       return `<div class="order-line">
         <div class="order-thumb">
-          <img src="${esc(preferredCheckoutImage(p))}" alt="${esc(productName(p))}">
+          ${(()=>{const media=preferredCheckoutImage(p);return window.ddIsVideo?.(media)?`<video src="${esc(media)}" muted playsinline preload="metadata"></video>`:`<img src="${esc(media)}" alt="${esc(productName(p))}">`})()}
           <div class="order-qty-stack"><b class="qty-badge">${qty}</b><span class="size-badge">${esc(x.size||'')}</span></div>
         </div>
-        <div class="order-meta"><div>${esc(productName(p))}</div><div>${money(p.price,curr)}</div></div>
+        <div class="order-meta"><div>${esc(productName(p))}</div><div>${esc(window.ddProductPriceLabel?window.ddProductPriceLabel(p,curr,document.documentElement.lang==='ru'?'ru':'en'):money(p.price,curr))}</div></div>
       </div>`;
     }).join('');
 
@@ -107,6 +107,7 @@
         phone:f.get('phone')
       }
     };
+    if(currentUser&&f.get('newsletter')){fetch('/api/account/preferences',{method:'PUT',headers:{'Content-Type':'application/json',...authHeaders()},body:JSON.stringify({newsletter:true})}).catch(()=>{});}
     const r=await fetch('/api/orders',{method:'POST',headers:{'Content-Type':'application/json',...authHeaders()},body:JSON.stringify(body)});
     const d=await r.json().catch(()=>({}));
     if(!r.ok)return alert(window.ddTranslate?.(d.error||'Could not create order')||d.error||'Could not create order');

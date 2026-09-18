@@ -4,5 +4,13 @@
   "private": true,
   "description": "Pixel-matched fashion storefront with registration, cart, checkout and CMS admin panel.",
   "main": "server.js",
-  "scripts": {"start":"node server.js","dev":"node server.js"}
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js",
+    "check": "node --check server.js && node --check public/assets/js/common.js && node --check public/assets/js/admin.js"
+  },
+  "dependencies": {
+    "nodemailer": "^7.0.6",
+    "pg": "^8.16.3"
+  }
 }

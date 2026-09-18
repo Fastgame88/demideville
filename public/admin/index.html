@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>DEMI DEVILLE — Админ-панель</title>
-  <link rel="stylesheet" href="/assets/css/admin.css?v=20260917-v18">
+  <link rel="stylesheet" href="/assets/css/admin.css?v=20260918-v22">
 </head>
 <body>
   <section id="loginView" class="auth-screen">
@@ -15,11 +15,11 @@
       <div id="loginNotice" class="notice" aria-live="polite"></div>
       <label class="field">
         <span>Электронная почта</span>
-        <input required type="email" name="email" autocomplete="off" placeholder="admin@example.com">
+        <input required type="email" name="email" autocomplete="off" placeholder="admin@example.com" readonly data-autofill-guard>
       </label>
       <label class="field">
         <span>Пароль</span>
-        <input required type="password" name="password" autocomplete="new-password" placeholder="Пароль">
+        <input required type="password" name="password" autocomplete="new-password" placeholder="Пароль" readonly data-autofill-guard>
       </label>
       <button class="primary-btn wide" type="submit">Войти</button>
     </form>
@@ -33,12 +33,14 @@
         <button class="nav-item active" type="button" data-admin-tab="home">Главная страница</button>
         <button class="nav-item" type="button" data-admin-tab="shop">SHOP</button>
         <button class="nav-item" type="button" data-admin-tab="gallery">ГАЛЕРЕЯ</button>
+        <button class="nav-item" type="button" data-admin-tab="about">ABOUT</button>
         <button class="nav-item" type="button" data-admin-tab="instagram">INSTAGRAM</button>
         <button class="nav-item" type="button" data-admin-tab="contact">КОНТАКТЫ</button>
         <button class="nav-item" type="button" data-admin-tab="support">ПОДДЕРЖКА</button>
         <button class="nav-item" type="button" data-admin-tab="orders">ЗАКАЗЫ</button>
         <button class="nav-item" type="button" data-admin-tab="clients">КЛИЕНТЫ</button>
         <button class="nav-item" type="button" data-admin-tab="payment">ОПЛАТА</button>
+        <button class="nav-item" type="button" data-admin-tab="mail">ПОЧТА</button>
       </nav>
       <div class="side-bottom">
         <a class="side-link" href="/" target="_blank" rel="noreferrer">Открыть сайт ↗</a>
@@ -88,7 +90,7 @@
                   <input id="heroDesktop" name="heroDesktop" type="text" placeholder="/assets/images/hero.jpg">
                 </label>
                 <label class="upload-btn">
-                  <input id="heroDesktopFile" type="file" accept="image/*" data-upload-target="heroDesktop">
+                  <input id="heroDesktopFile" type="file" accept="image/*,video/mp4,video/webm,video/quicktime" data-upload-target="heroDesktop">
                   <span>Загрузить новый фон</span>
                 </label>
               </div>
@@ -139,7 +141,7 @@
                   <input id="heroMobile" name="heroMobile" type="text" placeholder="/assets/images/hero-mobile.jpg">
                 </label>
                 <label class="upload-btn">
-                  <input id="heroMobileFile" type="file" accept="image/*" data-upload-target="heroMobile">
+                  <input id="heroMobileFile" type="file" accept="image/*,video/mp4,video/webm,video/quicktime" data-upload-target="heroMobile">
                   <span>Загрузить новый фон</span>
                 </label>
               </div>
@@ -306,8 +308,8 @@
           </div>
           <div class="gallery-admin-toolbar">
             <label class="upload-btn gallery-upload-btn">
-              <input id="galleryImagesUpload" type="file" accept="image/*" multiple>
-              <span>+ Добавить фотографии</span>
+              <input id="galleryImagesUpload" type="file" accept="image/*,video/mp4,video/webm,video/quicktime" multiple>
+              <span>+ Добавить фото / видео</span>
             </label>
             <div class="gallery-admin-help">Для каждого изображения можно задать описание EN/RU, шрифт подписи, порядок, видимость и поворот.</div>
           </div>
@@ -318,6 +320,23 @@
           <div class="save-note">Все изменения галереи применятся после сохранения.</div>
           <button id="saveGallerySettings" class="primary-btn large" type="button">Сохранить галерею</button>
         </div>
+      </section>
+
+
+      <section id="aboutEditor" class="editor-form" hidden>
+        <section class="device-card">
+          <div class="device-card-head"><div><span class="device-badge">ABOUT</span><h2>Редактор страницы ABOUT</h2></div><a class="secondary-btn" href="/about.html" target="_blank" rel="noreferrer">Открыть ABOUT ↗</a></div>
+          <div class="contact-admin-grid">
+            <label class="field span-2"><span>Текст EN (можно использовать HTML: &lt;strong&gt;, &lt;em&gt;, &lt;u&gt;, &lt;mark&gt;)</span><textarea id="aboutHtmlAdmin" rows="10"></textarea></label>
+            <label class="field span-2"><span>Текст RU</span><textarea id="aboutHtmlRuAdmin" rows="10"></textarea></label>
+            <label class="field"><span>Основной шрифт</span><select id="aboutFontAdmin" class="font-select" data-default-label="Текущий дизайн"></select></label>
+            <label class="field"><span>Размер текста на ПК, px</span><input id="aboutFontSizeDesktop" type="number" min="12" max="90" step="1" value="36"></label>
+            <label class="field"><span>Размер текста на телефоне, px</span><input id="aboutFontSizeMobile" type="number" min="10" max="60" step="1" value="24"></label>
+            <label class="field span-2"><span>Фото / видео страницы</span><input id="aboutMediaAdmin" placeholder="/assets/images/about-copy-psd.png"></label>
+            <label class="upload-btn span-2"><input id="aboutMediaFile" type="file" accept="image/*,video/mp4,video/webm,video/quicktime"><span>Загрузить фото / видео</span></label>
+          </div>
+        </section>
+        <div class="form-actions"><div class="save-note">Текст и медиа применятся после сохранения.</div><button id="saveAboutSettings" class="primary-btn large" type="button">Сохранить ABOUT</button></div>
       </section>
 
       <section id="instagramEditor" class="editor-form" hidden>
@@ -342,6 +361,11 @@
             <label class="field"><span>Телефон</span><input id="contactPhoneAdmin" placeholder="+33 ..."></label>
             <label class="field"><span>Адрес EN</span><input id="contactAddressEn"></label>
             <label class="field"><span>Адрес RU</span><input id="contactAddressRu"></label>
+            <div class="span-2 legal-seller-admin-title"><strong>Данные частного продавца для Terms / Privacy</strong><small>Не указывайте компанию, если продажи ведёт физическое лицо. Заполните реальными данными перед запуском.</small></div>
+            <label class="field"><span>ФИО продавца</span><input id="sellerNameAdmin" autocomplete="off"></label>
+            <label class="field"><span>Страна проживания</span><input id="sellerCountryAdmin" autocomplete="off"></label>
+            <label class="field span-2"><span>Адрес продавца</span><input id="sellerAddressAdmin" autocomplete="off"></label>
+            <label class="field span-2"><span>Email для юридических запросов</span><input id="legalEmailAdmin" type="email" autocomplete="off"></label>
           </div>
         </section>
       </section>
@@ -359,8 +383,6 @@
               <div class="form-grid two">
                 <label class="field"><span>Текст кнопки EN</span><input id="supportButtonTextEn" value="SUPPORT"></label>
                 <label class="field"><span>Текст кнопки RU</span><input id="supportButtonTextRu" value="ПОДДЕРЖКА"></label>
-                <label class="field"><span>Заголовок EN</span><input id="supportTitleEn" value="START A CHAT"></label>
-                <label class="field"><span>Заголовок RU</span><input id="supportTitleRu" value="НАЧАТЬ ЧАТ"></label>
                 <label class="field span-2"><span>Сообщение EN</span><input id="supportGreetingEn" value="Thanks for stopping by! How can I help you?"></label>
                 <label class="field span-2"><span>Сообщение RU</span><input id="supportGreetingRu" value="Спасибо, что заглянули! Чем я могу помочь?"></label>
                 <label class="field"><span>Поле email EN</span><input id="supportEmailPlaceholderEn" value="YOUR EMAIL"></label>
@@ -374,7 +396,7 @@
               <h3>Фон, поля и шрифты</h3>
               <div class="form-grid two">
                 <label class="field span-2"><span>Фоновое изображение окна</span><input id="supportBackgroundImage" placeholder="/assets/images/support-cross-pattern.png"></label>
-                <label class="upload-btn span-2"><input id="supportBackgroundFile" type="file" accept="image/*"><span>Загрузить фото для фона</span></label>
+                <label class="upload-btn span-2"><input id="supportBackgroundFile" type="file" accept="image/*,video/mp4,video/webm,video/quicktime"><span>Загрузить фото / видео для фона</span></label>
                 <label class="field"><span>Фон кнопки</span><input id="supportButtonBg" type="color" value="#000000"></label>
                 <label class="field"><span>Цвет текста кнопки</span><input id="supportButtonColor" type="color" value="#ffffff"></label>
                 <label class="field"><span>Фон полей</span><input id="supportFieldBg" type="color" value="#000000"></label>
@@ -388,7 +410,6 @@
               <div id="supportAdminPreview" class="support-admin-preview">
                 <div class="support-preview-brand">DEMI DEVILLE</div>
                 <div class="support-preview-body">
-                  <div id="supportPreviewTitle" class="support-preview-title">START A CHAT</div>
                   <div id="supportPreviewGreeting" class="support-preview-greeting">Thanks for stopping by! How can I help you?</div>
                   <div id="supportPreviewEmail" class="support-preview-field">YOUR EMAIL</div>
                   <div id="supportPreviewMessage" class="support-preview-field support-preview-message">HOW CAN WE HELP?</div>
@@ -436,6 +457,19 @@
         </div>
       </section>
 
+      <section id="mailEditor" class="editor-form" hidden>
+        <section class="device-card">
+          <div class="device-card-head"><div><span class="device-badge">ПОЧТА</span><h2>Рассылки</h2></div></div>
+          <div class="simple-admin-form">
+            <p class="admin-help-text">SMTP подключается через переменные Railway: SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASS, MAIL_FROM и SUPPORT_TO. Пароль почты в админке не хранится.</p>
+            <label class="field"><span>Тема рассылки</span><input id="newsletterSubject" value="DEMI DEVILLE"></label>
+            <label class="field"><span>Текст рассылки</span><textarea id="newsletterMessage" rows="10"></textarea></label>
+            <button id="sendNewsletter" class="primary-btn" type="button">Отправить подписчикам</button>
+            <div id="newsletterResult" class="notice" aria-live="polite"></div>
+          </div>
+        </section>
+      </section>
+
     </main>
   </div>
 
@@ -456,7 +490,11 @@
             <h3>Основная информация</h3>
             <div class="form-grid two">
               <label class="field"><span>ID / slug товара</span><input id="productId" type="text" placeholder="my-product"></label>
-              <label class="field"><span>Цена</span><input id="productPriceAdmin" type="number" min="0" step="0.01" value="0"></label>
+              <label class="field"><span>Режим цены</span><select id="productPriceMode"><option value="number">Числом</option><option value="text">Текстом</option><option value="hidden">Скрыть цену</option></select></label>
+              <label class="field"><span>Цена для расчёта</span><input id="productPriceAdmin" type="number" min="0" step="0.01" value="0"></label>
+              <label class="field"><span>Текст цены EN</span><input id="productPriceTextEn" placeholder="Price on request"></label>
+              <label class="field"><span>Текст цены RU</span><input id="productPriceTextRu" placeholder="Цена по запросу"></label>
+              <label class="check-control"><input id="productPurchasable" type="checkbox" checked> Разрешить покупку онлайн</label>
               <label class="field"><span>Название EN</span><input id="productNameEn" type="text" required></label>
               <label class="field"><span>Название RU</span><input id="productNameRu" type="text"></label>
               <label class="field"><span>Материал / состав EN</span><input id="productFabricEn" type="text"></label>
@@ -476,8 +514,8 @@
           <section class="product-editor-section">
             <div class="section-title-row"><h3>Изображения</h3><span class="section-note">Первое изображение используется как основное.</span></div>
             <label class="upload-btn multi-upload-btn">
-              <input id="productImagesUpload" type="file" accept="image/*" multiple>
-              <span>+ Загрузить изображения</span>
+              <input id="productImagesUpload" type="file" accept="image/*,video/mp4,video/webm,video/quicktime" multiple>
+              <span>+ Загрузить фото / видео</span>
             </label>
             <div id="productImagesPreview" class="product-images-preview"></div>
           </section>
@@ -500,6 +538,6 @@
     </section>
   </div>
 
-  <script src="/assets/js/admin.js?v=20260917-v18"></script>
+  <script src="/assets/js/admin.js?v=20260918-v22"></script>
 </body>
 </html>

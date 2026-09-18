@@ -29,7 +29,7 @@
     'PayPal':'PayPal','ApplePay':'ApplePay','GooglePay':'GooglePay','Crypto payment':'Оплата криптовалютой',
     'Card payment':'Оплата картой','Kontakt':'Контакты','Delivery':'Доставка',
     'coutry/region':'Страна/регион','Poland':'Польша','Ukraine':'Украина','Germany':'Германия','France':'Франция',
-    'United States':'США','First Name':'Имя','Last Name':'Фамилия','Address':'Адрес',
+    'United States':'США','Country / Region':'Страна / регион','First Name':'Имя','Last Name':'Фамилия','Address':'Адрес',
     'Apartment, suite, etc. (optional)':'Квартира, офис и т. д. (необязательно)',
     'Postal Code':'Почтовый индекс','City':'Город','Phone':'Телефон',
     'Save this information for next time':'Сохранить данные для следующего раза',

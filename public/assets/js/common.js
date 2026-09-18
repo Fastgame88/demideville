@@ -3,6 +3,26 @@ const $ = (s,root=document)=>root.querySelector(s);
 const $$ = (s,root=document)=>[...root.querySelectorAll(s)];
 const esc = v => String(v??'').replace(/[&<>'"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;","'":"&#39;",'"':'&quot;'}[c]));
 function money(v,s='$'){ return `${Number(v||0).toFixed(Number(v)%1?2:0)}${s}`; }
+function ddIsVideo(url=''){return /\.(?:mp4|webm|mov|m4v)(?:[?#].*)?$/i.test(String(url||''))}
+function ddMediaHtml(url,{className='',alt='',eager=false,muted=true,loop=true,controls=false}={}){
+  const src=esc(url||'');if(!src)return'';
+  if(ddIsVideo(url))return `<video class="${esc(className)}" src="${src}" ${muted?'muted ':''}${loop?'loop ':''}playsinline ${eager?'autoplay preload="metadata"':`preload="none" data-dd-autoplay="${muted&&loop?'1':'0'}"`} ${controls?'controls ':''}aria-label="${esc(alt)}"></video>`;
+  return `<img class="${esc(className)}" src="${src}" alt="${esc(alt)}" loading="${eager?'eager':'lazy'}" ${eager?'fetchpriority="high"':'fetchpriority="low"'} decoding="async">`;
+}
+function ddActivateLazyVideos(root=document){
+  const videos=[...root.querySelectorAll('video[data-dd-autoplay="1"]')];if(!videos.length)return;
+  if(!('IntersectionObserver' in window)){videos.forEach(v=>v.play().catch(()=>{}));return}
+  const observer=new IntersectionObserver(entries=>entries.forEach(entry=>{const v=entry.target;if(entry.isIntersecting){v.play().catch(()=>{})}else{v.pause()}}),{rootMargin:'180px 0px',threshold:.05});
+  videos.forEach(v=>observer.observe(v));
+}
+function ddProductPriceLabel(product,currency='$',lang=(document.documentElement.lang==='ru'?'ru':'en')){
+  const mode=String(product?.priceMode||'number');
+  if(mode==='hidden')return'';
+  if(mode==='text')return String(lang==='ru'?(product?.priceTextRu||product?.priceText||''):(product?.priceText||product?.priceTextRu||''));
+  return money(product?.price,currency);
+}
+function ddProductPurchasable(product){const mode=String(product?.priceMode||'number');return product?.purchasable!==false&&mode!=='hidden'&&Number.isFinite(Number(product?.price))}
+window.ddIsVideo=ddIsVideo;window.ddMediaHtml=ddMediaHtml;window.ddActivateLazyVideos=ddActivateLazyVideos;window.ddProductPriceLabel=ddProductPriceLabel;window.ddProductPurchasable=ddProductPurchasable;
 function getToken(){return localStorage.getItem('dd_token')||sessionStorage.getItem('dd_token')||''}
 function authHeaders(){const t=getToken(); return t?{'Authorization':`Bearer ${t}`}:{}}
 let DD_CURRENT_USER_PROMISE=null;
@@ -107,6 +127,8 @@ function getMenuConfig(settings={}){
       shop.items=[allItem,...generated,...other];
     }
   }
+  if(!mobileLinks.some(x=>x.id==='instagram'))mobileLinks.push(normalizeMenuItem({id:'instagram',labelEn:'INSTAGRAM',labelRu:'INSTAGRAM',href:settings.instagram||'#',enabled:!!settings.instagram},{},contact));
+  if(!mobileLinks.some(x=>x.id==='contact'))mobileLinks.push(normalizeMenuItem({id:'contact',labelEn:'CONTACT',labelRu:'КОНТАКТЫ',href:'/contact.html',enabled:true},{},contact));
   return {groups,mobileLinks};
 }
 function menuLang(){return document.documentElement.lang==='ru'?'ru':'en'}
@@ -165,7 +187,7 @@ function applySupportRuntimeStyles(settings={}){
   const bg=String(cfg.backgroundImage||'').replace(/["'\\()]/g,m=>'\\'+m);
   root.setProperty('--dd-support-button-bg',cfg.buttonBg);root.setProperty('--dd-support-button-color',cfg.buttonColor);
   root.setProperty('--dd-support-field-bg',cfg.fieldBg);root.setProperty('--dd-support-field-color',cfg.fieldColor);
-  root.setProperty('--dd-support-bg-image',bg?`url("${bg}")`:'none');
+  root.setProperty('--dd-support-bg-image',bg&&!ddIsVideo(cfg.backgroundImage)?`url("${bg}")`:'none');
   root.setProperty('--dd-support-button-font',cfg.buttonFont||'"Benzin Semibold","Benzin-Semibold","Arial Black",Arial,sans-serif');
   root.setProperty('--dd-support-window-font',cfg.windowFont||'"DD Oswald","Arial Narrow",Arial,sans-serif');
 }
@@ -265,7 +287,7 @@ async function renderChrome({home=false}={}){
   const menu=getMenuConfig(s),lang=menuLang();
   if(currentUser){
     const loginGroup=menu.groups.find(g=>g.id==='login');
-    if(loginGroup){loginGroup.labelEn='ACCOUNT';loginGroup.labelRu='АККАУНТ';loginGroup.href='/account.html';loginGroup.items=(loginGroup.items||[]).map(item=>item.id==='register'?{...item,enabled:false}:item.id==='account'?{...item,href:'/account.html',showMobile:true}:item)}
+    if(loginGroup){loginGroup.labelEn='ACCOUNT';loginGroup.labelRu='АККАУНТ';loginGroup.href='/account.html';loginGroup.items=(loginGroup.items||[]).map(item=>item.id==='register'?{...item,enabled:false}:item.id==='account'?{...item,href:'/account.html',showMobile:false}:item)}
   }
   applyMenuRuntimeStyles(s);
   applySupportRuntimeStyles(s);
@@ -340,8 +362,8 @@ function mountSharedChrome(site,menu=getMenuConfig(site.settings||{}),currentUse
         <button id="sharedSupportClose" class="support-close" type="button" aria-label="${tr('Close support')}">×</button>
         <div class="support-panel">
           <div class="support-brand">DEMI DEVILLE</div>
+          ${ddIsVideo(supportCfg.backgroundImage)?`<video class="support-background-video" src="${esc(supportCfg.backgroundImage)}" autoplay muted loop playsinline preload="metadata"></video>`:''}
           <div class="support-chat-body support-email-body">
-            <div class="support-start support-form-heading">${esc(supportCfg.title)}</div>
             <div class="support-mobile-intro">${esc(supportCfg.greeting)}</div>
             <form id="sharedSupportForm" class="support-form" novalidate>
               <input id="sharedSupportEmail" class="support-form-input" name="email" type="email" autocomplete="email" required placeholder="${esc(supportCfg.emailPlaceholder)}">

@@ -3,7 +3,7 @@
   const s=site.settings||{};
   const currentUser=window.ddCurrentUser?await window.ddCurrentUser():null;
   const menuConfig=window.ddGetMenuConfig?window.ddGetMenuConfig(s):{groups:[],mobileLinks:[]};
-  if(currentUser){const loginGroup=(menuConfig.groups||[]).find(g=>g.id==='login');if(loginGroup){loginGroup.labelEn='ACCOUNT';loginGroup.labelRu='АККАУНТ';loginGroup.href='/account.html';loginGroup.items=(loginGroup.items||[]).map(item=>item.id==='register'?{...item,enabled:false}:item.id==='account'?{...item,href:'/account.html',showMobile:true}:item)}}
+  if(currentUser){const loginGroup=(menuConfig.groups||[]).find(g=>g.id==='login');if(loginGroup){loginGroup.labelEn='ACCOUNT';loginGroup.labelRu='АККАУНТ';loginGroup.href='/account.html';loginGroup.items=(loginGroup.items||[]).map(item=>item.id==='register'?{...item,enabled:false}:item.id==='account'?{...item,href:'/account.html',showMobile:false}:item)}}
   window.ddApplyMenuRuntimeStyles?.(s);
   window.ddApplySupportRuntimeStyles?.(s);
   const clampPct=(value,fallback=35)=>{const n=Number(value);return Number.isFinite(n)?Math.max(0,Math.min(100,n)):fallback};
@@ -31,7 +31,6 @@
   const supportMessage=$('#supportMessage');
   const supportSubmit=$('#supportSubmit');
   const supportFormStatus=$('#supportFormStatus');
-  const supportHeading=$('#supportHeading');
   const supportGreeting=$('#supportGreeting');
   if(currentUser?.email&&supportSenderEmail)supportSenderEmail.value=currentUser.email;
   const mobileMenu=$('#homeMobileMenu');
@@ -40,15 +39,26 @@
 
   const brand=s.heroTitle||s.brand||'DEMI DEVILLE';
   if(title){
-    title.textContent=brand;title.classList.add('reference-brand');title.tabIndex=0;title.setAttribute('role','link');
-    title.addEventListener('click',()=>location.reload());
-    title.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();location.reload()}});
+    title.textContent=brand;title.classList.add('reference-brand','home-brand-interactive');title.tabIndex=0;title.setAttribute('role','button');
+    const shimmer=()=>{title.classList.remove('brand-flash');void title.offsetWidth;title.classList.add('brand-flash');setTimeout(()=>title.classList.remove('brand-flash'),360)};
+    title.addEventListener('click',shimmer);
+    title.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();shimmer()}});
   }
   if(mobileBrand)mobileBrand.textContent=s.brand||'DEMI DEVILLE';
 
   const desktopHero=s.heroDesktop||'/assets/images/hero.jpg';
   const mobileHero=s.heroMobile||'/assets/images/hero-mobile.jpg';
-  const syncHero=()=>{if(!hero)return;const next=window.matchMedia('(max-width:900px)').matches?mobileHero:desktopHero;if(hero.getAttribute('src')!==next)hero.setAttribute('src',next)};
+  const syncHero=()=>{
+    const next=window.matchMedia('(max-width:900px)').matches?mobileHero:desktopHero;
+    let current=document.querySelector('.home .hero-image');
+    const wantsVideo=window.ddIsVideo?.(next);
+    if(wantsVideo&&current?.tagName!=='VIDEO'){
+      const video=document.createElement('video');video.id='heroImage';video.className='hero-image';video.autoplay=true;video.muted=true;video.loop=true;video.playsInline=true;video.preload='metadata';current?.replaceWith(video);current=video;
+    }else if(!wantsVideo&&current?.tagName!=='IMG'){
+      const img=document.createElement('img');img.id='heroImage';img.className='hero-image';img.alt='DEMI DEVILLE editorial';img.decoding='async';current?.replaceWith(img);current=img;
+    }
+    if(current&&current.getAttribute('src')!==next){current.setAttribute('src',next);if(current.tagName==='VIDEO')current.play().catch(()=>{})}
+  };
   syncHero();addEventListener('resize',syncHero,{passive:true});
 
   const dict={
@@ -82,7 +92,6 @@
     document.querySelectorAll('[data-i18n-placeholder]').forEach(el=>{const k=el.dataset.i18nPlaceholder;if(dict[lang][k])el.placeholder=dict[lang][k]});
     const cfg=window.ddSupportConfig?window.ddSupportConfig(s,lang):{buttonText:dict[lang].support,title:dict[lang].startChat,greeting:dict[lang].greeting,emailPlaceholder:dict[lang].yourEmail,messagePlaceholder:dict[lang].yourMessage,send:dict[lang].send};
     if(supportOpen)supportOpen.textContent=cfg.buttonText;
-    if(supportHeading)supportHeading.textContent=cfg.title;
     if(supportGreeting)supportGreeting.textContent=cfg.greeting;
     if(supportSenderEmail)supportSenderEmail.placeholder=cfg.emailPlaceholder;
     if(supportMessage)supportMessage.placeholder=cfg.messagePlaceholder;
@@ -92,6 +101,19 @@
     localStorage.setItem('demi-lang',lang);
   }
   applyLang();
+
+  // Home support accepts either the original repeating image or an uploaded video.
+  if(supportWindow){
+    const panel=supportWindow.querySelector('.support-panel');
+    const oldVideo=panel?.querySelector('.support-background-video');
+    oldVideo?.remove();
+    if(panel&&window.ddIsVideo?.(s.supportBackgroundImage)){
+      const bg=document.createElement('video');
+      bg.className='support-background-video';bg.src=s.supportBackgroundImage;bg.autoplay=true;bg.muted=true;bg.loop=true;bg.playsInline=true;bg.preload='metadata';
+      panel.insertBefore(bg,panel.querySelector('.support-chat-body'));
+      bg.play().catch(()=>{});
+    }
+  }
 
   const setMenu=open=>{if(!mobileMenu)return;mobileMenu.classList.toggle('open',open);mobileMenu.setAttribute('aria-hidden',String(!open));document.body.classList.toggle('mobile-menu-open',open)};
   menuOpen?.addEventListener('click',()=>setMenu(!mobileMenu?.classList.contains('open')));

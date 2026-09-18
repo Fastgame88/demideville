@@ -90,3 +90,26 @@ node server.js
 ## Для продакшену
 
 Поточна збірка максимально проста для локального запуску без npm-пакетів і зовнішньої БД. Перед публічним запуском бажано винести дані в PostgreSQL/MySQL, поставити HTTPS/reverse proxy, SMTP для листів, реальний payment provider і резервні копії.
+
+---
+
+## Оновлення 18.09.2026
+
+Ця збірка підтримує Railway PostgreSQL через `DATABASE_URL`. Без `DATABASE_URL` для локальної розробки автоматично використовується `data/db.json`. Детальна інструкція: `RAILWAY_SETUP_RU.md`.
+
+Основні нові можливості:
+- PostgreSQL як production-сховище стану сайту;
+- кешування, Brotli/Gzip і lazy-loading медіа;
+- фото товарів без деформації та збільшення фото при натисканні;
+- фото/відео для фону головної, SUPPORT, ABOUT, товарів і Gallery;
+- Gallery з нормальним вертикальним скролом;
+- редактор ABOUT в адмінці;
+- прихована або текстова ціна товару;
+- до 8 товарів на сторінці SHOP;
+- розширений список країн і окремі First name / Last name;
+- Instagram і Contact у мобільному меню;
+- SMTP для SUPPORT, підтверджень замовлень та розсилок;
+- Terms & Conditions та Privacy Policy EN/RU;
+- постійні uploads через `UPLOAD_DIR` + Railway Volume.
+
+> Старий розділ вище про зберігання тільки в `data/db.json` стосується локального fallback-режиму. У production рекомендується PostgreSQL.

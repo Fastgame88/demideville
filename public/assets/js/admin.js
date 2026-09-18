@@ -119,13 +119,20 @@ function populateFonts(){
 }
 populateFonts();
 
+// Browser password managers must not expose saved admin credentials to every visitor.
+(function guardAdminAutofill(){
+  const form=$('#adminLogin');if(!form)return;const inputs=[...form.querySelectorAll('[data-autofill-guard]')];
+  const unlock=e=>{e.currentTarget.readOnly=false};inputs.forEach(input=>{input.value='';input.addEventListener('pointerdown',unlock,{once:true});input.addEventListener('focus',unlock,{once:true})});
+  [80,350,900].forEach(ms=>setTimeout(()=>{if(!token)inputs.forEach(input=>{if(document.activeElement!==input)input.value=''})},ms));
+})();
+
 async function boot(){
   if(!token)return showLogin();
   try{
     const me=await api('/api/auth/me');
     if(me.user.role!=='admin')throw new Error('Доступ разрешён только администратору');
     $('#adminUser').textContent=me.user.email;$('#loginView').hidden=true;$('#loginView').style.display='none';$('#adminView').hidden=false;window.scrollTo(0,0);
-    const state=await api('/api/admin/state');adminState=state||{};settings=state.settings||{};productsDraft=Array.isArray(state.products)?state.products.map(clone):[];galleryDraft=Array.isArray(state.gallery)?state.gallery.map(clone):[];shopCategoriesDraft=normalizeShopCategories(settings.shopCategories);paymentMethodsDraft=normalizePaymentMethods(settings.paymentMethods);fillForm();fillShopEditor();fillGalleryEditor();fillExternalEditors();fillSupportEditor();renderOrdersAdmin();renderClientsAdmin();renderPaymentEditor();switchAdminTab(currentAdminTab);
+    const state=await api('/api/admin/state');adminState=state||{};settings=state.settings||{};productsDraft=Array.isArray(state.products)?state.products.map(clone):[];galleryDraft=Array.isArray(state.gallery)?state.gallery.map(clone):[];shopCategoriesDraft=normalizeShopCategories(settings.shopCategories);paymentMethodsDraft=normalizePaymentMethods(settings.paymentMethods);fillForm();fillShopEditor();fillGalleryEditor();fillAboutEditor();fillExternalEditors();fillSupportEditor();renderOrdersAdmin();renderClientsAdmin();renderPaymentEditor();switchAdminTab(currentAdminTab);
   }catch(e){token='';showLogin(e.message)}
 }
 $('#adminLogin').addEventListener('submit',async e=>{
@@ -164,7 +171,9 @@ function fillForm(){
   menuDraft=normalizeMenu(settings.menuConfig);renderMenuEditor();updatePreview();
 }
 function updatePreview(){
-  const dImg=$('#heroDesktop').value.trim(),mImg=$('#heroMobile').value.trim();$('#desktopPreview').style.backgroundImage=cssImage(dImg);$('#mobilePreview').style.backgroundImage=cssImage(mImg);
+  const dImg=$('#heroDesktop').value.trim(),mImg=$('#heroMobile').value.trim();
+  const applyPreviewMedia=(preview,url)=>{if(!preview)return;preview.querySelector('.admin-preview-video')?.remove();const isVideo=/\.(mp4|webm|mov|m4v)(?:[?#].*)?$/i.test(url);preview.style.backgroundImage=isVideo?'none':cssImage(url);if(isVideo){const v=document.createElement('video');v.className='admin-preview-video';v.src=url;v.autoplay=true;v.muted=true;v.loop=true;v.playsInline=true;v.preload='metadata';preview.prepend(v);v.play().catch(()=>{})}};
+  applyPreviewMedia($('#desktopPreview'),dImg);applyPreviewMedia($('#mobilePreview'),mImg);
   const d=clampPercent($('#homeDesktopOverlayOpacity').value,35),m=clampPercent($('#homeMobileOverlayOpacity').value,35);$('#desktopPreviewOverlay').style.background=`rgba(0,0,0,${d/100})`;$('#mobilePreviewOverlay').style.background=`rgba(0,0,0,${m/100})`;
   const df=$('#homeDesktopFont').value,mf=$('#homeMobileFont').value;$('#desktopPreview').style.fontFamily=df||'';$('#desktopFontSample').style.fontFamily=df||'';$('#mobilePreview').style.fontFamily=mf||'';$('#mobileFontSample').style.fontFamily=mf||'';
   const shop=menuDraft.groups.find(g=>g.id==='shop')||menuDraft.groups[0],login=menuDraft.groups.find(g=>g.id==='login')||menuDraft.groups[1];
@@ -249,7 +258,7 @@ async function save(){
   try{setBusy(true);settings=await api('/api/admin/settings',{method:'PUT',body:JSON.stringify(payload())});fillForm();showNotice('Изменения сохранены.')}catch(e){showNotice(e.message,'error')}finally{setBusy(false)}
 }
 $('#homeSettingsForm').addEventListener('submit',async e=>{e.preventDefault();await save()});
-$('#saveTop').addEventListener('click',()=>currentAdminTab==='shop'?saveShopSettings():currentAdminTab==='gallery'?saveGallerySettings():currentAdminTab==='instagram'?saveInstagramSettings():currentAdminTab==='contact'?saveContactSettings():currentAdminTab==='support'?saveSupportSettings():currentAdminTab==='payment'?savePaymentSettings():(currentAdminTab==='clients'||currentAdminTab==='orders')?Promise.resolve():save());
+$('#saveTop').addEventListener('click',()=>currentAdminTab==='shop'?saveShopSettings():currentAdminTab==='gallery'?saveGallerySettings():currentAdminTab==='about'?saveAboutSettings():currentAdminTab==='instagram'?saveInstagramSettings():currentAdminTab==='contact'?saveContactSettings():currentAdminTab==='support'?saveSupportSettings():currentAdminTab==='payment'?savePaymentSettings():(currentAdminTab==='clients'||currentAdminTab==='orders')?Promise.resolve():save());
 
 function slugify(value){
   return String(value||'').trim().toLowerCase()
@@ -289,22 +298,24 @@ function fillShopEditor(){
   renderProductsAdmin();
 }
 function switchAdminTab(tab){
-  const allowed=['home','shop','gallery','instagram','contact','support','orders','clients','payment'];
+  const allowed=['home','shop','gallery','about','instagram','contact','support','orders','clients','payment','mail'];
   currentAdminTab=allowed.includes(tab)?tab:'home';
   $$('#adminView [data-admin-tab]').forEach(btn=>btn.classList.toggle('active',btn.dataset.adminTab===currentAdminTab));
   $('#homeSettingsForm').hidden=currentAdminTab!=='home';
   $('#shopEditor').hidden=currentAdminTab!=='shop';
   $('#galleryEditor').hidden=currentAdminTab!=='gallery';
+  $('#aboutEditor').hidden=currentAdminTab!=='about';
   $('#instagramEditor').hidden=currentAdminTab!=='instagram';
   $('#contactEditor').hidden=currentAdminTab!=='contact';
   $('#supportEditor').hidden=currentAdminTab!=='support';
   $('#ordersEditor').hidden=currentAdminTab!=='orders';
   $('#clientsEditor').hidden=currentAdminTab!=='clients';
   $('#paymentEditor').hidden=currentAdminTab!=='payment';
-  const titles={home:'Главная страница',shop:'SHOP',gallery:'Галерея',instagram:'Instagram',contact:'Контакты',support:'Поддержка',orders:'Заказы',clients:'Клиенты',payment:'Оплата'};
+  $('#mailEditor').hidden=currentAdminTab!=='mail';
+  const titles={home:'Главная страница',shop:'SHOP',gallery:'Галерея',about:'ABOUT',instagram:'Instagram',contact:'Контакты',support:'Поддержка',orders:'Заказы',clients:'Клиенты',payment:'Оплата',mail:'Почта'};
   $('#workspaceTitle').textContent=titles[currentAdminTab]||'Главная страница';
-  const saveTop=$('#saveTop');saveTop.hidden=currentAdminTab==='clients'||currentAdminTab==='orders';
-  saveTop.textContent=currentAdminTab==='shop'?'Сохранить магазин':currentAdminTab==='gallery'?'Сохранить галерею':currentAdminTab==='instagram'?'Сохранить Instagram':currentAdminTab==='contact'?'Сохранить контакты':currentAdminTab==='support'?'Сохранить поддержку':currentAdminTab==='payment'?'Сохранить оплату':'Сохранить';
+  const saveTop=$('#saveTop');saveTop.hidden=currentAdminTab==='clients'||currentAdminTab==='orders'||currentAdminTab==='mail';
+  saveTop.textContent=currentAdminTab==='shop'?'Сохранить магазин':currentAdminTab==='gallery'?'Сохранить галерею':currentAdminTab==='about'?'Сохранить ABOUT':currentAdminTab==='instagram'?'Сохранить Instagram':currentAdminTab==='contact'?'Сохранить контакты':currentAdminTab==='support'?'Сохранить поддержку':currentAdminTab==='payment'?'Сохранить оплату':'Сохранить';
   if(currentAdminTab==='clients')renderClientsAdmin();
   if(currentAdminTab==='orders')renderOrdersAdmin();
   if(currentAdminTab==='support')updateSupportPreview();
@@ -372,7 +383,7 @@ function renderProductsAdmin(){
       <div class="product-admin-copy">
         <div class="product-admin-name">${esc(p.name||'Без названия')}</div>
         <div class="product-admin-ru">${esc(p.nameRu||'RU не заполнено')}</div>
-        <div class="product-admin-meta"><span>${esc(String(p.price??0))}${esc(settings.currency||'$')}</span><span>${p.active===false?'Скрыт':'Показывается'}</span><span>Фото: ${images.length}</span><span>Остаток: ${stock}</span>${cats.slice(0,3).map(c=>`<b class="shop-category-pill">${esc(c)}</b>`).join('')}</div>
+        <div class="product-admin-meta"><span>${esc(p.priceMode==='hidden'?'Цена скрыта':p.priceMode==='text'?(p.priceTextRu||p.priceText||'Текстовая цена'):`${String(p.price??0)}${settings.currency||'$'}`)}</span><span>${p.active===false?'Скрыт':'Показывается'}</span><span>Фото: ${images.length}</span><span>Остаток: ${stock}</span>${cats.slice(0,3).map(c=>`<b class="shop-category-pill">${esc(c)}</b>`).join('')}</div>
       </div>
       <div class="product-admin-actions"><label class="check-control compact"><input type="checkbox" data-toggle-product-active="${esc(p.id)}" ${p.active!==false?'checked':''}> Показывать</label><button class="secondary-btn small" type="button" data-edit-product="${esc(p.id)}">Редактировать</button></div>
     </article>`;
@@ -392,9 +403,9 @@ function selectedProductCategories(){return $$('#productCategoryChecks input[typ
 function renderProductImages(){
   const box=$('#productImagesPreview');if(!box)return;
   box.innerHTML=productImagesDraft.map((url,i)=>`<div class="product-image-admin-card${i===0?' is-primary':''}" data-image-index="${i}">
-    ${i===0?'<span class="image-primary-label">ОСНОВНОЕ</span>':''}<img src="${esc(url)}" alt="">
+    ${i===0?'<span class="image-primary-label">ОСНОВНОЕ</span>':''}${/\.(mp4|webm|mov|m4v)(?:[?#].*)?$/i.test(url)?`<video src="${esc(url)}" muted loop autoplay playsinline></video>`:`<img src="${esc(url)}" alt="">`}
     <div class="product-image-admin-actions"><button type="button" data-make-primary ${i===0?'disabled':''}>${i===0?'Основное':'Сделать главным'}</button><button class="image-remove" type="button" data-remove-image>×</button></div>
-  </div>`).join('')||'<div class="empty-admin-list">Изображения ещё не добавлены.</div>';
+  </div>`).join('')||'<div class="empty-admin-list">Медиа ещё не добавлены.</div>';
 }
 $('#productImagesPreview')?.addEventListener('click',e=>{
   const card=e.target.closest('[data-image-index]');if(!card)return;const i=Number(card.dataset.imageIndex);
@@ -417,7 +428,7 @@ function openProductModal(productId){
   const p=productId?productsDraft.find(x=>String(x.id)===String(productId)):null;
   $('#productModalTitle').textContent=p?'Редактирование товара':'Новый товар';
   $('#productOriginalId').value=p?.id||'';$('#productId').value=p?.id||'';$('#productId').readOnly=!!p;
-  $('#productNameEn').value=p?.name||'';$('#productNameRu').value=p?.nameRu||'';$('#productPriceAdmin').value=Number(p?.price)||0;
+  $('#productNameEn').value=p?.name||'';$('#productNameRu').value=p?.nameRu||'';$('#productPriceAdmin').value=Number(p?.price)||0;$('#productPriceMode').value=p?.priceMode||'number';$('#productPriceTextEn').value=p?.priceText||'';$('#productPriceTextRu').value=p?.priceTextRu||'';$('#productPurchasable').checked=p?.purchasable!==false;
   $('#productFabricEn').value=p?.fabric||'';$('#productFabricRu').value=p?.fabricRu||'';$('#productDescriptionEn').value=p?.description||'';$('#productDescriptionRu').value=p?.descriptionRu||'';
   $('#productSort').value=Number(p?.sort)||((productsDraft.length+1)*10);$('#productActive').checked=p?.active!==false;
   productImagesDraft=productImagesOf(p||{});productSizesDraft=productSizesOf(p||{});if(!productSizesDraft.length)productSizesDraft=[{size:'XS',stock:0},{size:'S',stock:0},{size:'M',stock:0},{size:'L',stock:0},{size:'XL',stock:0}];
@@ -446,7 +457,7 @@ function productPayloadFromForm(){
   const name=$('#productNameEn').value.trim();let pid=original||slugify($('#productId').value||name)||uid('product');
   const variants=productSizesDraft.map(v=>({size:String(v.size||'').trim(),stock:Math.max(0,Math.floor(Number(v.stock)||0))})).filter(v=>v.size);
   const sizes=variants.filter(v=>v.stock>0).map(v=>v.size);
-  return {id:pid,name,nameRu:$('#productNameRu').value.trim(),price:Math.max(0,Number($('#productPriceAdmin').value)||0),description:$('#productDescriptionEn').value.trim(),descriptionRu:$('#productDescriptionRu').value.trim(),fabric:$('#productFabricEn').value.trim(),fabricRu:$('#productFabricRu').value.trim(),image:productImagesDraft[0]||'',images:clone(productImagesDraft),categories:selectedProductCategories(),variants,sizes,active:$('#productActive').checked,sort:Math.max(0,Math.floor(Number($('#productSort').value)||0))};
+  return {id:pid,name,nameRu:$('#productNameRu').value.trim(),price:Math.max(0,Number($('#productPriceAdmin').value)||0),priceMode:$('#productPriceMode').value||'number',priceText:$('#productPriceTextEn').value.trim(),priceTextRu:$('#productPriceTextRu').value.trim(),purchasable:$('#productPurchasable').checked,description:$('#productDescriptionEn').value.trim(),descriptionRu:$('#productDescriptionRu').value.trim(),fabric:$('#productFabricEn').value.trim(),fabricRu:$('#productFabricRu').value.trim(),image:productImagesDraft[0]||'',images:clone(productImagesDraft),categories:selectedProductCategories(),variants,sizes,active:$('#productActive').checked,sort:Math.max(0,Math.floor(Number($('#productSort').value)||0))};
 }
 $('#productEditorForm')?.addEventListener('submit',async e=>{
   e.preventDefault();const data=productPayloadFromForm();if(!data.name)return showNotice('Введите название товара на английском.','error');if(!data.image)return showNotice('Добавьте хотя бы одно изображение товара.','error');
@@ -504,7 +515,7 @@ function galleryItemNormalized(item,index){
   const rotation=((Math.round(Number(item?.rotation)||0)%360)+360)%360;
   return {
     id:String(item?.id||uid('gallery')),
-    image:String(item?.image||''),
+    image:String(item?.media||item?.image||''),media:String(item?.media||item?.image||''),
     caption:String(item?.caption||''),
     captionRu:String(item?.captionRu||''),
     captionFont:String(item?.captionFont||''),
@@ -521,7 +532,7 @@ function renderGalleryAdmin(){
   const box=$('#galleryAdminList');if(!box)return;
   if(!galleryDraft.length){box.innerHTML='<div class="empty-admin-list">В галерее пока нет изображений.</div>';return}
   box.innerHTML=galleryDraft.map((g,i)=>`<article class="gallery-admin-item${g.active===false?' is-hidden-gallery':''}" data-gallery-index="${i}">
-    <div class="gallery-admin-preview"><img src="${esc(g.image)}" alt="" style="transform:rotate(${Number(g.rotation)||0}deg)"></div>
+    <div class="gallery-admin-preview">${/\.(mp4|webm|mov|m4v)(?:[?#].*)?$/i.test(g.media||g.image)?`<video src="${esc(g.media||g.image)}" muted loop autoplay playsinline style="transform:rotate(${Number(g.rotation)||0}deg)"></video>`:`<img src="${esc(g.media||g.image)}" alt="" style="transform:rotate(${Number(g.rotation)||0}deg)">`}</div>
     <div class="gallery-admin-fields">
       <label class="field"><span>Описание / подпись EN</span><textarea data-gallery-field="caption" rows="3">${esc(g.caption)}</textarea></label>
       <label class="field"><span>Описание / подпись RU</span><textarea data-gallery-field="captionRu" rows="3">${esc(g.captionRu)}</textarea></label>
@@ -568,7 +579,7 @@ $('#galleryImagesUpload')?.addEventListener('change',async e=>{
   const files=[...(e.target.files||[])];if(!files.length)return;
   try{
     e.target.disabled=true;let nextSort=galleryDraft.reduce((m,x)=>Math.max(m,Number(x.sort)||0),0)+1;
-    for(const file of files){const out=await uploadGalleryFile(file);galleryDraft.push(galleryItemNormalized({id:uid('gallery'),image:out.url,caption:'',captionRu:'',captionFont:'',rotation:0,active:true,sort:nextSort++},galleryDraft.length))}
+    for(const file of files){const out=await uploadGalleryFile(file);galleryDraft.push(galleryItemNormalized({id:uid('gallery'),image:out.url,media:out.url,caption:'',captionRu:'',captionFont:'',rotation:0,active:true,sort:nextSort++},galleryDraft.length))}
     renderGalleryAdmin();showNotice('Фотографии загружены. Нажмите «Сохранить галерею».');
   }catch(err){showNotice(err.message,'error')}finally{e.target.disabled=false;e.target.value=''}
 });
@@ -579,7 +590,7 @@ async function saveGallerySettings(){
     const saved=[];
     for(let i=0;i<galleryDraft.length;i++){
       const item=galleryItemNormalized(galleryDraft[i],i);
-      if(!item.image)continue;
+      if(!item.media&&!item.image)continue;item.image=item.media||item.image;
       const body=JSON.stringify(item);
       const result=original.has(String(item.id))
         ?await api(`/api/admin/gallery/${encodeURIComponent(item.id)}`,{method:'PUT',body})
@@ -592,6 +603,18 @@ async function saveGallerySettings(){
 }
 $('#saveGallerySettings')?.addEventListener('click',saveGallerySettings);
 
+function fillAboutEditor(){
+  const set=(id,value)=>{const el=$(id);if(el)el.value=value??''};
+  set('#aboutHtmlAdmin',settings.aboutHtml||DEFAULT_ABOUT_EN);set('#aboutHtmlRuAdmin',settings.aboutHtmlRu||DEFAULT_ABOUT_RU);
+  selectValue($('#aboutFontAdmin'),settings.aboutFont||'');set('#aboutFontSizeDesktop',settings.aboutFontSizeDesktop||36);set('#aboutFontSizeMobile',settings.aboutFontSizeMobile||24);set('#aboutMediaAdmin',settings.aboutImage||'');
+}
+$('#aboutMediaFile')?.addEventListener('change',async e=>{const file=e.target.files?.[0];if(!file)return;try{e.target.disabled=true;const dataUrl=await new Promise((resolve,reject)=>{const r=new FileReader();r.onload=()=>resolve(r.result);r.onerror=reject;r.readAsDataURL(file)});const out=await api('/api/admin/upload',{method:'POST',body:JSON.stringify({dataUrl,filename:file.name})});$('#aboutMediaAdmin').value=out.url;showNotice('Медиа ABOUT загружено.')}catch(err){showNotice(err.message,'error')}finally{e.target.disabled=false;e.target.value=''}});
+async function saveAboutSettings(){
+  const payload={aboutHtml:$('#aboutHtmlAdmin').value,aboutHtmlRu:$('#aboutHtmlRuAdmin').value,aboutFont:$('#aboutFontAdmin').value,aboutFontSizeDesktop:clampNumber($('#aboutFontSizeDesktop').value,12,90,36),aboutFontSizeMobile:clampNumber($('#aboutFontSizeMobile').value,10,60,24),aboutImage:$('#aboutMediaAdmin').value.trim()};
+  try{setBusy(true);settings=await api('/api/admin/settings',{method:'PUT',body:JSON.stringify(payload)});fillAboutEditor();showNotice('ABOUT сохранён.')}catch(err){showNotice(err.message,'error')}finally{setBusy(false)}
+}
+$('#saveAboutSettings')?.addEventListener('click',saveAboutSettings);
+
 function fillExternalEditors(){
   const set=(id,value)=>{const el=$(id);if(el)el.value=value||''};
   set('#instagramUrl',settings.instagram||'');
@@ -599,12 +622,13 @@ function fillExternalEditors(){
   set('#contactTextEn',settings.contactTextEn||'');set('#contactTextRu',settings.contactTextRu||'');
   set('#contactEmailAdmin',settings.contact||'');set('#contactPhoneAdmin',settings.contactPhone||'');
   set('#contactAddressEn',settings.contactAddressEn||'');set('#contactAddressRu',settings.contactAddressRu||'');
+  set('#sellerNameAdmin',settings.sellerName||'');set('#sellerCountryAdmin',settings.sellerCountry||'');set('#sellerAddressAdmin',settings.sellerAddress||'');set('#legalEmailAdmin',settings.legalEmail||settings.contact||'');
 }
 async function saveInstagramSettings(){
   try{setBusy(true);settings=await api('/api/admin/settings',{method:'PUT',body:JSON.stringify({instagram:$('#instagramUrl').value.trim()})});fillExternalEditors();showNotice('Ссылка Instagram сохранена.')}catch(err){showNotice(err.message,'error')}finally{setBusy(false)}
 }
 async function saveContactSettings(){
-  try{setBusy(true);const payload={contactTitleEn:$('#contactTitleEn').value.trim(),contactTitleRu:$('#contactTitleRu').value.trim(),contactTextEn:$('#contactTextEn').value.trim(),contactTextRu:$('#contactTextRu').value.trim(),contact:$('#contactEmailAdmin').value.trim(),contactPhone:$('#contactPhoneAdmin').value.trim(),contactAddressEn:$('#contactAddressEn').value.trim(),contactAddressRu:$('#contactAddressRu').value.trim()};settings=await api('/api/admin/settings',{method:'PUT',body:JSON.stringify(payload)});fillExternalEditors();showNotice('Страница контактов сохранена.')}catch(err){showNotice(err.message,'error')}finally{setBusy(false)}
+  try{setBusy(true);const payload={contactTitleEn:$('#contactTitleEn').value.trim(),contactTitleRu:$('#contactTitleRu').value.trim(),contactTextEn:$('#contactTextEn').value.trim(),contactTextRu:$('#contactTextRu').value.trim(),contact:$('#contactEmailAdmin').value.trim(),contactPhone:$('#contactPhoneAdmin').value.trim(),contactAddressEn:$('#contactAddressEn').value.trim(),contactAddressRu:$('#contactAddressRu').value.trim(),sellerName:$('#sellerNameAdmin').value.trim(),sellerCountry:$('#sellerCountryAdmin').value.trim(),sellerAddress:$('#sellerAddressAdmin').value.trim(),legalEmail:$('#legalEmailAdmin').value.trim()};settings=await api('/api/admin/settings',{method:'PUT',body:JSON.stringify(payload)});fillExternalEditors();showNotice('Страница контактов сохранена.')}catch(err){showNotice(err.message,'error')}finally{setBusy(false)}
 }
 function renderClientsAdmin(){
   const box=$('#clientsAdminList');if(!box)return;
@@ -634,7 +658,7 @@ function supportSetting(key){
   return value==null||value===''?DEFAULT_SUPPORT_SETTINGS[key]:value;
 }
 function fillSupportEditor(){
-  const textIds=['supportButtonTextEn','supportButtonTextRu','supportTitleEn','supportTitleRu','supportGreetingEn','supportGreetingRu','supportEmailPlaceholderEn','supportEmailPlaceholderRu','supportMessagePlaceholderEn','supportMessagePlaceholderRu','supportSendTextEn','supportSendTextRu','supportBackgroundImage','supportButtonBg','supportButtonColor','supportFieldBg','supportFieldColor'];
+  const textIds=['supportButtonTextEn','supportButtonTextRu','supportGreetingEn','supportGreetingRu','supportEmailPlaceholderEn','supportEmailPlaceholderRu','supportMessagePlaceholderEn','supportMessagePlaceholderRu','supportSendTextEn','supportSendTextRu','supportBackgroundImage','supportButtonBg','supportButtonColor','supportFieldBg','supportFieldColor'];
   textIds.forEach(id=>{const el=$('#'+id);if(el)el.value=supportSetting(id)||''});
   selectValue($('#supportButtonFont'),settings.supportButtonFont||'');
   selectValue($('#supportWindowFont'),settings.supportWindowFont||'');
@@ -644,10 +668,15 @@ function updateSupportPreview(){
   const g=id=>$('#'+id)?.value||'';
   const preview=$('#supportAdminPreview');if(!preview)return;
   const previewBody=preview.querySelector('.support-preview-body');
-  if(previewBody)previewBody.style.backgroundImage=`url(${JSON.stringify(g('supportBackgroundImage')||DEFAULT_SUPPORT_SETTINGS.supportBackgroundImage)})`;
+  if(previewBody){
+    const bg=g('supportBackgroundImage')||DEFAULT_SUPPORT_SETTINGS.supportBackgroundImage;
+    const isVideo=/\.(mp4|webm|mov|m4v)(?:[?#].*)?$/i.test(bg);
+    previewBody.style.backgroundImage=isVideo?'none':`url(${JSON.stringify(bg)})`;
+    previewBody.querySelector('.support-preview-bg-video')?.remove();
+    if(isVideo){const v=document.createElement('video');v.className='support-preview-bg-video';v.src=bg;v.autoplay=true;v.muted=true;v.loop=true;v.playsInline=true;v.style.cssText='position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:0;pointer-events:none';previewBody.style.position='relative';previewBody.prepend(v);[...previewBody.children].forEach(el=>{if(el!==v){el.style.position='relative';el.style.zIndex='1'}});}
+  }
   preview.style.fontFamily=g('supportWindowFont')||'';
-  const title=$('#supportPreviewTitle'),greeting=$('#supportPreviewGreeting'),email=$('#supportPreviewEmail'),message=$('#supportPreviewMessage'),send=$('#supportPreviewSend'),btn=$('#supportPreviewButton');
-  if(title){title.textContent=g('supportTitleEn')||DEFAULT_SUPPORT_SETTINGS.supportTitleEn;title.style.background=g('supportFieldBg')||'#000';title.style.color=g('supportFieldColor')||'#fff'}
+  const greeting=$('#supportPreviewGreeting'),email=$('#supportPreviewEmail'),message=$('#supportPreviewMessage'),send=$('#supportPreviewSend'),btn=$('#supportPreviewButton');
   if(greeting){greeting.textContent=g('supportGreetingEn')||DEFAULT_SUPPORT_SETTINGS.supportGreetingEn;greeting.style.background=g('supportFieldBg')||'#000';greeting.style.color=g('supportFieldColor')||'#fff'}
   [email,message].forEach((el,i)=>{if(!el)return;el.textContent=g(i?'supportMessagePlaceholderEn':'supportEmailPlaceholderEn')||DEFAULT_SUPPORT_SETTINGS[i?'supportMessagePlaceholderEn':'supportEmailPlaceholderEn'];el.style.background=g('supportFieldBg')||'#000';el.style.color=g('supportFieldColor')||'#fff'});
   if(send){send.textContent=g('supportSendTextEn')||DEFAULT_SUPPORT_SETTINGS.supportSendTextEn;send.style.background=g('supportFieldBg')||'#000';send.style.color=g('supportFieldColor')||'#fff'}
@@ -660,7 +689,7 @@ $('#supportBackgroundFile')?.addEventListener('change',async e=>{
   try{e.target.disabled=true;const dataUrl=await new Promise((resolve,reject)=>{const r=new FileReader();r.onload=()=>resolve(r.result);r.onerror=reject;r.readAsDataURL(file)});const out=await api('/api/admin/upload',{method:'POST',body:JSON.stringify({dataUrl,filename:file.name})});$('#supportBackgroundImage').value=out.url;updateSupportPreview();showNotice('Фон поддержки загружен.')}catch(err){showNotice(err.message,'error')}finally{e.target.disabled=false;e.target.value=''}
 });
 async function saveSupportSettings(){
-  const ids=['supportButtonTextEn','supportButtonTextRu','supportTitleEn','supportTitleRu','supportGreetingEn','supportGreetingRu','supportEmailPlaceholderEn','supportEmailPlaceholderRu','supportMessagePlaceholderEn','supportMessagePlaceholderRu','supportSendTextEn','supportSendTextRu','supportBackgroundImage','supportButtonBg','supportButtonColor','supportFieldBg','supportFieldColor','supportButtonFont','supportWindowFont'];
+  const ids=['supportButtonTextEn','supportButtonTextRu','supportGreetingEn','supportGreetingRu','supportEmailPlaceholderEn','supportEmailPlaceholderRu','supportMessagePlaceholderEn','supportMessagePlaceholderRu','supportSendTextEn','supportSendTextRu','supportBackgroundImage','supportButtonBg','supportButtonColor','supportFieldBg','supportFieldColor','supportButtonFont','supportWindowFont'];
   const payload={};ids.forEach(id=>{const el=$('#'+id);payload[id]=String(el?.value||'').trim()});
   payload.supportText=payload.supportButtonTextEn||'SUPPORT';
   try{setBusy(true);settings=await api('/api/admin/settings',{method:'PUT',body:JSON.stringify(payload)});fillSupportEditor();showNotice('Настройки поддержки сохранены.')}catch(err){showNotice(err.message,'error')}finally{setBusy(false)}
@@ -730,5 +759,11 @@ async function savePaymentSettings(){
   try{setBusy(true);settings=await api('/api/admin/settings',{method:'PUT',body:JSON.stringify({paymentMethods:methods})});paymentMethodsDraft=normalizePaymentMethods(settings.paymentMethods);renderPaymentEditor();showNotice('Способы оплаты сохранены.')}catch(err){showNotice(err.message,'error')}finally{setBusy(false)}
 }
 $('#savePaymentSettings')?.addEventListener('click',savePaymentSettings);
+$('#sendNewsletter')?.addEventListener('click',async()=>{
+  const subject=$('#newsletterSubject')?.value.trim()||'DEMI DEVILLE',message=$('#newsletterMessage')?.value.trim()||'';if(!message)return showNotice('Введите текст рассылки.','error');
+  if(!confirm('Отправить письмо всем клиентам, которые согласились на рассылку?'))return;
+  try{const out=await api('/api/admin/newsletter',{method:'POST',body:JSON.stringify({subject,message})});const el=$('#newsletterResult');if(el){el.textContent=`Получателей: ${out.recipients}. Отправлено: ${out.sent}. Ошибок: ${out.failed}.`;el.className='notice show ok'}showNotice('Рассылка завершена.')}catch(err){showNotice(err.message,'error')}
+});
+
 
 boot();

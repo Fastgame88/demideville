@@ -7,16 +7,11 @@
     const caption=lang==='ru'?(g.captionRu||g.caption||''):(g.caption||'');
     const rotation=((Number(g.rotation)||0)%360+360)%360;
     const font=g.captionFont?`font-family:${esc(g.captionFont)};`:'';
-    return `<figure class="gallery-item"><div class="gallery-media"><img src="${esc(g.image)}" alt="${esc(caption||'Gallery image')}" ${i<2?'loading="eager" fetchpriority="high"':'loading="lazy" fetchpriority="low"'} decoding="async" style="--gallery-rotation:${rotation}deg"></div><figcaption class="gallery-caption" style="${font}">${esc(caption)}</figcaption></figure>`;
+    const url=g.media||g.image||'';
+    const media=window.ddIsVideo?.(url)
+      ? `<video src="${esc(url)}" muted loop playsinline ${i<2?'autoplay preload="metadata"':'preload="none" data-dd-autoplay="1"'} style="--gallery-rotation:${rotation}deg"></video>`
+      : `<img src="${esc(url)}" alt="${esc(caption||'Gallery image')}" ${i<2?'loading="eager" fetchpriority="high"':'loading="lazy" fetchpriority="low"'} decoding="async" style="--gallery-rotation:${rotation}deg">`;
+    return `<figure class="gallery-item"><div class="gallery-media">${media}</div><figcaption class="gallery-caption" style="${font}">${esc(caption)}</figcaption></figure>`;
   }).join('')||`<p>${lang==='ru'?'В галерее пока нет изображений.':'No gallery items.'}</p>`;
-
-  const fitChrome=()=>{
-    if(window.innerWidth<=900){document.body.style.removeProperty('--gallery-header-scale-x');document.body.style.removeProperty('--gallery-header-scale-y');return}
-    const h=(window.visualViewport&&window.visualViewport.height)||window.innerHeight;
-    document.body.style.setProperty('--gallery-header-scale-x',String(window.innerWidth/1920));
-    document.body.style.setProperty('--gallery-header-scale-y',String(h/1080));
-  };
-  let chromeFrame=0;
-  const scheduleFitChrome=()=>{if(chromeFrame)return;chromeFrame=requestAnimationFrame(()=>{chromeFrame=0;fitChrome()})};
-  fitChrome();window.addEventListener('resize',scheduleFitChrome,{passive:true});window.visualViewport?.addEventListener('resize',scheduleFitChrome,{passive:true});
+  window.ddActivateLazyVideos?.($('#galleryList'));
 })();

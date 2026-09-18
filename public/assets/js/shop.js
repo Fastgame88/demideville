@@ -52,19 +52,11 @@
   }
   function productCopy(p){
     let name=localized(p,'name');
-    let detail=money(p.price,curr);
-    /* Keep the historical English formatting only for the original EN artwork. */
-    if(lang!=='ru'){
-      if(/Black&White$/i.test(name)){
-        name=name.replace(/\s*Black&White$/i,'');
-        detail=`Black&White - ${money(p.price,curr)}`;
-      }else if(/\sBlack Black$/i.test(name)){
-        name=name.replace(/\s*Black Black$/i,'');
-        detail=`Black - ${money(p.price,curr)}`;
-      }else if(/\sBlack$/i.test(name)){
-        name=name.replace(/\s*Black$/i,'');
-        detail=`Black - ${money(p.price,curr)}`;
-      }
+    let detail=window.ddProductPriceLabel?window.ddProductPriceLabel(p,curr,lang):money(p.price,curr);
+    if(lang!=='ru'&&String(p.priceMode||'number')==='number'){
+      if(/Black&White$/i.test(name)){name=name.replace(/\s*Black&White$/i,'');detail=`Black&White - ${detail}`}
+      else if(/\sBlack Black$/i.test(name)){name=name.replace(/\s*Black Black$/i,'');detail=`Black - ${detail}`}
+      else if(/\sBlack$/i.test(name)){name=name.replace(/\s*Black$/i,'');detail=`Black - ${detail}`}
     }
     return {name,detail};
   }
@@ -98,27 +90,18 @@
     }
 
     grid.innerHTML=pageItems.map((p,i)=>{
-      const ref=reference[p.id];
       const primary=(window.ddProductImages?.(p)||[])[0]||p.image||'';
-      /* For one or two products use the real source image so the card can scale up
-         without inheriting transparent padding from the old reference artwork. */
-      const useReference=lang!=='ru'&&ref&&primary===ref.image&&pageItems.length>2;
-      const art=useReference?ref.art:primary;
       const copy=productCopy(p);
-      const referenceCopy=(useReference&&ref.label)?`<span class="product-reference-copy" aria-hidden="true">
-          <img class="product-reference-label" src="${esc(ref.label)}" alt="" loading="lazy" decoding="async">
-          ${ref.detail?`<img class="product-reference-detail" src="${esc(ref.detail)}" alt="" loading="lazy" decoding="async">`:''}
-        </span>`:'';
-      const priority=i<4?' loading="eager" fetchpriority="high"':' loading="lazy" fetchpriority="low"';
-      return `<a class="product-card product-card-${i+1}${referenceCopy?' has-reference-copy':''}" href="/product.html?id=${encodeURIComponent(p.id)}">
-        <span class="media"><img class="product-art" src="${esc(art)}" alt="${esc(copy.name)}"${priority} decoding="async"></span>
-        ${referenceCopy}
+      const media=window.ddMediaHtml?window.ddMediaHtml(primary,{className:'product-art',alt:copy.name,eager:i<4}):`<img class="product-art" src="${esc(primary)}" alt="${esc(copy.name)}" loading="${i<4?'eager':'lazy'}" decoding="async">`;
+      return `<a class="product-card product-card-${i+1}" href="/product.html?id=${encodeURIComponent(p.id)}">
+        <span class="media">${media}</span>
         <span class="product-live-copy">
           <span class="product-name">${esc(copy.name)}</span>
-          <span class="product-price">${esc(copy.detail)}</span>
+          ${copy.detail?`<span class="product-price">${esc(copy.detail)}</span>`:''}
         </span>
       </a>`;
     }).join('');
+    window.ddActivateLazyVideos?.(grid);
   }
 
   function pageUrl(page){
