@@ -151,8 +151,12 @@
     if(!validEmail||message.length<2){if(supportFormStatus){supportFormStatus.textContent=dict[lang].sendError;supportFormStatus.classList.add('error')}return}
     const supportCfg=window.ddSupportConfig?window.ddSupportConfig(s,lang):{send:dict[lang].send};
     if(supportSubmit){supportSubmit.disabled=true;supportSubmit.textContent=dict[lang].sending}
-    try{const r=await fetch('/api/support',{method:'POST',headers:{'Content-Type':'application/json',...authHeaders()},body:JSON.stringify({email,message,lang})});const data=await r.json().catch(()=>({}));if(!r.ok)throw new Error(data.error||'Support request failed');if(supportFormStatus)supportFormStatus.textContent=dict[lang].sent;supportForm.reset();if(currentUser?.email&&supportSenderEmail)supportSenderEmail.value=currentUser.email}
-    catch(err){if(supportFormStatus){supportFormStatus.textContent=dict[lang].sendError;supportFormStatus.classList.add('error')}}
-    finally{if(supportSubmit){supportSubmit.disabled=false;supportSubmit.textContent=supportCfg.send||dict[lang].send}}
+    const controller=new AbortController(),timeout=setTimeout(()=>controller.abort(),25000);
+    try{
+      const r=await fetch('/api/support',{method:'POST',headers:{'Content-Type':'application/json',...authHeaders()},body:JSON.stringify({email,message,lang}),signal:controller.signal});const data=await r.json().catch(()=>({}));
+      if(!r.ok){const detail=[data.error,data.debug?`DEBUG: ${data.debug}`:'',data.hint?`HINT: ${data.hint}`:''].filter(Boolean).join(' ');throw new Error(detail||'Support request failed')}
+      if(supportFormStatus)supportFormStatus.textContent=dict[lang].sent;supportForm.reset();if(currentUser?.email&&supportSenderEmail)supportSenderEmail.value=currentUser.email;
+    }catch(err){if(supportFormStatus){supportFormStatus.textContent=(lang==='ru'?'ОШИБКА ОТПРАВКИ: ':'SEND ERROR: ')+(err?.name==='AbortError'?'SMTP timeout. Проверьте SMTP настройки в Railway / GoDaddy.':(err?.message||dict[lang].sendError));supportFormStatus.classList.add('error')}}
+    finally{clearTimeout(timeout);if(supportSubmit){supportSubmit.disabled=false;supportSubmit.textContent=supportCfg.send||dict[lang].send}}
   });
 })();

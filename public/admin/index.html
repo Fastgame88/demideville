@@ -503,7 +503,6 @@
         <section class="device-card">
           <div class="device-card-head"><div><span class="device-badge">ПОЧТА</span><h2>Рассылки клиентам</h2></div></div>
           <div class="simple-admin-form mail-admin-form">
-            <p class="admin-help-text">Рассылка отправляется всем клиентам с email, которые есть в базе сайта. SMTP/IMAP подключаются через переменные Railway; пароли в админке не хранятся.</p>
             <label class="field"><span>Тема рассылки</span><input id="newsletterSubject" value="DEMI DEVILLE"></label>
             <label class="field"><span>Текст рассылки</span><textarea id="newsletterMessage" rows="10"></textarea></label>
             <button id="sendNewsletter" class="primary-btn" type="button">Отправить всем клиентам</button>
@@ -513,7 +512,6 @@
 
         <section class="device-card mail-inbox-card">
           <div class="device-card-head"><div><span class="device-badge">INBOX</span><h2>Входящие письма</h2></div><button id="refreshMailInbox" class="secondary-btn" type="button">Обновить входящие</button></div>
-          <p class="admin-help-text">Для чтения входящих нужен IMAP. Выберите письмо слева — справа можно сразу написать ответ.</p>
           <div class="mail-inbox-layout">
             <div id="mailInboxList" class="mail-inbox-list"><div class="empty-admin-list">Нажмите «Обновить входящие».</div></div>
             <div id="mailMessagePanel" class="mail-message-panel">
@@ -601,6 +599,6 @@
     </section>
   </div>
 
-  <script src="/assets/js/admin.js?v=20260918-v22"></script>
+  <script src="/assets/js/admin.js?v=20260918-v24"></script>
 </body>
 </html>

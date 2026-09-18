@@ -209,13 +209,52 @@ function sendPublicSite(req,res,db){
 function readJson(req,maxBytes=2*1024*1024){return new Promise((resolve,reject)=>{let size=0,parts=[];req.on('data',c=>{size+=c.length;if(size>maxBytes){reject(new Error('Body too large'));req.destroy();return}parts.push(c)});req.on('end',()=>{if(!parts.length)return resolve({});try{resolve(JSON.parse(Buffer.concat(parts).toString('utf8')))}catch{reject(new Error('Invalid JSON'))}});req.on('error',reject)})}
 function needUser(req,res,admin=false){const db=loadDb(),user=currentUser(req,db);if(!user){sendJson(res,401,{error:'Unauthorized'});return null}if(admin&&user.role!=='admin'){sendJson(res,403,{error:'Admin only'});return null}return {db,user}}
 
+let SMTP_TRANSPORTER=null;
+let SMTP_TRANSPORTER_KEY='';
+function smtpConfig(){
+  const host=String(process.env.SMTP_HOST||'').trim();
+  const user=String(process.env.SMTP_USER||'').trim();
+  const pass=String(process.env.SMTP_PASS||'');
+  const defaultPort=/secureserver\.net$/i.test(host)?465:587;
+  const port=Number(process.env.SMTP_PORT||defaultPort);
+  const secureSetting=String(process.env.SMTP_SECURE||'').trim().toLowerCase();
+  const secure=secureSetting?secureSetting==='true':port===465;
+  const from=String(process.env.MAIL_FROM||user).trim();
+  return {host,user,pass,port,secure,from};
+}
+function smtpDebug(err){
+  const cfg=smtpConfig();
+  const code=String(err?.code||'SMTP_ERROR').slice(0,40);
+  const responseCode=Number(err?.responseCode||0)||0;
+  const command=String(err?.command||'').slice(0,30);
+  const response=String(err?.response||err?.message||'SMTP request failed').replace(cfg.pass||'__NO_PASS__','***').replace(cfg.user||'__NO_USER__','SMTP_USER').replace(/[\r\n]+/g,' ').slice(0,280);
+  let hint='Перевірте SMTP_HOST, SMTP_PORT, SMTP_SECURE, SMTP_USER, SMTP_PASS і MAIL_FROM у Railway.';
+  if(code==='SMTP_CONFIG')hint='У Railway відсутні SMTP_HOST, SMTP_USER або SMTP_PASS.';
+  else if(code==='EAUTH'||responseCode===535||responseCode===534)hint='SMTP відхилив авторизацію. Перевірте логін/пароль пошти та чи дозволена SMTP-відправка у GoDaddy.';
+  else if(['ETIMEDOUT','ESOCKET','ECONNECTION','ENOTFOUND'].includes(code))hint='Немає з’єднання з SMTP. Перевірте SMTP_HOST, порт і SMTP_SECURE. Для GoDaddy Professional Email зазвичай smtpout.secureserver.net:465 + SMTP_SECURE=true.';
+  else if([530,550,551,552,553,554].includes(responseCode))hint='SMTP сервер відхилив відправника або relay. Перевірте, щоб MAIL_FROM використовував ту саму поштову скриньку, що й SMTP_USER, та дозвіл на SMTP.';
+  const parts=[code,responseCode?String(responseCode):'',command,response].filter(Boolean);
+  return {debug:parts.join(' | '),hint};
+}
+function getSmtpTransporter(){
+  const cfg=smtpConfig();
+  if(!cfg.host||!cfg.user||!cfg.pass){const e=new Error('SMTP is not configured');e.code='SMTP_CONFIG';throw e}
+  const key=JSON.stringify([cfg.host,cfg.port,cfg.secure,cfg.user]);
+  if(!SMTP_TRANSPORTER||SMTP_TRANSPORTER_KEY!==key){
+    const nodemailer=require('nodemailer');
+    SMTP_TRANSPORTER=nodemailer.createTransport({
+      host:cfg.host,port:cfg.port,secure:cfg.secure,auth:{user:cfg.user,pass:cfg.pass},
+      pool:true,maxConnections:3,maxMessages:50,
+      connectionTimeout:12000,greetingTimeout:8000,socketTimeout:20000
+    });
+    SMTP_TRANSPORTER_KEY=key;
+  }
+  return SMTP_TRANSPORTER;
+}
 async function sendTransactionalMail({to,subject,text,html,replyTo,inReplyTo,references}){
-  const host=String(process.env.SMTP_HOST||'').trim(),user=String(process.env.SMTP_USER||'').trim(),pass=String(process.env.SMTP_PASS||'');
-  if(!host||!user||!pass||!to)return false;
-  const nodemailer=require('nodemailer');
-  const port=Number(process.env.SMTP_PORT||587),secure=String(process.env.SMTP_SECURE||'').toLowerCase()==='true'||port===465;
-  const transporter=nodemailer.createTransport({host,port,secure,auth:{user,pass}});
-  await transporter.sendMail({from:process.env.MAIL_FROM||user,to,replyTo:replyTo||undefined,subject,text,html,inReplyTo:inReplyTo||undefined,references:references||undefined});
+  if(!to){const e=new Error('Recipient email is empty');e.code='EENVELOPE';throw e}
+  const cfg=smtpConfig(),transporter=getSmtpTransporter();
+  await transporter.sendMail({from:cfg.from||cfg.user,to,replyTo:replyTo||undefined,subject,text,html,inReplyTo:inReplyTo||undefined,references:references||undefined});
   return true;
 }
 async function loadInboxMessages(limit=40){
@@ -275,8 +314,15 @@ async function handleApi(req,res,u){
     db.supportMessages.unshift(request);
     await saveDb(db);
     const supportTo=process.env.SUPPORT_TO||db.settings.contact||process.env.SMTP_USER||'';
-    try{await sendTransactionalMail({to:supportTo,replyTo:email,subject:`DEMI DEVILLE support — ${email}`,text:`From: ${email}\n\n${message}`})}catch(err){console.error('Support email failed:',err.message)}
-    return sendJson(res,200,{ok:true,id:request.id});
+    try{
+      await sendTransactionalMail({to:supportTo,replyTo:email,subject:`DEMI DEVILLE support — ${email}`,text:`From: ${email}\n\n${message}`});
+      request.status='sent';await saveDb(db);
+      return sendJson(res,200,{ok:true,id:request.id,message:'Message sent successfully.'});
+    }catch(err){
+      request.status='email_failed';request.emailError=String(err?.code||err?.message||'SMTP_ERROR').slice(0,120);await saveDb(db);
+      const d=smtpDebug(err);console.error('Support email failed:',d.debug,d.hint);
+      return sendJson(res,503,{error:'Не вдалося надіслати повідомлення через пошту.',debug:d.debug,hint:d.hint,id:request.id});
+    }
   }
   if(m==='POST'&&p==='/api/orders'){
     const b=await readJson(req),db=loadDb(),user=currentUser(req,db);
@@ -343,9 +389,16 @@ async function handleApi(req,res,u){
   }
   if(m==='POST'&&p==='/api/admin/newsletter'){
     const a=needUser(req,res,true);if(!a)return;const b=await readJson(req);const subject=String(b.subject||'DEMI DEVILLE').trim().slice(0,180),message=String(b.message||'').trim();if(message.length<2)return sendJson(res,400,{error:'Введите текст рассылки.'});
-    const recipients=[...new Set([...a.db.users.filter(u=>u.role!=='admin').map(u=>u.email),...a.db.orders.map(o=>o.email)].map(v=>String(v||'').trim().toLowerCase()).filter(v=>v&&v.includes('@')))];let sent=0,failed=0;
-    for(const email of recipients){try{const ok=await sendTransactionalMail({to:email,subject,text:message,html:`<div style="white-space:pre-wrap;font-family:Arial,sans-serif">${message.replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]))}</div>`});if(ok)sent++;else failed++}catch{failed++}}
-    return sendJson(res,200,{ok:true,recipients:recipients.length,sent,failed});
+    const recipients=[...new Set([...a.db.users.filter(u=>u.role!=='admin').map(u=>u.email),...a.db.orders.map(o=>o.email)].map(v=>String(v||'').trim().toLowerCase()).filter(v=>v&&v.includes('@')))];
+    if(!recipients.length)return sendJson(res,400,{error:'В базе нет email клиентов для рассылки.'});
+    try{getSmtpTransporter()}catch(err){const d=smtpDebug(err);return sendJson(res,503,{error:'SMTP не настроен.',debug:d.debug,hint:d.hint,recipients:recipients.length,sent:0,failed:recipients.length})}
+    let sent=0,failed=0,firstError=null;
+    for(const email of recipients){
+      try{await sendTransactionalMail({to:email,subject,text:message,html:`<div style="white-space:pre-wrap;font-family:Arial,sans-serif">${message.replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]))}</div>`});sent++}
+      catch(err){failed++;if(!firstError)firstError=err;const code=String(err?.code||'');const rc=Number(err?.responseCode||0);if(['EAUTH','ETIMEDOUT','ESOCKET','ECONNECTION','ENOTFOUND'].includes(code)||[421,432,454,530,535].includes(rc)){failed+=Math.max(0,recipients.length-sent-failed);break}}
+    }
+    if(failed){const d=smtpDebug(firstError||new Error('SMTP send failed'));return sendJson(res,sent?207:503,{ok:false,recipients:recipients.length,sent,failed,error:sent?'Часть писем не отправлена.':'Рассылка не отправлена.',debug:d.debug,hint:d.hint})}
+    return sendJson(res,200,{ok:true,recipients:recipients.length,sent,failed:0,message:'Рассылка успешно отправлена.'});
   }
   if(m==='GET'&&p==='/api/admin/mail/inbox'){
     const a=needUser(req,res,true);if(!a)return;
@@ -354,7 +407,13 @@ async function handleApi(req,res,u){
   if(m==='POST'&&p==='/api/admin/mail/reply'){
     const a=needUser(req,res,true);if(!a)return;const b=await readJson(req);const to=String(b.to||'').trim(),subject=String(b.subject||'Re: DEMI DEVILLE').trim().slice(0,200),message=String(b.message||'').trim();
     if(!to.includes('@')||!message)return sendJson(res,400,{error:'Укажите получателя и текст ответа.'});
-    try{const ok=await sendTransactionalMail({to,subject,text:message,inReplyTo:String(b.inReplyTo||'').trim()||undefined,references:String(b.inReplyTo||'').trim()||undefined});if(!ok)return sendJson(res,503,{error:'SMTP is not configured. Add SMTP variables in Railway.'});return sendJson(res,200,{ok:true})}catch(err){console.error('Mail reply failed:',err.message);return sendJson(res,503,{error:err.message||'Не удалось отправить ответ.'})}
+    try{
+      await sendTransactionalMail({to,subject,text:message,inReplyTo:String(b.inReplyTo||'').trim()||undefined,references:String(b.inReplyTo||'').trim()||undefined});
+      return sendJson(res,200,{ok:true,message:'Сообщение успешно отправлено.'});
+    }catch(err){
+      const d=smtpDebug(err);console.error('Mail reply failed:',d.debug,d.hint);
+      return sendJson(res,503,{error:'Не удалось отправить ответ через SMTP.',debug:d.debug,hint:d.hint});
+    }
   }
   if(m==='POST'&&p==='/api/admin/coupons'){
     const a=needUser(req,res,true);if(!a)return;const b=await readJson(req);const user=a.db.users.find(u=>String(u.id)===String(b.userId)&&u.role!=='admin');

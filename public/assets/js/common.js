@@ -462,9 +462,15 @@ function mountSharedChrome(site,menu=getMenuConfig(site.settings||{}),currentUse
     e.preventDefault();const email=$('#sharedSupportEmail').value.trim();const message=$('#sharedSupportMessage').value.trim();const error=tr('PLEASE CHECK YOUR EMAIL AND MESSAGE.');status.classList.remove('error');
     if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)||message.length<2){status.textContent=error;status.classList.add('error');return}
     submit.disabled=true;submit.textContent=tr('SENDING…');
-    try{const r=await fetch('/api/support',{method:'POST',headers:{'Content-Type':'application/json',...authHeaders()},body:JSON.stringify({email,message,lang:document.documentElement.lang==='ru'?'ru':'en'})});if(!r.ok)throw new Error('Support request failed');status.textContent=tr('THANK YOU. YOUR MESSAGE HAS BEEN SENT.');form.reset();if(currentUser?.email&&supportEmail)supportEmail.value=currentUser.email}
-    catch{const contact=site.settings?.contact||'';if(contact){location.href=`mailto:${encodeURIComponent(contact)}?reply-to=${encodeURIComponent(email)}&subject=${encodeURIComponent('DEMI DEVILLE support')}&body=${encodeURIComponent(`From: ${email}\n\n${message}`)}`;status.textContent=tr('THANK YOU. YOUR MESSAGE HAS BEEN SENT.')}else{status.textContent=error;status.classList.add('error')}}
-    finally{submit.disabled=false;submit.textContent=supportCfg.send}
+    const controller=new AbortController(),timeout=setTimeout(()=>controller.abort(),25000);
+    try{
+      const r=await fetch('/api/support',{method:'POST',headers:{'Content-Type':'application/json',...authHeaders()},body:JSON.stringify({email,message,lang:document.documentElement.lang==='ru'?'ru':'en'}),signal:controller.signal});
+      const data=await r.json().catch(()=>({}));
+      if(!r.ok){const detail=[data.error,data.debug?`DEBUG: ${data.debug}`:'',data.hint?`HINT: ${data.hint}`:''].filter(Boolean).join(' ');throw new Error(detail||'Support request failed')}
+      status.textContent=tr('THANK YOU. YOUR MESSAGE HAS BEEN SENT.');form.reset();if(currentUser?.email&&supportEmail)supportEmail.value=currentUser.email;
+    }catch(err){
+      const prefix=document.documentElement.lang==='ru'?'ОШИБКА ОТПРАВКИ: ':'SEND ERROR: ';status.textContent=prefix+(err?.name==='AbortError'?'SMTP timeout. Проверьте SMTP настройки в Railway / GoDaddy.':(err?.message||error));status.classList.add('error');
+    }finally{clearTimeout(timeout);submit.disabled=false;submit.textContent=supportCfg.send}
   });
   const fit=()=>{if(innerWidth<=900)return;const h=window.visualViewport?.height||innerHeight;const sx=innerWidth/1920,sy=h/1080,s=Math.min(sx,sy);document.body.style.setProperty('--shared-chrome-x',sx);document.body.style.setProperty('--shared-chrome-y',sy);document.body.style.setProperty('--shared-chrome-y-inverse',1/sy);document.body.style.setProperty('--shared-support-scale',s);document.body.style.setProperty('--shared-support-right',`${22*s}px`);document.body.style.setProperty('--shared-support-bottom',`${25*s}px`)};
   fit();addEventListener('resize',fit,{passive:true});window.visualViewport?.addEventListener('resize',fit,{passive:true});

@@ -109,7 +109,7 @@ async function api(url,opt={}){
   opt.headers={...(opt.headers||{}),...authHeaders()};
   if(opt.body&&!opt.headers['Content-Type'])opt.headers['Content-Type']='application/json';
   const r=await fetch(url,opt);const data=await r.json().catch(()=>({}));
-  if(!r.ok)throw new Error(data.error||'Не удалось выполнить запрос');return data;
+  if(!r.ok){const err=new Error(data.error||'Не удалось выполнить запрос');err.data=data;err.status=r.status;throw err}return data;
 }
 function clampPercent(value,fallback=35){const n=Number(value);return Number.isFinite(n)?Math.max(0,Math.min(100,Math.round(n))):fallback}
 function clampNumber(value,min,max,fallback=0){const n=Number(value);return Number.isFinite(n)?Math.max(min,Math.min(max,n)):fallback}
@@ -803,10 +803,21 @@ async function savePaymentSettings(){
   try{setBusy(true);settings=await api('/api/admin/settings',{method:'PUT',body:JSON.stringify({paymentMethods:methods,checkoutCountries,checkoutCountriesExtra:[]})});paymentMethodsDraft=normalizePaymentMethods(settings.paymentMethods);renderPaymentEditor();showNotice('Способы оплаты и страны сохранены.')}catch(err){showNotice(err.message,'error')}finally{setBusy(false)}
 }
 $('#savePaymentSettings')?.addEventListener('click',savePaymentSettings);
+function mailDebugText(data,message='Ошибка отправки.'){
+  const parts=[message,data?.debug?`DEBUG: ${data.debug}`:'',data?.hint?`ПОДСКАЗКА: ${data.hint}`:''].filter(Boolean);return parts.join(' ');
+}
 $('#sendNewsletter')?.addEventListener('click',async()=>{
   const subject=$('#newsletterSubject')?.value.trim()||'DEMI DEVILLE',message=$('#newsletterMessage')?.value.trim()||'';if(!message)return showNotice('Введите текст рассылки.','error');
   if(!confirm('Отправить письмо всем клиентам с email, которые есть в базе сайта?'))return;
-  try{const out=await api('/api/admin/newsletter',{method:'POST',body:JSON.stringify({subject,message})});const el=$('#newsletterResult');if(el){el.textContent=`Получателей: ${out.recipients}. Отправлено: ${out.sent}. Ошибок: ${out.failed}.`;el.className='notice show ok'}showNotice('Рассылка завершена.')}catch(err){showNotice(err.message,'error')}
+  const button=$('#sendNewsletter'),el=$('#newsletterResult'),original=button?.textContent||'Отправить всем клиентам';
+  if(button){button.disabled=true;button.textContent='Отправка...'}if(el){el.textContent='Отправка писем...';el.className='notice show'}
+  try{
+    const out=await api('/api/admin/newsletter',{method:'POST',body:JSON.stringify({subject,message})});
+    if(out.ok===false){const text=mailDebugText(out,`${out.error||'Рассылка завершена с ошибками'} Получателей: ${out.recipients||0}. Отправлено: ${out.sent||0}. Ошибок: ${out.failed||0}.`);if(el){el.textContent=text;el.className='notice show error'}showNotice(out.error||'Не все письма отправлены.','error');return}
+    const text=`Сообщение успешно отправлено. Получателей: ${out.recipients||0}. Отправлено: ${out.sent||0}.`;if(el){el.textContent=text;el.className='notice show ok'}showNotice('Сообщение успешно отправлено.');
+  }catch(err){
+    const data=err.data||{};const text=mailDebugText(data,`${err.message||'Рассылка не отправлена.'}${data.recipients!=null?` Получателей: ${data.recipients}. Отправлено: ${data.sent||0}. Ошибок: ${data.failed||0}.`:''}`);if(el){el.textContent=text;el.className='notice show error'}showNotice(err.message||'Рассылка не отправлена.','error');
+  }finally{if(button){button.disabled=false;button.textContent=original}}
 });
 function renderMailInbox(){
   const box=$('#mailInboxList');if(!box)return;
@@ -827,7 +838,13 @@ $('#refreshMailInbox')?.addEventListener('click',()=>loadMailInbox(true));
 $('#mailInboxList')?.addEventListener('click',e=>{const item=e.target.closest('[data-mail-uid]');if(item)showMailMessage(item.dataset.mailUid)});
 $('#sendMailReply')?.addEventListener('click',async()=>{
   const msg=mailInboxDraft.find(m=>String(m.uid)===String(selectedMailUid));const message=$('#mailReplyText')?.value.trim()||'';if(!msg)return showNotice('Сначала выберите письмо.','error');if(!message)return showNotice('Введите текст ответа.','error');
-  const result=$('#mailReplyResult');try{const out=await api('/api/admin/mail/reply',{method:'POST',body:JSON.stringify({to:msg.from,subject:/^re:/i.test(msg.subject||'')?msg.subject:`Re: ${msg.subject||'DEMI DEVILLE'}`,message,inReplyTo:msg.messageId||''})});if(result){result.textContent='Ответ отправлен.';result.className='notice show ok'}$('#mailReplyText').value='';showNotice('Ответ отправлен.')}catch(err){if(result){result.textContent=err.message;result.className='notice show error'}showNotice(err.message,'error')}
+  const result=$('#mailReplyResult'),button=$('#sendMailReply'),original=button?.textContent||'Ответить';if(button){button.disabled=true;button.textContent='Отправка...'}if(result){result.textContent='Отправка...';result.className='notice show'}
+  try{
+    const out=await api('/api/admin/mail/reply',{method:'POST',body:JSON.stringify({to:msg.from,subject:/^re:/i.test(msg.subject||'')?msg.subject:`Re: ${msg.subject||'DEMI DEVILLE'}`,message,inReplyTo:msg.messageId||''})});
+    if(result){result.textContent=out.message||'Сообщение успешно отправлено.';result.className='notice show ok'}$('#mailReplyText').value='';showNotice('Сообщение успешно отправлено.');
+  }catch(err){
+    const text=mailDebugText(err.data||{},err.message||'Не удалось отправить ответ.');if(result){result.textContent=text;result.className='notice show error'}showNotice(err.message||'Не удалось отправить ответ.','error');
+  }finally{if(button){button.disabled=false;button.textContent=original}}
 });
 
 boot();
