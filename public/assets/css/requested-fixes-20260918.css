@@ -121,7 +121,7 @@ body.about-page .about-extra-text p:last-child{margin-bottom:0}
   html:not([lang="ru"]) body.about-page.about-has-extra .about-copy-art{display:block!important;visibility:visible!important;opacity:1!important}
   body.about-page.about-has-extra .about-extra-content{
     display:block!important;position:relative!important;z-index:5!important;box-sizing:border-box!important;
-    width:100%!important;margin:100vh 0 0!important;padding:34px max(24px,calc((100vw - 1520px)/2)) 78px!important;
+    width:100%!important;margin:60vh 0 0!important;padding:34px max(24px,calc((100vw - 1520px)/2)) 78px!important;
     background:#fff!important;color:#000!important;
   }
 }

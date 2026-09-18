@@ -69,6 +69,22 @@
       window.ddWarmMedia?.(extraMedia);
       mediaEl.innerHTML=window.ddIsVideo?.(extraMedia)?`<video src="${esc(extraMedia)}" autoplay muted loop playsinline preload="auto"></video>`:`<img src="${esc(extraMedia)}" alt="DEMI DEVILLE About additional media" loading="lazy" decoding="async">`;
     }
+
+    // Desktop ABOUT uses a fixed 1920x1080 artwork canvas. Position the editable
+    // content immediately below the *visible rendered artwork* instead of a full
+    // extra viewport, so saved text is visible as soon as the user scrolls below
+    // the existing ABOUT image. This does not resize or move the approved artwork.
+    const placeExtraBelowMain=()=>{
+      if(window.innerWidth<=900){extra.style.removeProperty('margin-top');return}
+      const candidates=[document.querySelector('.about-copy-art'),document.querySelector('.about-copy-ru')].filter(Boolean);
+      const main=candidates.find(el=>{const cs=getComputedStyle(el),r=el.getBoundingClientRect();return cs.display!=='none'&&cs.visibility!=='hidden'&&r.width>0&&r.height>0});
+      if(!main)return;
+      const r=main.getBoundingClientRect();
+      extra.style.setProperty('margin-top',`${Math.max(0,Math.ceil(r.bottom+24))}px`,'important');
+    };
+    requestAnimationFrame(placeExtraBelowMain);
+    window.addEventListener('resize',placeExtraBelowMain,{passive:true});
+    window.visualViewport?.addEventListener('resize',placeExtraBelowMain,{passive:true});
   }
 
   const fitChrome=()=>{
