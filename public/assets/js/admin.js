@@ -85,8 +85,6 @@ const DEFAULT_COUNTRIES=['Albania','Andorra','Armenia','Austria','Azerbaijan','B
 const PAGE_BACKGROUND_DEFS=[
   ['home','Главная'],['shop','SHOP'],['product','Карточка товара'],['gallery','Галерея'],['about','ABOUT'],['login','LOGIN / регистрация'],['cart','Корзина'],['checkout','Оплата'],['account','Аккаунт'],['contact','Контакты'],['terms','Terms & Conditions'],['privacy','Privacy Policy']
 ];
-let mailInboxDraft=[];
-let selectedMailUid=null;
 const DEFAULT_SUPPORT_SETTINGS={
   supportButtonTextEn:'SUPPORT',supportButtonTextRu:'ПОДДЕРЖКА',
   supportGreetingEn:'Thanks for stopping by! How can I help you?',supportGreetingRu:'Спасибо, что заглянули! Чем я могу помочь?',
@@ -109,7 +107,7 @@ async function api(url,opt={}){
   opt.headers={...(opt.headers||{}),...authHeaders()};
   if(opt.body&&!opt.headers['Content-Type'])opt.headers['Content-Type']='application/json';
   const r=await fetch(url,opt);const data=await r.json().catch(()=>({}));
-  if(!r.ok){const err=new Error(data.error||'Не удалось выполнить запрос');err.data=data;err.status=r.status;throw err}return data;
+  if(!r.ok)throw new Error(data.error||'Не удалось выполнить запрос');return data;
 }
 function clampPercent(value,fallback=35){const n=Number(value);return Number.isFinite(n)?Math.max(0,Math.min(100,Math.round(n))):fallback}
 function clampNumber(value,min,max,fallback=0){const n=Number(value);return Number.isFinite(n)?Math.max(min,Math.min(max,n)):fallback}
@@ -257,7 +255,7 @@ async function save(){
   try{setBusy(true);settings=await api('/api/admin/settings',{method:'PUT',body:JSON.stringify(payload())});fillForm();showNotice('Изменения сохранены.')}catch(e){showNotice(e.message,'error')}finally{setBusy(false)}
 }
 $('#homeSettingsForm').addEventListener('submit',async e=>{e.preventDefault();await save()});
-$('#saveTop').addEventListener('click',()=>currentAdminTab==='backgrounds'?savePageBackgrounds():currentAdminTab==='shop'?saveShopSettings():currentAdminTab==='gallery'?saveGallerySettings():currentAdminTab==='about'?saveAboutSettings():currentAdminTab==='instagram'?saveInstagramSettings():currentAdminTab==='contact'?saveContactSettings():currentAdminTab==='support'?saveSupportSettings():currentAdminTab==='payment'?savePaymentSettings():(currentAdminTab==='clients'||currentAdminTab==='orders'||currentAdminTab==='mail')?Promise.resolve():save());
+$('#saveTop').addEventListener('click',()=>currentAdminTab==='backgrounds'?savePageBackgrounds():currentAdminTab==='shop'?saveShopSettings():currentAdminTab==='gallery'?saveGallerySettings():currentAdminTab==='about'?saveAboutSettings():currentAdminTab==='instagram'?saveInstagramSettings():currentAdminTab==='contact'?saveContactSettings():currentAdminTab==='support'?saveSupportSettings():currentAdminTab==='payment'?savePaymentSettings():(currentAdminTab==='clients'||currentAdminTab==='orders')?Promise.resolve():save());
 
 function slugify(value){
   return String(value||'').trim().toLowerCase()
@@ -297,7 +295,7 @@ function fillShopEditor(){
   renderProductsAdmin();
 }
 function switchAdminTab(tab){
-  const allowed=['home','backgrounds','shop','gallery','about','instagram','contact','support','orders','clients','payment','mail'];
+  const allowed=['home','backgrounds','shop','gallery','about','instagram','contact','support','orders','clients','payment'];
   currentAdminTab=allowed.includes(tab)?tab:'home';
   $$('#adminView [data-admin-tab]').forEach(btn=>btn.classList.toggle('active',btn.dataset.adminTab===currentAdminTab));
   $('#homeSettingsForm').hidden=currentAdminTab!=='home';
@@ -311,16 +309,14 @@ function switchAdminTab(tab){
   $('#ordersEditor').hidden=currentAdminTab!=='orders';
   $('#clientsEditor').hidden=currentAdminTab!=='clients';
   $('#paymentEditor').hidden=currentAdminTab!=='payment';
-  $('#mailEditor').hidden=currentAdminTab!=='mail';
-  const titles={home:'Главная страница',backgrounds:'Фоны страниц',shop:'SHOP',gallery:'Галерея',about:'ABOUT',instagram:'Instagram',contact:'Контакты',support:'Поддержка',orders:'Заказы',clients:'Клиенты',payment:'Оплата',mail:'Почта'};
+  const titles={home:'Главная страница',backgrounds:'Фоны страниц',shop:'SHOP',gallery:'Галерея',about:'ABOUT',instagram:'Instagram',contact:'Контакты',support:'Поддержка',orders:'Заказы',clients:'Клиенты',payment:'Оплата'};
   $('#workspaceTitle').textContent=titles[currentAdminTab]||'Главная страница';
-  const saveTop=$('#saveTop');saveTop.hidden=currentAdminTab==='clients'||currentAdminTab==='orders'||currentAdminTab==='mail';
+  const saveTop=$('#saveTop');saveTop.hidden=currentAdminTab==='clients'||currentAdminTab==='orders';
   saveTop.textContent=currentAdminTab==='backgrounds'?'Сохранить фоны':currentAdminTab==='shop'?'Сохранить магазин':currentAdminTab==='gallery'?'Сохранить галерею':currentAdminTab==='about'?'Сохранить ABOUT':currentAdminTab==='instagram'?'Сохранить Instagram':currentAdminTab==='contact'?'Сохранить контакты':currentAdminTab==='support'?'Сохранить поддержку':currentAdminTab==='payment'?'Сохранить оплату':'Сохранить';
   if(currentAdminTab==='clients')renderClientsAdmin();
   if(currentAdminTab==='orders')renderOrdersAdmin();
   if(currentAdminTab==='support')updateSupportPreview();
   if(currentAdminTab==='backgrounds')renderPageBackgroundsEditor();
-  if(currentAdminTab==='mail'&&!mailInboxDraft.length)loadMailInbox(false);
 }
 $$('[data-admin-tab]').forEach(btn=>btn.addEventListener('click',()=>switchAdminTab(btn.dataset.adminTab)));
 
@@ -701,7 +697,7 @@ function supportSetting(key){
   return value==null||value===''?DEFAULT_SUPPORT_SETTINGS[key]:value;
 }
 function fillSupportEditor(){
-  const textIds=['supportButtonTextEn','supportButtonTextRu','supportGreetingEn','supportGreetingRu','supportEmailPlaceholderEn','supportEmailPlaceholderRu','supportMessagePlaceholderEn','supportMessagePlaceholderRu','supportSendTextEn','supportSendTextRu','supportBackgroundImage','supportButtonBg','supportButtonColor','supportFieldBg','supportFieldColor'];
+  const textIds=['supportButtonTextEn','supportButtonTextRu','supportGreetingEn','supportGreetingRu','supportBackgroundImage','supportButtonBg','supportButtonColor','supportFieldBg','supportFieldColor'];
   textIds.forEach(id=>{const el=$('#'+id);if(el)el.value=supportSetting(id)||''});
   selectValue($('#supportButtonFont'),settings.supportButtonFont||'');
   selectValue($('#supportWindowFont'),settings.supportWindowFont||'');
@@ -717,10 +713,9 @@ function updateSupportPreview(){
     if(mediaIsVideo(bg)){const v=document.createElement('video');v.className='support-preview-bg-video';v.src=bg;v.autoplay=true;v.muted=true;v.loop=true;v.playsInline=true;v.style.cssText='position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:0;pointer-events:none';previewBody.style.position='relative';previewBody.prepend(v);[...previewBody.children].forEach(el=>{if(el!==v){el.style.position='relative';el.style.zIndex='1'}});}
   }
   preview.style.fontFamily=g('supportWindowFont')||'';
-  const greeting=$('#supportPreviewGreeting'),email=$('#supportPreviewEmail'),message=$('#supportPreviewMessage'),send=$('#supportPreviewSend'),btn=$('#supportPreviewButton');
+  const greeting=$('#supportPreviewGreeting'),email=$('#supportPreviewEmail'),btn=$('#supportPreviewButton');
   if(greeting){greeting.textContent=g('supportGreetingEn')||DEFAULT_SUPPORT_SETTINGS.supportGreetingEn;greeting.style.background=g('supportFieldBg')||'#000';greeting.style.color=g('supportFieldColor')||'#fff'}
-  [email,message].forEach((el,i)=>{if(!el)return;el.textContent=g(i?'supportMessagePlaceholderEn':'supportEmailPlaceholderEn')||DEFAULT_SUPPORT_SETTINGS[i?'supportMessagePlaceholderEn':'supportEmailPlaceholderEn'];el.style.background=g('supportFieldBg')||'#000';el.style.color=g('supportFieldColor')||'#fff'});
-  if(send){send.textContent=g('supportSendTextEn')||DEFAULT_SUPPORT_SETTINGS.supportSendTextEn;send.style.background=g('supportFieldBg')||'#000';send.style.color=g('supportFieldColor')||'#fff'}
+  if(email){email.textContent='support@demideville.com';email.style.background=g('supportFieldBg')||'#000';email.style.color=g('supportFieldColor')||'#fff'}
   if(btn){btn.textContent=g('supportButtonTextEn')||DEFAULT_SUPPORT_SETTINGS.supportButtonTextEn;btn.style.background=g('supportButtonBg')||'#000';btn.style.color=g('supportButtonColor')||'#fff';btn.style.fontFamily=g('supportButtonFont')||''}
 }
 $('#supportEditor')?.addEventListener('input',e=>{if(e.target.matches('input,select'))updateSupportPreview()});
@@ -730,7 +725,7 @@ $('#supportBackgroundFile')?.addEventListener('change',async e=>{
   try{e.target.disabled=true;const dataUrl=await new Promise((resolve,reject)=>{const r=new FileReader();r.onload=()=>resolve(r.result);r.onerror=reject;r.readAsDataURL(file)});const out=await api('/api/admin/upload',{method:'POST',body:JSON.stringify({dataUrl,filename:file.name})});$('#supportBackgroundImage').value=out.url;updateSupportPreview();showNotice('Фон поддержки загружен.')}catch(err){showNotice(err.message,'error')}finally{e.target.disabled=false;e.target.value=''}
 });
 async function saveSupportSettings(){
-  const ids=['supportButtonTextEn','supportButtonTextRu','supportGreetingEn','supportGreetingRu','supportEmailPlaceholderEn','supportEmailPlaceholderRu','supportMessagePlaceholderEn','supportMessagePlaceholderRu','supportSendTextEn','supportSendTextRu','supportBackgroundImage','supportButtonBg','supportButtonColor','supportFieldBg','supportFieldColor','supportButtonFont','supportWindowFont'];
+  const ids=['supportButtonTextEn','supportButtonTextRu','supportGreetingEn','supportGreetingRu','supportBackgroundImage','supportButtonBg','supportButtonColor','supportFieldBg','supportFieldColor','supportButtonFont','supportWindowFont'];
   const payload={};ids.forEach(id=>{const el=$('#'+id);payload[id]=String(el?.value||'').trim()});
   payload.supportText=payload.supportButtonTextEn||'SUPPORT';
   try{setBusy(true);settings=await api('/api/admin/settings',{method:'PUT',body:JSON.stringify(payload)});fillSupportEditor();showNotice('Настройки поддержки сохранены.')}catch(err){showNotice(err.message,'error')}finally{setBusy(false)}
@@ -803,48 +798,5 @@ async function savePaymentSettings(){
   try{setBusy(true);settings=await api('/api/admin/settings',{method:'PUT',body:JSON.stringify({paymentMethods:methods,checkoutCountries,checkoutCountriesExtra:[]})});paymentMethodsDraft=normalizePaymentMethods(settings.paymentMethods);renderPaymentEditor();showNotice('Способы оплаты и страны сохранены.')}catch(err){showNotice(err.message,'error')}finally{setBusy(false)}
 }
 $('#savePaymentSettings')?.addEventListener('click',savePaymentSettings);
-function mailDebugText(data,message='Ошибка отправки.'){
-  const parts=[message,data?.debug?`DEBUG: ${data.debug}`:'',data?.hint?`ПОДСКАЗКА: ${data.hint}`:''].filter(Boolean);return parts.join(' ');
-}
-$('#sendNewsletter')?.addEventListener('click',async()=>{
-  const subject=$('#newsletterSubject')?.value.trim()||'DEMI DEVILLE',message=$('#newsletterMessage')?.value.trim()||'';if(!message)return showNotice('Введите текст рассылки.','error');
-  if(!confirm('Отправить письмо всем клиентам с email, которые есть в базе сайта?'))return;
-  const button=$('#sendNewsletter'),el=$('#newsletterResult'),original=button?.textContent||'Отправить всем клиентам';
-  if(button){button.disabled=true;button.textContent='Отправка...'}if(el){el.textContent='Отправка писем...';el.className='notice show'}
-  try{
-    const out=await api('/api/admin/newsletter',{method:'POST',body:JSON.stringify({subject,message})});
-    if(out.ok===false){const text=mailDebugText(out,`${out.error||'Рассылка завершена с ошибками'} Получателей: ${out.recipients||0}. Отправлено: ${out.sent||0}. Ошибок: ${out.failed||0}.`);if(el){el.textContent=text;el.className='notice show error'}showNotice(out.error||'Не все письма отправлены.','error');return}
-    const text=`Сообщение успешно отправлено. Получателей: ${out.recipients||0}. Отправлено: ${out.sent||0}.`;if(el){el.textContent=text;el.className='notice show ok'}showNotice('Сообщение успешно отправлено.');
-  }catch(err){
-    const data=err.data||{};const text=mailDebugText(data,`${err.message||'Рассылка не отправлена.'}${data.recipients!=null?` Получателей: ${data.recipients}. Отправлено: ${data.sent||0}. Ошибок: ${data.failed||0}.`:''}`);if(el){el.textContent=text;el.className='notice show error'}showNotice(err.message||'Рассылка не отправлена.','error');
-  }finally{if(button){button.disabled=false;button.textContent=original}}
-});
-function renderMailInbox(){
-  const box=$('#mailInboxList');if(!box)return;
-  if(!mailInboxDraft.length){box.innerHTML='<div class="empty-admin-list">Входящих писем нет или IMAP ещё не подключён.</div>';return}
-  box.innerHTML=mailInboxDraft.map(m=>`<button type="button" class="mail-inbox-item${String(selectedMailUid)===String(m.uid)?' active':''}" data-mail-uid="${esc(m.uid)}"><strong>${esc(m.fromName||m.from||'Без имени')}</strong><span>${esc(m.subject||'(без темы)')}</span><small>${m.date?new Date(m.date).toLocaleString('ru-RU'):''}</small></button>`).join('');
-}
-function showMailMessage(uid){
-  selectedMailUid=uid;const msg=mailInboxDraft.find(m=>String(m.uid)===String(uid));renderMailInbox();
-  const content=$('#mailMessageContent'),empty=$('#mailMessagePanel .mail-message-empty');if(!msg){if(content)content.hidden=true;if(empty)empty.hidden=false;return}
-  if(empty)empty.hidden=true;if(content)content.hidden=false;
-  $('#mailMessageFrom').textContent=msg.fromName?`${msg.fromName} <${msg.from||''}>`:(msg.from||'');$('#mailMessageDate').textContent=msg.date?new Date(msg.date).toLocaleString('ru-RU'):'';$('#mailMessageSubject').textContent=msg.subject||'(без темы)';$('#mailMessageBody').textContent=msg.text||'';$('#mailReplyText').value='';
-}
-async function loadMailInbox(showResult=true){
-  const box=$('#mailInboxList');if(box)box.innerHTML='<div class="empty-admin-list">Загрузка...</div>';
-  try{const out=await api('/api/admin/mail/inbox');mailInboxDraft=Array.isArray(out.messages)?out.messages:[];selectedMailUid=null;renderMailInbox();showMailMessage(null);if(showResult)showNotice(`Входящих: ${mailInboxDraft.length}.`)}catch(err){mailInboxDraft=[];selectedMailUid=null;if(box)box.innerHTML=`<div class="empty-admin-list">${esc(err.message)}<br>Проверьте IMAP-переменные Railway.</div>`;if(showResult)showNotice(err.message,'error')}
-}
-$('#refreshMailInbox')?.addEventListener('click',()=>loadMailInbox(true));
-$('#mailInboxList')?.addEventListener('click',e=>{const item=e.target.closest('[data-mail-uid]');if(item)showMailMessage(item.dataset.mailUid)});
-$('#sendMailReply')?.addEventListener('click',async()=>{
-  const msg=mailInboxDraft.find(m=>String(m.uid)===String(selectedMailUid));const message=$('#mailReplyText')?.value.trim()||'';if(!msg)return showNotice('Сначала выберите письмо.','error');if(!message)return showNotice('Введите текст ответа.','error');
-  const result=$('#mailReplyResult'),button=$('#sendMailReply'),original=button?.textContent||'Ответить';if(button){button.disabled=true;button.textContent='Отправка...'}if(result){result.textContent='Отправка...';result.className='notice show'}
-  try{
-    const out=await api('/api/admin/mail/reply',{method:'POST',body:JSON.stringify({to:msg.from,subject:/^re:/i.test(msg.subject||'')?msg.subject:`Re: ${msg.subject||'DEMI DEVILLE'}`,message,inReplyTo:msg.messageId||''})});
-    if(result){result.textContent=out.message||'Сообщение успешно отправлено.';result.className='notice show ok'}$('#mailReplyText').value='';showNotice('Сообщение успешно отправлено.');
-  }catch(err){
-    const text=mailDebugText(err.data||{},err.message||'Не удалось отправить ответ.');if(result){result.textContent=text;result.className='notice show error'}showNotice(err.message||'Не удалось отправить ответ.','error');
-  }finally{if(button){button.disabled=false;button.textContent=original}}
-});
 
 boot();

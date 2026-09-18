@@ -438,40 +438,19 @@ function mountSharedChrome(site,menu=getMenuConfig(site.settings||{}),currentUse
           <div class="support-chat-body support-email-body">
             ${ddIsVideo(supportCfg.backgroundImage)?`<video class="support-background-video" src="${esc(supportCfg.backgroundImage)}" autoplay muted loop playsinline preload="auto"></video>`:''}
             <div class="support-mobile-intro">${esc(supportCfg.greeting)}</div>
-            <form id="sharedSupportForm" class="support-form" novalidate>
-              <input id="sharedSupportEmail" class="support-form-input" name="email" type="email" autocomplete="email" required placeholder="${esc(supportCfg.emailPlaceholder)}">
-              <textarea id="sharedSupportMessage" class="support-form-message" name="message" required placeholder="${esc(supportCfg.messagePlaceholder)}"></textarea>
-              <button id="sharedSupportSubmit" class="support-form-submit" type="submit">${esc(supportCfg.send)}</button>
-              <div id="sharedSupportStatus" class="support-form-status" aria-live="polite"></div>
-            </form>
+            <a class="support-contact-email" href="mailto:support@demideville.com" style="position:absolute;left:12px;right:12px;top:92px;min-height:72px;padding:12px;display:flex;align-items:center;justify-content:center;box-sizing:border-box;background:${esc(supportCfg.fieldBg||'#000000')};color:${esc(supportCfg.fieldColor||'#ffffff')};font:inherit;font-size:18px;font-weight:700;line-height:1.25;text-align:center;text-decoration:none;overflow-wrap:anywhere">support@demideville.com</a>
           </div>
         </div>
       </div>
     </div>`;
   document.body.append(...shell.childNodes);
   const button=$('#sharedSupportOpen'),layer=$('#sharedSupportLayer'),windowEl=$('.shared-support-window');
-  const closeButton=$('#sharedSupportClose'),form=$('#sharedSupportForm');
-  const submit=$('#sharedSupportSubmit'),status=$('#sharedSupportStatus');
-  const supportEmail=$('#sharedSupportEmail');if(currentUser?.email&&supportEmail)supportEmail.value=currentUser.email;
+  const closeButton=$('#sharedSupportClose');
   let timer=0;
   const setOpen=open=>{clearTimeout(timer);layer.classList.toggle('open',open);layer.setAttribute('aria-hidden',String(!open))};
   const delayedClose=()=>{clearTimeout(timer);timer=setTimeout(()=>setOpen(false),320)};
   button.addEventListener('mouseenter',()=>setOpen(true));button.addEventListener('focus',()=>setOpen(true));button.addEventListener('mouseleave',delayedClose);button.addEventListener('click',()=>setOpen(true));
   windowEl.addEventListener('mouseenter',()=>clearTimeout(timer));windowEl.addEventListener('mouseleave',delayedClose);closeButton.addEventListener('click',e=>{e.preventDefault();e.stopPropagation();setOpen(false)});document.addEventListener('keydown',e=>{if(e.key==='Escape')setOpen(false)});
-  form.addEventListener('submit',async e=>{
-    e.preventDefault();const email=$('#sharedSupportEmail').value.trim();const message=$('#sharedSupportMessage').value.trim();const error=tr('PLEASE CHECK YOUR EMAIL AND MESSAGE.');status.classList.remove('error');
-    if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)||message.length<2){status.textContent=error;status.classList.add('error');return}
-    submit.disabled=true;submit.textContent=tr('SENDING…');
-    const controller=new AbortController(),timeout=setTimeout(()=>controller.abort(),25000);
-    try{
-      const r=await fetch('/api/support',{method:'POST',headers:{'Content-Type':'application/json',...authHeaders()},body:JSON.stringify({email,message,lang:document.documentElement.lang==='ru'?'ru':'en'}),signal:controller.signal});
-      const data=await r.json().catch(()=>({}));
-      if(!r.ok){const detail=[data.error,data.debug?`DEBUG: ${data.debug}`:'',data.hint?`HINT: ${data.hint}`:''].filter(Boolean).join(' ');throw new Error(detail||'Support request failed')}
-      status.textContent=tr('THANK YOU. YOUR MESSAGE HAS BEEN SENT.');form.reset();if(currentUser?.email&&supportEmail)supportEmail.value=currentUser.email;
-    }catch(err){
-      const prefix=document.documentElement.lang==='ru'?'ОШИБКА ОТПРАВКИ: ':'SEND ERROR: ';status.textContent=prefix+(err?.name==='AbortError'?'SMTP timeout. Проверьте SMTP настройки в Railway / GoDaddy.':(err?.message||error));status.classList.add('error');
-    }finally{clearTimeout(timeout);submit.disabled=false;submit.textContent=supportCfg.send}
-  });
   const fit=()=>{if(innerWidth<=900)return;const h=window.visualViewport?.height||innerHeight;const sx=innerWidth/1920,sy=h/1080,s=Math.min(sx,sy);document.body.style.setProperty('--shared-chrome-x',sx);document.body.style.setProperty('--shared-chrome-y',sy);document.body.style.setProperty('--shared-chrome-y-inverse',1/sy);document.body.style.setProperty('--shared-support-scale',s);document.body.style.setProperty('--shared-support-right',`${22*s}px`);document.body.style.setProperty('--shared-support-bottom',`${25*s}px`)};
   fit();addEventListener('resize',fit,{passive:true});window.visualViewport?.addEventListener('resize',fit,{passive:true});
 }

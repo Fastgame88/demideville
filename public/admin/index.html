@@ -41,7 +41,6 @@
         <button class="nav-item" type="button" data-admin-tab="orders">ЗАКАЗЫ</button>
         <button class="nav-item" type="button" data-admin-tab="clients">КЛИЕНТЫ</button>
         <button class="nav-item" type="button" data-admin-tab="payment">ОПЛАТА</button>
-        <button class="nav-item" type="button" data-admin-tab="mail">ПОЧТА</button>
       </nav>
       <div class="side-bottom">
         <a class="side-link" href="/" target="_blank" rel="noreferrer">Открыть сайт ↗</a>
@@ -422,12 +421,6 @@
                 <label class="field"><span>Текст кнопки RU</span><input id="supportButtonTextRu" value="ПОДДЕРЖКА"></label>
                 <label class="field span-2"><span>Сообщение EN</span><input id="supportGreetingEn" value="Thanks for stopping by! How can I help you?"></label>
                 <label class="field span-2"><span>Сообщение RU</span><input id="supportGreetingRu" value="Спасибо, что заглянули! Чем я могу помочь?"></label>
-                <label class="field"><span>Поле email EN</span><input id="supportEmailPlaceholderEn" value="YOUR EMAIL"></label>
-                <label class="field"><span>Поле email RU</span><input id="supportEmailPlaceholderRu" value="ВАША ПОЧТА"></label>
-                <label class="field"><span>Поле сообщения EN</span><input id="supportMessagePlaceholderEn" value="HOW CAN WE HELP?"></label>
-                <label class="field"><span>Поле сообщения RU</span><input id="supportMessagePlaceholderRu" value="ЧЕМ МЫ МОЖЕМ ПОМОЧЬ?"></label>
-                <label class="field"><span>Кнопка отправки EN</span><input id="supportSendTextEn" value="SEND"></label>
-                <label class="field"><span>Кнопка отправки RU</span><input id="supportSendTextRu" value="ОТПРАВИТЬ"></label>
               </div>
 
               <h3>Фон, поля и шрифты</h3>
@@ -436,8 +429,8 @@
                 <label class="upload-btn span-2"><input id="supportBackgroundFile" type="file" accept="image/*,video/mp4,video/webm,video/quicktime"><span>Загрузить фото / видео для фона</span></label>
                 <label class="field"><span>Фон кнопки</span><input id="supportButtonBg" type="color" value="#000000"></label>
                 <label class="field"><span>Цвет текста кнопки</span><input id="supportButtonColor" type="color" value="#ffffff"></label>
-                <label class="field"><span>Фон полей</span><input id="supportFieldBg" type="color" value="#000000"></label>
-                <label class="field"><span>Цвет текста в полях</span><input id="supportFieldColor" type="color" value="#ffffff"></label>
+                <label class="field"><span>Фон блока почты</span><input id="supportFieldBg" type="color" value="#000000"></label>
+                <label class="field"><span>Цвет почты</span><input id="supportFieldColor" type="color" value="#ffffff"></label>
                 <label class="field"><span>Шрифт кнопки</span><select id="supportButtonFont" class="font-select" data-default-label="Текущий дизайн"></select></label>
                 <label class="field"><span>Шрифт окна</span><select id="supportWindowFont" class="font-select" data-default-label="Текущий дизайн"></select></label>
               </div>
@@ -448,9 +441,7 @@
                 <div class="support-preview-brand">DEMI DEVILLE</div>
                 <div class="support-preview-body">
                   <div id="supportPreviewGreeting" class="support-preview-greeting">Thanks for stopping by! How can I help you?</div>
-                  <div id="supportPreviewEmail" class="support-preview-field">YOUR EMAIL</div>
-                  <div id="supportPreviewMessage" class="support-preview-field support-preview-message">HOW CAN WE HELP?</div>
-                  <div id="supportPreviewSend" class="support-preview-send">SEND</div>
+                  <div id="supportPreviewEmail" class="support-preview-field support-preview-message" style="display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:700;text-transform:none">support@demideville.com</div>
                 </div>
               </div>
               <button id="supportPreviewButton" class="support-preview-button" type="button">SUPPORT</button>
@@ -499,37 +490,7 @@
         </div>
       </section>
 
-      <section id="mailEditor" class="editor-form" hidden>
-        <section class="device-card">
-          <div class="device-card-head"><div><span class="device-badge">ПОЧТА</span><h2>Рассылки клиентам</h2></div></div>
-          <div class="simple-admin-form mail-admin-form">
-            <label class="field"><span>Тема рассылки</span><input id="newsletterSubject" value="DEMI DEVILLE"></label>
-            <label class="field"><span>Текст рассылки</span><textarea id="newsletterMessage" rows="10"></textarea></label>
-            <button id="sendNewsletter" class="primary-btn" type="button">Отправить всем клиентам</button>
-            <div id="newsletterResult" class="notice" aria-live="polite"></div>
-          </div>
-        </section>
 
-        <section class="device-card mail-inbox-card">
-          <div class="device-card-head"><div><span class="device-badge">INBOX</span><h2>Входящие письма</h2></div><button id="refreshMailInbox" class="secondary-btn" type="button">Обновить входящие</button></div>
-          <div class="mail-inbox-layout">
-            <div id="mailInboxList" class="mail-inbox-list"><div class="empty-admin-list">Нажмите «Обновить входящие».</div></div>
-            <div id="mailMessagePanel" class="mail-message-panel">
-              <div class="mail-message-empty">Выберите письмо.</div>
-              <div id="mailMessageContent" hidden>
-                <div class="mail-message-meta"><strong id="mailMessageFrom"></strong><span id="mailMessageDate"></span></div>
-                <h3 id="mailMessageSubject"></h3>
-                <pre id="mailMessageBody" class="mail-message-body"></pre>
-                <div class="mail-reply-form">
-                  <label class="field"><span>Ответ</span><textarea id="mailReplyText" rows="7" placeholder="Введите ответ..."></textarea></label>
-                  <button id="sendMailReply" class="primary-btn" type="button">Ответить</button>
-                  <div id="mailReplyResult" class="notice" aria-live="polite"></div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </section>
-      </section>
 
     </main>
   </div>
@@ -599,6 +560,6 @@
     </section>
   </div>
 
-  <script src="/assets/js/admin.js?v=20260918-v24"></script>
+  <script src="/assets/js/admin.js?v=20260918-v25"></script>
 </body>
 </html>

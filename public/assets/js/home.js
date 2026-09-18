@@ -26,13 +26,7 @@
   const supportLayer=$('#supportLayer');
   const supportWindow=$('.support-window');
   const supportClose=$('#supportClose');
-  const supportForm=$('#supportForm');
-  const supportSenderEmail=$('#supportSenderEmail');
-  const supportMessage=$('#supportMessage');
-  const supportSubmit=$('#supportSubmit');
-  const supportFormStatus=$('#supportFormStatus');
   const supportGreeting=$('#supportGreeting');
-  if(currentUser?.email&&supportSenderEmail)supportSenderEmail.value=currentUser.email;
   const mobileMenu=$('#homeMobileMenu');
   const menuOpen=$('#homeMenuOpen');
   const langToggle=$('#langToggle');
@@ -99,9 +93,6 @@
     const cfg=window.ddSupportConfig?window.ddSupportConfig(s,lang):{buttonText:dict[lang].support,greeting:dict[lang].greeting,emailPlaceholder:dict[lang].yourEmail,messagePlaceholder:dict[lang].yourMessage,send:dict[lang].send};
     if(supportOpen)supportOpen.textContent=cfg.buttonText;
     if(supportGreeting)supportGreeting.textContent=cfg.greeting;
-    if(supportSenderEmail)supportSenderEmail.placeholder=cfg.emailPlaceholder;
-    if(supportMessage)supportMessage.placeholder=cfg.messagePlaceholder;
-    if(supportSubmit)supportSubmit.textContent=cfg.send;
     if(menuOpen)menuOpen.textContent=lang==='ru'?'МЕНЮ':'MENU';
     if(langToggle)langToggle.textContent=lang==='en'?'EN / RU':'RU / EN';
     localStorage.setItem('demi-lang',lang);
@@ -146,17 +137,4 @@
   supportClose?.addEventListener('click',e=>{e.preventDefault();e.stopPropagation();clearTimeout(hideTimer);setSupport(false)});
   document.addEventListener('keydown',e=>{if(e.key==='Escape'){setMenu(false);setSupport(false)}});
 
-  supportForm?.addEventListener('submit',async e=>{
-    e.preventDefault();const email=String(supportSenderEmail?.value||'').trim();const message=String(supportMessage?.value||'').trim();const validEmail=/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);supportFormStatus?.classList.remove('error');
-    if(!validEmail||message.length<2){if(supportFormStatus){supportFormStatus.textContent=dict[lang].sendError;supportFormStatus.classList.add('error')}return}
-    const supportCfg=window.ddSupportConfig?window.ddSupportConfig(s,lang):{send:dict[lang].send};
-    if(supportSubmit){supportSubmit.disabled=true;supportSubmit.textContent=dict[lang].sending}
-    const controller=new AbortController(),timeout=setTimeout(()=>controller.abort(),25000);
-    try{
-      const r=await fetch('/api/support',{method:'POST',headers:{'Content-Type':'application/json',...authHeaders()},body:JSON.stringify({email,message,lang}),signal:controller.signal});const data=await r.json().catch(()=>({}));
-      if(!r.ok){const detail=[data.error,data.debug?`DEBUG: ${data.debug}`:'',data.hint?`HINT: ${data.hint}`:''].filter(Boolean).join(' ');throw new Error(detail||'Support request failed')}
-      if(supportFormStatus)supportFormStatus.textContent=dict[lang].sent;supportForm.reset();if(currentUser?.email&&supportSenderEmail)supportSenderEmail.value=currentUser.email;
-    }catch(err){if(supportFormStatus){supportFormStatus.textContent=(lang==='ru'?'ОШИБКА ОТПРАВКИ: ':'SEND ERROR: ')+(err?.name==='AbortError'?'SMTP timeout. Проверьте SMTP настройки в Railway / GoDaddy.':(err?.message||dict[lang].sendError));supportFormStatus.classList.add('error')}}
-    finally{clearTimeout(timeout);if(supportSubmit){supportSubmit.disabled=false;supportSubmit.textContent=supportCfg.send||dict[lang].send}}
-  });
 })();
