@@ -83,7 +83,6 @@ body.product-detail-page .product-visual>video#productImage{
   body.shop-page .product-grid[data-count="1"] .product-art,
   body.shop-page .product-grid[data-count="2"] .product-art{
     max-width:306px!important;
-    max-height:430px!important;
   }
   body.product-detail-page .product-visual>img#productImage,
   body.product-detail-page .product-visual>video#productImage{
@@ -101,5 +100,57 @@ body.product-detail-page .product-visual>video#productImage{
   body.product-detail-page .product-visual>video#productImage{
     max-width:82vw!important;
     max-height:450px!important;
+  }
+}
+
+/* 2026-09-19 — SHOP variable-height row safety.
+   A tall source image/video must increase its whole grid row instead of letting the
+   caption or the next product overlap it. The page itself scrolls only when the
+   resulting storefront is taller than the visible desktop canvas. */
+@media (min-width:901px){
+  html,
+  body.shop-page{
+    overflow-x:hidden!important;
+  }
+  body.shop-page{
+    height:auto!important;
+    min-height:100vh!important;
+    overflow-y:auto!important;
+  }
+  body.shop-page .shop-stage{
+    height:100vh;
+    min-height:100vh;
+    overflow:hidden!important;
+  }
+  body.shop-page .shop-canvas{
+    overflow:hidden!important;
+  }
+  body.shop-page .shop-wrap{
+    height:auto!important;
+    min-height:1080px!important;
+    overflow:visible!important;
+  }
+  body.shop-page .product-grid{
+    height:auto!important;
+    min-height:0!important;
+    grid-auto-rows:max-content!important;
+    row-gap:36px!important;
+    align-content:start!important;
+  }
+  body.shop-page .product-card,
+  body.shop-page .product-card:nth-child(n+5){
+    align-self:start!important;
+    height:auto!important;
+    min-height:0!important;
+  }
+  body.shop-page .product-live-copy{
+    position:relative!important;
+    margin-top:12px!important;
+    padding:0 8px 8px!important;
+  }
+  body.shop-page .product-name,
+  body.shop-page .product-price{
+    position:relative!important;
+    z-index:1!important;
   }
 }

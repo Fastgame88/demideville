@@ -52,7 +52,7 @@
   }
   function productCopy(p){
     let name=localized(p,'name');
-    const priceMode=String(p?.priceMode||'number').toLowerCase();
+    const priceMode=String(p?.priceMode||'number');
     let detail='';
     if(priceMode==='text'){
       detail=String(lang==='ru'?(p?.priceTextRu||p?.priceText||''):(p?.priceText||p?.priceTextRu||''));
@@ -108,12 +108,10 @@
       const primary=(window.ddProductImages?.(p)||[])[0]||p.image||'';
       /* For one or two products use the real source image so the card can scale up
          without inheriting transparent padding from the old reference artwork. */
-      const priceMode=String(p?.priceMode||'number').toLowerCase();
-      const useReferenceArt=lang!=='ru'&&ref&&primary===ref.image&&pageItems.length>2&&!window.ddIsVideo?.(primary);
-      const useReferenceCopy=useReferenceArt&&priceMode==='number';
-      const art=useReferenceArt?ref.art:primary;
+      const useReference=lang!=='ru'&&ref&&primary===ref.image&&pageItems.length>2&&String(p.priceMode||'number')==='number'&&!window.ddIsVideo?.(primary);
+      const art=useReference?ref.art:primary;
       const copy=productCopy(p);
-      const referenceCopy=(useReferenceCopy&&ref.label)?`<span class="product-reference-copy" aria-hidden="true">
+      const referenceCopy=(useReference&&ref.label)?`<span class="product-reference-copy" aria-hidden="true">
           <img class="product-reference-label" src="${esc(ref.label)}" alt="" loading="lazy" decoding="async">
           ${ref.detail?`<img class="product-reference-detail" src="${esc(ref.detail)}" alt="" loading="lazy" decoding="async">`:''}
         </span>`:'';
@@ -162,12 +160,49 @@
   const canvas=$('#shopCanvas');const stage=$('#shopStage');
   function fitCanvas(){
     if(!canvas||!stage)return;
-    if(innerWidth<=900){canvas.style.removeProperty('--shop-scale');canvas.style.removeProperty('--shop-scale-x');canvas.style.removeProperty('--shop-scale-y');return}
+    const footer=pagination?.closest('.shop-footer');
+    if(innerWidth<=900){
+      canvas.style.removeProperty('--shop-scale');
+      canvas.style.removeProperty('--shop-scale-x');
+      canvas.style.removeProperty('--shop-scale-y');
+      canvas.style.removeProperty('--shop-inverse-scale');
+      canvas.style.removeProperty('height');
+      stage.style.removeProperty('height');
+      footer?.style.removeProperty('top');
+      footer?.style.removeProperty('bottom');
+      return;
+    }
     const h=(window.visualViewport&&window.visualViewport.height)||innerHeight;
+    /* Keep the original 1920x1080 viewport fit. Extra product height is not
+       squeezed to fit the screen: it extends the scaled stage and becomes scrollable. */
     const scale=Math.min(innerWidth/1920,h/1080);const scaleX=innerWidth/1920;const scaleY=h/1080;
     canvas.style.setProperty('--shop-scale',String(scale));canvas.style.setProperty('--shop-scale-x',String(scaleX));canvas.style.setProperty('--shop-scale-y',String(scaleY));canvas.style.setProperty('--shop-inverse-scale',String(1/scale));
+
+    const gridTop=grid?.offsetTop||190;
+    const gridHeight=Math.max(grid?.offsetHeight||0,grid?.scrollHeight||0);
+    const productsBottom=gridTop+gridHeight;
+    const footerHeight=footer?.offsetHeight||62;
+    const defaultFooterTop=1080-footerHeight-8;
+    const footerTop=Math.max(defaultFooterTop,productsBottom+34);
+    const designHeight=Math.max(1080,footerTop+footerHeight+8);
+
+    if(footer){footer.style.top=`${footerTop}px`;footer.style.bottom='auto'}
+    canvas.style.height=`${designHeight}px`;
+    stage.style.height=`${Math.ceil(designHeight*scale)}px`;
   }
   let resizeFrame=0;
   const scheduleFit=()=>{if(resizeFrame)return;resizeFrame=requestAnimationFrame(()=>{resizeFrame=0;fitCanvas()})};
-  fitCanvas();addEventListener('resize',scheduleFit,{passive:true});window.visualViewport?.addEventListener('resize',scheduleFit,{passive:true});
+  fitCanvas();
+  addEventListener('resize',scheduleFit,{passive:true});
+  window.visualViewport?.addEventListener('resize',scheduleFit,{passive:true});
+  /* Images/videos can change a row's natural height after their metadata arrives.
+     Recalculate the scaled stage whenever the product grid grows or shrinks. */
+  if('ResizeObserver' in window){
+    const shopGridObserver=new ResizeObserver(scheduleFit);
+    if(grid)shopGridObserver.observe(grid);
+  }else{
+    $$('img.product-art,video.product-art',grid).forEach(media=>{
+      media.addEventListener(media.tagName==='VIDEO'?'loadedmetadata':'load',scheduleFit,{passive:true});
+    });
+  }
 })();
