@@ -26,7 +26,7 @@
   };
 
   /* Desktop brand is intentionally a static image, not editable text. */
-  const logoImage='/assets/images/brand-title-ref.png';
+  const logoImage=String(homeCfg.fields?.heroLogo?.value||'/assets/images/brand-title-ref.png');
   if(title){
     title.textContent='';
     title.classList.add('reference-brand');

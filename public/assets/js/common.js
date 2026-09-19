@@ -71,7 +71,7 @@ async function renderChrome({home=false}={}){
   const desktop=$('#desktopHeader');
   if(desktop && !home){
     const cartCurrent=location.pathname.includes('cart')||location.pathname.includes('checkout');
-    desktop.innerHTML=`<div class="nav-side"><a href="/shop.html">SHOP</a><a href="/gallery.html">GALLERY</a><a href="/about.html">ABOUT</a></div><a class="brand brand-image" href="/" aria-label="${esc(s.brand||'DEMI DEVILLE')}"></a><a class="cart-link global-cart-icon${cartCurrent?' cart-current':''}" href="/cart.html" aria-label="Cart"></a><div class="nav-side right"><a href="${esc(s.instagram||'#')}" target="_blank" rel="noreferrer">INSTAGRAM</a><a href="mailto:${esc(s.contact||'')}">CONTACT</a><a href="/login.html">LOGIN</a></div>`;
+    desktop.innerHTML=`<div class="nav-side"><a href="/shop.html">SHOP</a><a href="/gallery.html">GALLERY</a><a href="/about.html">ABOUT</a></div><a class="brand" data-brand href="/">${esc(s.brand||'DEMI DEVILLE')}</a><a class="cart-link global-cart-icon${cartCurrent?' cart-current':''}" href="/cart.html" aria-label="Cart"></a><div class="nav-side right"><a href="${esc(s.instagram||'#')}" target="_blank" rel="noreferrer">INSTAGRAM</a><a href="mailto:${esc(s.contact||'')}">CONTACT</a><a href="/login.html">LOGIN</a></div>`;
   }
   const mobile=$('#mobileHeader');
   if(mobile){mobile.classList.toggle('transparent',home);mobile.innerHTML=`<button class="mobile-menu-btn" aria-label="Menu">MENU</button><a class="brand" href="/" data-brand>${esc(s.brand||'DEMI DEVILLE')}</a><a class="mobile-cart" href="/cart.html">${home?'':'🛒'}<span data-cart-count></span></a>`;}
@@ -131,49 +131,15 @@ function ddApplyNav(site){
     {label:n.bags||'BAGS & ACCESSORIES',href:'/shop.html?category=bags-accessories'}
   ];
   const loginItems=Array.isArray(n.loginItems)&&n.loginItems.length?n.loginItems:[
-    {label:n.cart||'CART',href:'/cart.html'},
-    {label:n.register||'REGISTER',href:'/login.html#register'},
-    {label:n.account||'ACCOUNT',href:'/login.html'},
-    {label:n.about||'ABOUT',href:'/about.html'},
+    {label:n.cart||'CART',href:'/cart.html'},{label:n.register||'REGISTER',href:'/login.html#register'},
+    {label:n.account||'ACCOUNT',href:'/login.html'},{label:n.about||'ABOUT',href:'/about.html'},
     {label:n.services||'CLIENT SERVICES',href:`mailto:${site?.settings?.contact||''}`}
   ];
-
-  const links=items=>items.map(x=>`<a href="${esc(x.href||'#')}">${esc(x.label||'')}</a>`).join('');
-  const loginLinks=(gapClass='')=>{
-    const first=loginItems.slice(0,3);
-    const rest=loginItems.slice(3);
-    const gap=rest.length?`<span class="${esc(gapClass)}" aria-hidden="true"></span>`:'';
-    return `${links(first)}${gap}${links(rest)}`;
-  };
-
-  /* HOME flyouts do not contain a nested <nav>; update only their links. */
-  document.querySelectorAll('.home .shop-flyout').forEach(panel=>{panel.innerHTML=links(shopItems)});
-  document.querySelectorAll('.home .login-flyout').forEach(panel=>{panel.innerHTML=loginLinks('login-flyout-gap')});
-
-  /* Internal-page flyouts MUST keep their <nav> wrapper. The page CSS positions
-     that wrapper; replacing the whole panel is what previously broke LOGIN/SHOP. */
-  const leftNavs=document.querySelectorAll([
-    '.shop-header-flyout-left nav',
-    '.login-header-flyout-left nav',
-    '.gallery-header-flyout-left nav',
-    '.checkout-header-flyout-left nav'
-  ].join(','));
-  leftNavs.forEach(nav=>{nav.innerHTML=links(shopItems)});
-
-  const rightNavs=document.querySelectorAll([
-    '.shop-header-flyout-right nav',
-    '.login-header-flyout-right nav',
-    '.gallery-header-flyout-right nav',
-    '.checkout-header-flyout-right nav'
-  ].join(','));
-  rightNavs.forEach(nav=>{
-    nav.innerHTML=loginLinks('shop-header-flyout-gap login-header-flyout-gap gallery-header-flyout-gap checkout-header-flyout-gap');
-  });
-
+  const setText=(sel,val)=>document.querySelectorAll(sel).forEach(el=>{if(el.textContent!==String(val))el.textContent=String(val)});
+  document.querySelectorAll('.shop-flyout,[class*="flyout-left"]').forEach(panel=>{panel.innerHTML=shopItems.map(x=>`<a href="${esc(x.href||'#')}">${esc(x.label||'')}</a>`).join('')});
+  document.querySelectorAll('.login-flyout,[class*="flyout-right"]').forEach(panel=>{panel.innerHTML=loginItems.map(x=>`<a href="${esc(x.href||'#')}">${esc(x.label||'')}</a>`).join('')});
   const mobileNav=document.querySelector('.home-mobile-menu-nav');
-  if(mobileNav){
-    mobileNav.innerHTML=`${links(shopItems)}<span class="home-mobile-menu-gap" aria-hidden="true"></span><a href="/gallery.html">${esc(n.gallery||'GALLERY')}</a><a href="/about.html">${esc(n.about||'ABOUT')}</a><span class="home-mobile-menu-gap small" aria-hidden="true"></span><span class="menu-label-dark">${esc(n.loginMain||'LOGIN')}</span>${links(loginItems)}`;
-  }
+  if(mobileNav){mobileNav.innerHTML=`${shopItems.map(x=>`<a href="${esc(x.href||'#')}">${esc(x.label||'')}</a>`).join('')}<span class="home-mobile-menu-gap" aria-hidden="true"></span><a href="/gallery.html">${esc(n.gallery||'GALLERY')}</a><a href="/about.html">${esc(n.about||'ABOUT')}</a><span class="home-mobile-menu-gap small" aria-hidden="true"></span><span class="menu-label-dark">${esc(n.loginMain||'LOGIN')}</span>${loginItems.map(x=>`<a href="${esc(x.href||'#')}">${esc(x.label||'')}</a>`).join('')}`}
 }
 
 function ddApplyPayments(site){
@@ -220,7 +186,7 @@ function ddInstallPageEditor(site){
   apply();const obs=new MutationObserver(schedule);obs.observe(document.documentElement,{subtree:true,childList:true,characterData:true});window.addEventListener('resize',schedule,{passive:true});setTimeout(apply,0);window.ddApplyPageEditor=apply;
 }
 function prepareAdminRuntime(site){
-  if(!document.getElementById('ddAdminRuntimeCss')){const l=document.createElement('link');l.id='ddAdminRuntimeCss';l.rel='stylesheet';l.href='/assets/css/admin-runtime-overrides.css?v=20260917-header-brand-flyout-v3';document.head.appendChild(l)}
+  if(!document.getElementById('ddAdminRuntimeCss')){const l=document.createElement('link');l.id='ddAdminRuntimeCss';l.rel='stylesheet';l.href='/assets/css/admin-runtime-overrides.css?v=20260917-header-visual-restore-v1';document.head.appendChild(l)}
   const all=site?.settings?.pageEditor||{};Object.values(all).forEach(cfg=>{ddLoadFont(cfg?.fontFamily);Object.values(cfg?.fields||{}).forEach(x=>ddLoadFont(x?.fontFamily))});ddLoadFont(site?.settings?.navEditor?.mainFontFamily);ddLoadFont(site?.settings?.navEditor?.subFontFamily);
   ddApplyPayments(site);ddApplyNav(site);ddInstallPageEditor(site);
 }
