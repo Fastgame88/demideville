@@ -220,7 +220,7 @@ function ddInstallPageEditor(site){
   apply();const obs=new MutationObserver(schedule);obs.observe(document.documentElement,{subtree:true,childList:true,characterData:true});window.addEventListener('resize',schedule,{passive:true});setTimeout(apply,0);window.ddApplyPageEditor=apply;
 }
 function prepareAdminRuntime(site){
-  if(!document.getElementById('ddAdminRuntimeCss')){const l=document.createElement('link');l.id='ddAdminRuntimeCss';l.rel='stylesheet';l.href='/assets/css/admin-runtime-overrides.css?v=20260919-mobile-cards-support-v1';document.head.appendChild(l)}
+  if(!document.getElementById('ddAdminRuntimeCss')){const l=document.createElement('link');l.id='ddAdminRuntimeCss';l.rel='stylesheet';l.href='/assets/css/admin-runtime-overrides.css?v=20260917-header-brand-flyout-v3';document.head.appendChild(l)}
   const all=site?.settings?.pageEditor||{};Object.values(all).forEach(cfg=>{ddLoadFont(cfg?.fontFamily);Object.values(cfg?.fields||{}).forEach(x=>ddLoadFont(x?.fontFamily))});ddLoadFont(site?.settings?.navEditor?.mainFontFamily);ddLoadFont(site?.settings?.navEditor?.subFontFamily);
   ddApplyPayments(site);ddApplyNav(site);ddInstallPageEditor(site);
 }
