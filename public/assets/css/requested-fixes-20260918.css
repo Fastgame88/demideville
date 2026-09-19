@@ -162,3 +162,33 @@ body.product-detail-page .product-visual>video#productImage{
     z-index:1!important;
   }
 }
+
+
+/* 2026-09-20 — SHOP scroll-to-full-card fix.
+   The scaled desktop canvas may become taller than the viewport when portrait
+   product media is used. Keep the canvas layout intact and make the document
+   itself scroll far enough to reveal the complete card copy and footer. */
+@media (min-width:901px){
+  html.shop-scroll-page{
+    height:auto!important;
+    min-height:100%!important;
+    overflow-x:hidden!important;
+    overflow-y:auto!important;
+  }
+  html.shop-scroll-page body.shop-page{
+    height:auto!important;
+    min-height:100vh!important;
+    overflow-x:hidden!important;
+    overflow-y:auto!important;
+    overscroll-behavior-y:auto!important;
+  }
+  html.shop-scroll-page body.shop-page .shop-stage{
+    height:var(--shop-stage-height,100vh)!important;
+    min-height:100vh!important;
+    overflow:visible!important;
+  }
+  html.shop-scroll-page body.shop-page .shop-canvas,
+  html.shop-scroll-page body.shop-page .shop-wrap{
+    overflow:visible!important;
+  }
+}

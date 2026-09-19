@@ -1,4 +1,5 @@
 (async()=>{
+  document.documentElement.classList.add('shop-scroll-page');
   await renderChrome();
   const site=await SITE;
   const grid=$('#productGrid');
@@ -167,28 +168,43 @@
       canvas.style.removeProperty('--shop-scale-y');
       canvas.style.removeProperty('--shop-inverse-scale');
       canvas.style.removeProperty('height');
+      stage.style.removeProperty('--shop-stage-height');
       stage.style.removeProperty('height');
+      document.body.style.removeProperty('min-height');
       footer?.style.removeProperty('top');
       footer?.style.removeProperty('bottom');
       return;
     }
     const h=(window.visualViewport&&window.visualViewport.height)||innerHeight;
-    /* Keep the original 1920x1080 viewport fit. Extra product height is not
-       squeezed to fit the screen: it extends the scaled stage and becomes scrollable. */
     const scale=Math.min(innerWidth/1920,h/1080);const scaleX=innerWidth/1920;const scaleY=h/1080;
     canvas.style.setProperty('--shop-scale',String(scale));canvas.style.setProperty('--shop-scale-x',String(scaleX));canvas.style.setProperty('--shop-scale-y',String(scaleY));canvas.style.setProperty('--shop-inverse-scale',String(1/scale));
 
-    const gridTop=grid?.offsetTop||190;
-    const gridHeight=Math.max(grid?.offsetHeight||0,grid?.scrollHeight||0);
-    const productsBottom=gridTop+gridHeight;
-    const footerHeight=footer?.offsetHeight||62;
-    const defaultFooterTop=1080-footerHeight-8;
-    const footerTop=Math.max(defaultFooterTop,productsBottom+34);
-    const designHeight=Math.max(1080,footerTop+footerHeight+8);
+    /* Measure the actual rendered bottom of every card, not only the grid box.
+       Portrait media can extend the second row past the old 1080px canvas. */
+    const canvasRect=canvas.getBoundingClientRect();
+    let productsBottom=0;
+    $$('.product-card',grid).forEach(card=>{
+      const rect=card.getBoundingClientRect();
+      if(rect.width||rect.height){
+        productsBottom=Math.max(productsBottom,(rect.bottom-canvasRect.top)/Math.max(scale,.0001));
+      }
+    });
+    if(!productsBottom){
+      const gridRect=grid?.getBoundingClientRect();
+      if(gridRect)productsBottom=(gridRect.bottom-canvasRect.top)/Math.max(scale,.0001);
+    }
+
+    const footerHeight=footer?.offsetHeight||70;
+    const defaultFooterTop=1080-footerHeight-10;
+    const footerTop=Math.max(defaultFooterTop,Math.ceil(productsBottom+42));
+    const designHeight=Math.max(1080,Math.ceil(footerTop+footerHeight+34));
+    const stageHeight=Math.ceil(designHeight*scale);
 
     if(footer){footer.style.top=`${footerTop}px`;footer.style.bottom='auto'}
     canvas.style.height=`${designHeight}px`;
-    stage.style.height=`${Math.ceil(designHeight*scale)}px`;
+    stage.style.setProperty('--shop-stage-height',`${stageHeight}px`);
+    stage.style.setProperty('height',`${stageHeight}px`,'important');
+    document.body.style.setProperty('min-height',`${stageHeight}px`,'important');
   }
   let resizeFrame=0;
   const scheduleFit=()=>{if(resizeFrame)return;resizeFrame=requestAnimationFrame(()=>{resizeFrame=0;fitCanvas()})};
