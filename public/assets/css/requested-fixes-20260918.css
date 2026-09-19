@@ -192,3 +192,69 @@ body.product-detail-page .product-visual>video#productImage{
     overflow:visible!important;
   }
 }
+
+/* 2026-09-20 — requested rollback-safe fixes only.
+   1) Hide the orphaned product zoom layer that was rendering its close button / empty image
+      at the bottom of the product card.
+   2) On mobile SHOP, pagination + legal links are part of normal document flow after the
+      final product row. They scroll with the products and appear only when the user reaches
+      the real end of the catalogue page. */
+body.product-detail-page .dd-product-zoom{
+  display:none!important;
+}
+
+@media (max-width:900px){
+  html body.shop-page .shop-wrap{
+    padding-bottom:24px!important;
+  }
+  html body.shop-page .shop-footer{
+    position:relative!important;
+    left:auto!important;
+    right:auto!important;
+    top:auto!important;
+    bottom:auto!important;
+    display:flex!important;
+    flex-direction:column!important;
+    align-items:center!important;
+    width:100%!important;
+    height:auto!important;
+    margin:32px auto 0!important;
+    padding:0 0 max(16px,env(safe-area-inset-bottom))!important;
+    transform:none!important;
+    background:transparent!important;
+    overflow:visible!important;
+    z-index:25!important;
+  }
+  html body.shop-page .shop-pagination{
+    position:relative!important;
+    left:auto!important;
+    right:auto!important;
+    top:auto!important;
+    bottom:auto!important;
+    display:flex!important;
+    align-items:flex-start!important;
+    justify-content:center!important;
+    width:auto!important;
+    height:auto!important;
+    min-height:34px!important;
+    margin:0 auto!important;
+    padding:0!important;
+    overflow:visible!important;
+  }
+  html body.shop-page .shop-legal-links{
+    position:relative!important;
+    left:auto!important;
+    right:auto!important;
+    top:auto!important;
+    bottom:auto!important;
+    transform:none!important;
+    display:flex!important;
+    align-items:center!important;
+    justify-content:center!important;
+    width:max-content!important;
+    max-width:calc(100vw - 24px)!important;
+    margin:10px auto 0!important;
+    padding:0!important;
+    white-space:nowrap!important;
+  }
+}
