@@ -89,7 +89,7 @@
 }
 
 /* SUPPORT is outside every page canvas. Its popup is above the closed button. */
-body.shared-support-page>#sharedSupportOpen.shared-support-button{
+body.shared-chrome-page>#sharedSupportOpen.shared-support-button{
   position:fixed!important;z-index:700!important;left:auto!important;top:auto!important;
   right:var(--shared-support-right,22px)!important;bottom:var(--shared-support-bottom,25px)!important;
   width:145px!important;min-width:145px!important;height:48px!important;margin:0!important;padding:0!important;
@@ -98,84 +98,84 @@ body.shared-support-page>#sharedSupportOpen.shared-support-button{
   letter-spacing:-.65px!important;text-align:center!important;display:block!important;
   transform:scale(var(--shared-support-scale,1))!important;transform-origin:right bottom!important;
 }
-body.shared-support-page>#sharedSupportLayer.shared-support-layer{
+body.shared-chrome-page>#sharedSupportLayer.shared-support-layer{
   position:fixed!important;inset:0!important;z-index:701!important;
   display:block!important;opacity:0;visibility:hidden;pointer-events:none;
   transition:opacity .16s ease,visibility 0s linear .22s;
 }
-body.shared-support-page>#sharedSupportLayer.shared-support-layer.open{
+body.shared-chrome-page>#sharedSupportLayer.shared-support-layer.open{
   opacity:1!important;visibility:visible!important;pointer-events:auto!important;transition-delay:0s!important;
 }
-body.shared-support-page>#sharedSupportLayer .shared-support-window,
-body.shared-support-page>#sharedSupportLayer.open .shared-support-window{
+body.shared-chrome-page>#sharedSupportLayer .shared-support-window,
+body.shared-chrome-page>#sharedSupportLayer.open .shared-support-window{
   position:absolute!important;left:auto!important;top:auto!important;
   right:var(--shared-support-right,22px)!important;bottom:var(--shared-support-bottom,25px)!important;
   width:368px!important;height:592px!important;overflow:visible!important;
   transform:scale(var(--shared-support-scale,1))!important;transform-origin:right bottom!important;
 }
-body.shared-support-page>#sharedSupportLayer:not(.open) .shared-support-window{
+body.shared-chrome-page>#sharedSupportLayer:not(.open) .shared-support-window{
   transform:scale(var(--shared-support-scale,1)) translateY(10px)!important;
 }
-body.shared-support-page>#sharedSupportLayer .shared-support-window .support-panel{
+body.shared-chrome-page>#sharedSupportLayer .shared-support-window .support-panel{
   position:absolute!important;right:0!important;bottom:0!important;width:368px!important;height:545px!important;
   min-height:0!important;box-sizing:border-box!important;border:5px solid #111!important;background:#fff!important;
 }
-body.shared-support-page>#sharedSupportLayer .shared-support-window .support-close{
+body.shared-chrome-page>#sharedSupportLayer .shared-support-window .support-close{
   position:absolute!important;left:-47px!important;top:0!important;width:47px!important;height:47px!important;
   box-sizing:border-box!important;border:5px solid #111!important;background:#fff!important;color:#111!important;
   font:300 40px/36px Arial,sans-serif!important;padding:0 0 5px!important;z-index:3!important;
 }
-body.shared-support-page>#sharedSupportLayer .shared-support-window .support-brand{
+body.shared-chrome-page>#sharedSupportLayer .shared-support-window .support-brand{
   display:flex!important;align-items:flex-start!important;justify-content:center!important;
   width:100%!important;height:59px!important;padding:9px 12px 0!important;
   background:none!important;color:#000!important;
   font:900 31px/1 "Benzin Semibold","Benzin-Semibold","Arial Black",Arial,sans-serif!important;
   letter-spacing:-1.25px!important;text-align:center!important;
 }
-body.shared-support-page>#sharedSupportLayer .shared-support-window .support-chat-body{
+body.shared-chrome-page>#sharedSupportLayer .shared-support-window .support-chat-body{
   height:486px!important;padding:16px 12px 13px!important;
 }
-body.shared-support-page>#sharedSupportLayer .shared-support-window .support-form-heading{
+body.shared-chrome-page>#sharedSupportLayer .shared-support-window .support-form-heading{
   display:flex!important;align-items:center!important;justify-content:center!important;
   width:216px!important;height:68px!important;margin:0 auto!important;border-radius:7px!important;
   font-size:15px!important;
 }
-body.shared-support-page>#sharedSupportLayer .shared-support-window .support-form{
+body.shared-chrome-page>#sharedSupportLayer .shared-support-window .support-form{
   position:absolute!important;display:flex!important;flex-direction:column!important;
   left:12px!important;right:12px!important;top:111px!important;bottom:16px!important;gap:0!important;
 }
-body.shared-support-page>#sharedSupportLayer .shared-support-window .support-form-input{
+body.shared-chrome-page>#sharedSupportLayer .shared-support-window .support-form-input{
   height:46px!important;padding:10px 11px!important;margin:0 0 24px!important;font-size:14px!important;
 }
-body.shared-support-page>#sharedSupportLayer .shared-support-window .support-form-message{
+body.shared-chrome-page>#sharedSupportLayer .shared-support-window .support-form-message{
   height:116px!important;padding:10px 11px!important;margin:0!important;font-size:14px!important;
 }
-body.shared-support-page>#sharedSupportLayer .shared-support-window .support-form-submit{
+body.shared-chrome-page>#sharedSupportLayer .shared-support-window .support-form-submit{
   height:48px!important;margin-top:auto!important;margin-bottom:0!important;font-size:15px!important;
 }
-body.shared-support-page>#sharedSupportLayer .shared-support-window .support-form-status:empty{display:none!important}
-body.shared-support-page>#sharedSupportLayer .shared-support-window .support-form-status:not(:empty){min-height:28px!important;padding:5px 2px 0!important}
+body.shared-chrome-page>#sharedSupportLayer .shared-support-window .support-form-status:empty{display:none!important}
+body.shared-chrome-page>#sharedSupportLayer .shared-support-window .support-form-status:not(:empty){min-height:28px!important;padding:5px 2px 0!important}
 @media (max-width:900px){
-  body.shared-support-page #mobileHeader.mobile-header{
+  body.shared-chrome-page #mobileHeader.mobile-header{
     display:grid!important;position:relative!important;width:100%!important;height:84px!important;
     background:#fff!important;color:#000!important;z-index:50!important;
   }
-  body.shared-support-page #mobileMenu.mobile-menu{z-index:710!important}
-  body.shared-support-page>#sharedSupportOpen.shared-support-button{
+  body.shared-chrome-page #mobileMenu.mobile-menu{z-index:710!important}
+  body.shared-chrome-page>#sharedSupportOpen.shared-support-button{
     right:12px!important;bottom:15px!important;width:120px!important;min-width:120px!important;
     height:42px!important;font-size:14px!important;line-height:42px!important;transform:none!important;
   }
-  body.shared-support-page>#sharedSupportLayer .shared-support-window,
-  body.shared-support-page>#sharedSupportLayer.open .shared-support-window{
+  body.shared-chrome-page>#sharedSupportLayer .shared-support-window,
+  body.shared-chrome-page>#sharedSupportLayer.open .shared-support-window{
     right:12px!important;bottom:15px!important;width:min(368px,calc(100vw - 60px))!important;
     height:min(592px,calc(100dvh - 70px))!important;transform:none!important;
   }
-  body.shared-support-page>#sharedSupportLayer .shared-support-window .support-panel{
+  body.shared-chrome-page>#sharedSupportLayer .shared-support-window .support-panel{
     width:100%!important;height:calc(100% - 47px)!important;
   }
-  body.shared-support-page>#sharedSupportLayer .shared-support-window .support-chat-body{height:calc(100% - 59px)!important}
-  body.shared-support-page>#sharedSupportLayer .shared-support-window .support-close{
+  body.shared-chrome-page>#sharedSupportLayer .shared-support-window .support-chat-body{height:calc(100% - 59px)!important}
+  body.shared-chrome-page>#sharedSupportLayer .shared-support-window .support-close{
     left:-42px!important;width:42px!important;height:42px!important;font-size:35px!important;line-height:31px!important;
   }
 }
-html[lang="ru"] body.shared-support-page>#sharedSupportOpen.shared-support-button{font-size:14px!important;letter-spacing:-.3px!important}
+html[lang="ru"] body.shared-chrome-page>#sharedSupportOpen.shared-support-button{font-size:14px!important;letter-spacing:-.3px!important}

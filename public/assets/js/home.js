@@ -6,7 +6,6 @@
   if(currentUser){const loginGroup=(menuConfig.groups||[]).find(g=>g.id==='login');if(loginGroup){loginGroup.labelEn='ACCOUNT';loginGroup.labelRu='АККАУНТ';loginGroup.href='/account.html';loginGroup.items=(loginGroup.items||[]).map(item=>item.id==='register'?{...item,enabled:false}:item.id==='account'?{...item,href:'/account.html',showMobile:false}:item)}}
   window.ddApplyMenuRuntimeStyles?.(s);
   window.ddApplySupportRuntimeStyles?.(s);
-  window.ddMountSharedSupport?.(site);
   const clampPct=(value,fallback=35)=>{const n=Number(value);return Number.isFinite(n)?Math.max(0,Math.min(100,n)):fallback};
   const legacyOverlay=clampPct(s.homeOverlayOpacity,35);
   const desktopOverlay=clampPct(s.homeDesktopOverlayOpacity,legacyOverlay);
@@ -23,11 +22,11 @@
   const hero=$('#heroImage');
   const title=$('#heroTitle');
   const mobileBrand=$('#mobileBrand');
-  const supportOpen=$('#sharedSupportOpen');
-  const supportLayer=$('#sharedSupportLayer');
-  const supportWindow=$('.shared-support-window');
-  const supportClose=$('#sharedSupportClose');
-  const supportGreeting=$('#sharedSupportGreeting');
+  const supportOpen=$('#supportOpen');
+  const supportLayer=$('#supportLayer');
+  const supportWindow=$('.support-window');
+  const supportClose=$('#supportClose');
+  const supportGreeting=$('#supportGreeting');
   const mobileMenu=$('#homeMobileMenu');
   const menuOpen=$('#homeMenuOpen');
   const langToggle=$('#langToggle');
@@ -100,6 +99,16 @@
   }
   applyLang();
 
+  // SUPPORT keeps the existing layout; when admin selects a video it is used only as the panel background.
+  window.ddWarmMedia?.(s.supportBackgroundImage||'/assets/images/support-cross-pattern.png');
+  if(supportWindow){
+    const chatBody=supportWindow.querySelector('.support-chat-body');
+    chatBody?.querySelector('.support-background-video')?.remove();
+    if(chatBody&&window.ddIsVideo?.(s.supportBackgroundImage)){
+      const bg=document.createElement('video');bg.className='support-background-video';bg.src=s.supportBackgroundImage;bg.autoplay=true;bg.muted=true;bg.loop=true;bg.playsInline=true;bg.preload='auto';
+      chatBody.prepend(bg);bg.play().catch(()=>{});
+    }
+  }
 
   const setMenu=open=>{if(!mobileMenu)return;mobileMenu.classList.toggle('open',open);mobileMenu.setAttribute('aria-hidden',String(!open));document.body.classList.toggle('mobile-menu-open',open)};
   menuOpen?.addEventListener('click',()=>setMenu(!mobileMenu?.classList.contains('open')));
@@ -120,6 +129,12 @@
   }
   bindDesktopFlyouts();
 
-  document.addEventListener('keydown',e=>{if(e.key==='Escape')setMenu(false)});
+  let hideTimer=0;
+  const setSupport=open=>{clearTimeout(hideTimer);supportLayer?.classList.toggle('open',open);supportLayer?.setAttribute('aria-hidden',String(!open))};
+  const delayedClose=()=>{clearTimeout(hideTimer);hideTimer=setTimeout(()=>setSupport(false),380)};
+  supportOpen?.addEventListener('mouseenter',()=>setSupport(true));supportOpen?.addEventListener('focus',()=>setSupport(true));supportOpen?.addEventListener('mouseleave',delayedClose);supportOpen?.addEventListener('click',()=>setSupport(true));
+  supportWindow?.addEventListener('mouseenter',()=>clearTimeout(hideTimer));supportWindow?.addEventListener('mouseleave',delayedClose);
+  supportClose?.addEventListener('click',e=>{e.preventDefault();e.stopPropagation();clearTimeout(hideTimer);setSupport(false)});
+  document.addEventListener('keydown',e=>{if(e.key==='Escape'){setMenu(false);setSupport(false)}});
 
 })();
