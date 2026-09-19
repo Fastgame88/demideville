@@ -2057,3 +2057,21 @@ body.shop-page .product-grid[data-count="2"] .product-art{
   object-position:center center!important;
   transform:none!important;
 }
+
+/* =========================================================
+   USER REQUEST 2026-09-19 — HOME mobile support window: reposition
+   only the close (X) button so it sits at the same spot as the
+   supplied reference photo (touching the window's top-left corner).
+   Anchored to the viewport directly so it lands correctly regardless
+   of the window's own box; nothing about the support window or its
+   other elements is touched.
+   ========================================================= */
+@media (max-width:900px){
+  .home #supportLayer .support-close{
+    position:fixed!important;
+    left:auto!important;
+    top:auto!important;
+    right:min(341px,calc(100vw - 50px))!important;
+    bottom:min(500px,calc(100dvh - 68px))!important;
+  }
+}
