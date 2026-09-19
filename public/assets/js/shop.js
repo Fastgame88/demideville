@@ -116,8 +116,8 @@
           ${ref.detail?`<img class="product-reference-detail" src="${esc(ref.detail)}" alt="" loading="lazy" decoding="async">`:''}
         </span>`:'';
       const mediaHtml=window.ddIsVideo?.(art)
-        ? `<video class="product-art" src="${esc(art)}" autoplay muted loop playsinline preload="${i<4?'metadata':'none'}"></video>`
-        : `<img class="product-art" src="${esc(art)}" alt="${esc(copy.name)}" ${i<4?'loading="eager" fetchpriority="high"':'loading="lazy" fetchpriority="low"'} decoding="async">`;
+        ? `<video class="product-art" src="${esc(art)}" autoplay muted loop playsinline preload="metadata"></video>`
+        : `<img class="product-art" src="${esc(art)}" alt="${esc(copy.name)}" loading="eager" fetchpriority="${i<4?'high':'auto'}" decoding="async">`;
       return `<a class="product-card product-card-${i+1}${referenceCopy?' has-reference-copy':''}" href="/product.html?id=${encodeURIComponent(p.id)}">
         <span class="media">${mediaHtml}</span>
         ${referenceCopy}
@@ -195,14 +195,23 @@
   fitCanvas();
   addEventListener('resize',scheduleFit,{passive:true});
   window.visualViewport?.addEventListener('resize',scheduleFit,{passive:true});
-  /* Images/videos can change a row's natural height after their metadata arrives.
-     Recalculate the scaled stage whenever the product grid grows or shrinks. */
-  if('ResizeObserver' in window){
-    const shopGridObserver=new ResizeObserver(scheduleFit);
-    if(grid)shopGridObserver.observe(grid);
-  }else{
+  /* Recalculate only when actual product media becomes ready or products are
+     replaced (pagination/category changes). Do not observe the grid size itself:
+     canvas resizing must never trigger another canvas resize cycle. */
+  const bindMediaLayoutRefresh=()=>{
     $$('img.product-art,video.product-art',grid).forEach(media=>{
-      media.addEventListener(media.tagName==='VIDEO'?'loadedmetadata':'load',scheduleFit,{passive:true});
+      if(media.dataset.shopLayoutBound==='1')return;
+      media.dataset.shopLayoutBound='1';
+      const eventName=media.tagName==='VIDEO'?'loadedmetadata':'load';
+      const isReady=media.tagName==='VIDEO'?media.readyState>=1:media.complete;
+      if(isReady){scheduleFit();return;}
+      media.addEventListener(eventName,scheduleFit,{once:true,passive:true});
+      media.addEventListener('error',scheduleFit,{once:true,passive:true});
     });
+  };
+  bindMediaLayoutRefresh();
+  if(grid&&'MutationObserver' in window){
+    const shopProductObserver=new MutationObserver(()=>{bindMediaLayoutRefresh();scheduleFit();});
+    shopProductObserver.observe(grid,{childList:true,subtree:true});
   }
 })();

@@ -120,21 +120,29 @@ body.product-detail-page .product-visual>video#productImage{
   body.shop-page .shop-stage{
     height:100vh;
     min-height:100vh;
-    overflow:hidden!important;
+    overflow:visible!important;
   }
   body.shop-page .shop-canvas{
-    overflow:hidden!important;
+    overflow:visible!important;
   }
   body.shop-page .shop-wrap{
     height:auto!important;
     min-height:1080px!important;
     overflow:visible!important;
   }
-  body.shop-page .product-grid{
+  body.shop-page .product-grid,
+  body.shop-page .product-grid[data-count="1"],
+  body.shop-page .product-grid[data-count="2"]{
+    /* Critical: do not stretch the grid between top/bottom or into two 1fr tracks.
+       Those legacy rules made the grid grow whenever the canvas grew, creating a
+       ResizeObserver feedback loop that pushed the second row farther down. */
+    bottom:auto!important;
     height:auto!important;
     min-height:0!important;
+    grid-template-rows:none!important;
     grid-auto-rows:max-content!important;
     row-gap:36px!important;
+    align-items:start!important;
     align-content:start!important;
   }
   body.shop-page .product-card,
