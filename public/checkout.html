@@ -4,8 +4,8 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>Checkout — DEMI DEVILLE</title>
-  <link rel="stylesheet" href="/assets/css/styles.css?v=20260916-checkout-header-support-review-v4"><link rel="stylesheet" href="/assets/css/shared-chrome.css"><link rel="stylesheet" href="/assets/css/mobile-reference.css"><link rel="stylesheet" href="/assets/css/user-mobile-fixes.css?v=20260917-v18">
-<link rel="stylesheet" href="/assets/css/requested-fixes-20260918.css?v=20260918-v22"></head>
+  <link rel="stylesheet" href="/assets/css/styles.css?v=20260916-checkout-final-four-fixes">
+</head>
 <body class="checkout-page">
   <header id="desktopHeader" class="site-header">
     <div class="nav-side"><a href="/shop.html">SHOP</a><a href="/gallery.html">GALLERY</a><a href="/about.html">ABOUT</a></div>
@@ -19,8 +19,13 @@
   <div id="checkoutStage" class="checkout-stage">
     <main class="checkout-wrap">
       <section class="checkout-left">
-        <button id="mobileOrderToggle" class="mobile-order-toggle" type="button" aria-controls="orderSide" aria-expanded="false"><span>Order summary</span><span id="mobileOrderTotal"></span></button>
-        <div class="pay-methods dynamic-payments" id="paymentMethods" aria-label="Payment method"></div>
+        <div class="pay-methods" aria-label="Payment method">
+          <button type="button" class="pay-chip" data-pay="PayPal">PayPal</button>
+          <button type="button" class="pay-chip" data-pay="ApplePay">ApplePay</button>
+          <button type="button" class="pay-chip" data-pay="GooglePay">GooglePay</button>
+          <button type="button" class="pay-chip" data-pay="Crypto payment">Crypto payment</button>
+          <button type="button" class="pay-chip active" data-pay="Card payment">Card payment</button>
+        </div>
 
         <form id="checkoutForm" class="checkout-form">
           <div class="checkout-section-title">Kontakt</div>
@@ -29,7 +34,7 @@
 
           <div class="checkout-section-title delivery-title">Delivery</div>
           <label class="country-field">
-            <span class="country-label">Country/region</span>
+            <span class="country-label">coutry/region</span>
             <select name="country">
               <option>Poland</option><option>Ukraine</option><option>Germany</option><option>France</option><option>United States</option>
             </select>
@@ -37,7 +42,7 @@
 
           <div class="form-row name-row">
             <input required name="firstName" placeholder="First Name">
-            <input required name="lastName" placeholder="Last Name">
+            <input required name="lastName" placeholder="First Name">
           </div>
           <input required name="address" placeholder="Address">
           <input name="apartment" placeholder="Apartment, suite, etc. (optional)">
@@ -49,22 +54,20 @@
 
           <label class="checkbox-line save-line"><input type="checkbox"><span>Save this information for next time</span></label>
           <label class="checkbox-line sms-line"><input type="checkbox" checked><span>Text me with news and offers</span></label>
-          <p class="fineprint">By signing up via text, you agree to receive recurring automated marketing messages, including cart reminders, at the phone number provided. Consent is not a condition of purchase. Reply STOP to unsubscribe. Reply HELP for help. Message frequency varies. Msg &amp; data rates may apply. View our <a href="/privacy.html">Privacy policy</a> and <a href="/terms.html">Terms of service</a></p>
+          <p class="fineprint">By signing up via text, you agree to receive recurring automated marketing messages, including cart reminders, at the phone number provided. Consent is not a condition of purchase. Reply STOP to unsubscribe. Reply HELP for help. Message frequency varies. Msg &amp; data rates may apply. View our <u>Privacy policy</u> and <u>Terms of service</u></p>
 
           <button class="btn-black review-btn" type="submit" style="display:block">Review order</button>
           <div id="orderSuccess" class="order-success"></div>
         </form>
       </section>
 
-      <aside id="orderSide" class="order-side">
+      <aside class="order-side">
         <div id="orderList" class="order-list"></div>
         <div class="discount">
           <input id="discountCode" placeholder="Discount Code">
           <button id="discountApply" type="button">Apply</button>
         </div>
-        <div id="discountStatus" class="discount-status"></div>
         <div class="sum-row"><span>Subtotal</span><span id="subtotal"></span></div>
-        <div id="discountRow" class="sum-row" hidden><span>Discount</span><span id="discountValue"></span></div>
         <div class="sum-row"><span>Shipping</span><span id="shipping"></span></div>
         <div class="sum-row sum-total"><span>Total</span><span id="grandTotal"></span></div>
       </aside>
@@ -72,9 +75,27 @@
 
   </div>
 
-  
+  <button id="supportOpen" class="support-btn" type="button" style="display:block">SUPPORT</button>
 
-  <script src="/assets/js/i18n.js"></script><script src="/assets/js/common.js?v=20260918-v25"></script>
-  <script src="/assets/js/checkout.js?v=20260918-v21"></script>
+  <div id="supportLayer" class="support-layer checkout-support-layer" aria-hidden="true">
+    <div class="support-window checkout-support-window" role="dialog" aria-label="DEMI DEVILLE support">
+      <button id="supportClose" class="support-close" type="button" aria-label="Close support">×</button>
+      <div class="support-panel">
+        <div class="support-brand">DEMI DEVILLE</div>
+        <div class="support-chat-body support-email-body">
+          <div class="support-start support-form-heading">SEND A MESSAGE</div>
+          <form id="supportForm" class="support-form" novalidate>
+            <input id="supportSenderEmail" class="support-form-input" name="email" type="email" autocomplete="email" required placeholder="YOUR EMAIL">
+            <textarea id="supportMessage" class="support-form-message" name="message" required placeholder="HOW CAN WE HELP?"></textarea>
+            <button id="supportSubmit" class="support-form-submit" type="submit">SEND</button>
+            <div id="supportFormStatus" class="support-form-status" aria-live="polite"></div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="/assets/js/common.js?v=20260919-mobile-cards-support-v1"></script>
+  <script src="/assets/js/checkout.js?v=20260916-checkout-final-four-fixes"></script>
 </body>
 </html>
