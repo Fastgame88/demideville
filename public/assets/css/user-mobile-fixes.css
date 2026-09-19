@@ -2245,3 +2245,102 @@ body.gallery-page:not(.product-detail-page):not(.cart-page) .gallery-media video
     border:0!important;
   }
 }
+
+/* =========================================================
+   2026-09-20 — SUPPORT v21: shared support content fix only.
+   Applies to HOME and the shared storefront shell at every viewport width.
+   It deliberately does not alter shop/product/page layout.
+   ========================================================= */
+.home #supportLayer .support-chat-body,
+body.shared-chrome-page>#sharedSupportLayer .shared-support-window .support-chat-body{
+  display:flex!important;
+  flex-direction:column!important;
+  align-items:stretch!important;
+  justify-content:flex-start!important;
+  gap:14px!important;
+}
+.home #supportLayer .support-mobile-intro,
+body.shared-chrome-page>#sharedSupportLayer .shared-support-window .support-mobile-intro,
+.home #supportLayer .support-contact-email,
+body.shared-chrome-page>#sharedSupportLayer .shared-support-window .support-contact-email{
+  position:relative!important;
+  inset:auto!important;
+  left:auto!important;
+  right:auto!important;
+  top:auto!important;
+  bottom:auto!important;
+  width:100%!important;
+  height:auto!important;
+  min-height:58px!important;
+  margin:0!important;
+  padding:10px 12px!important;
+  box-sizing:border-box!important;
+  display:flex!important;
+  flex:0 0 auto!important;
+  align-items:center!important;
+  justify-content:center!important;
+  background:var(--dd-support-field-bg,#000)!important;
+  color:var(--dd-support-field-color,#fff)!important;
+  font-family:var(--dd-support-window-font,"DD Oswald","Arial Narrow",Arial,sans-serif)!important;
+  line-height:1.2!important;
+  text-align:center!important;
+  overflow-wrap:anywhere!important;
+  text-decoration:none!important;
+  z-index:2!important;
+}
+.home #supportLayer .support-mobile-intro,
+body.shared-chrome-page>#sharedSupportLayer .shared-support-window .support-mobile-intro{
+  font-size:14px!important;
+  font-weight:400!important;
+}
+.home #supportLayer .support-contact-email,
+body.shared-chrome-page>#sharedSupportLayer .shared-support-window .support-contact-email{
+  font-size:18px!important;
+  font-weight:700!important;
+}
+.home #supportLayer .support-background-video,
+body.shared-chrome-page>#sharedSupportLayer .shared-support-window .support-background-video{
+  position:absolute!important;
+  inset:0!important;
+  width:100%!important;
+  height:100%!important;
+  object-fit:cover!important;
+  z-index:0!important;
+  pointer-events:none!important;
+}
+
+/* SUPPORT v21 — HOME uses the same compact-window anchor as shared pages
+   whenever the viewport becomes narrow (including desktop DevTools docked). */
+@media (max-width:900px){
+  .home #supportLayer .support-window,
+  .home #supportLayer.open .support-window{
+    left:auto!important;
+    top:auto!important;
+    right:7px!important;
+    bottom:10px!important;
+    width:min(334px,calc(100vw - 57px))!important;
+    height:min(490px,calc(100dvh - 78px))!important;
+    max-height:none!important;
+    transform:none!important;
+    transform-origin:right bottom!important;
+  }
+  .home #supportLayer .support-panel{
+    position:absolute!important;
+    inset:0!important;
+    width:100%!important;
+    height:100%!important;
+    min-height:0!important;
+    box-sizing:border-box!important;
+    overflow:hidden!important;
+  }
+  .home #supportLayer .support-close{
+    left:-42px!important;
+    right:auto!important;
+    top:-42px!important;
+    bottom:auto!important;
+    width:42px!important;
+    height:42px!important;
+    margin:0!important;
+    transform:none!important;
+  }
+}

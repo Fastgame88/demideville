@@ -267,6 +267,15 @@ function safeCssFont(value){return String(value||'').replace(/[{};<>]/g,'').trim
 function safeCssColor(value,fallback='#000000'){
   const v=String(value||'').trim();return /^#[0-9a-f]{3,8}$/i.test(v)||/^(rgb|hsl)a?\([^;{}]+\)$/i.test(v)?v:fallback;
 }
+function normalizeSupportBackground(value){
+  const raw=String(value||'').trim();
+  if(!raw)return '/assets/images/support-cross-pattern.png';
+  // A legacy admin upload of the stock support pattern can survive in PostgreSQL
+  // while the ephemeral uploaded file disappears after redeploy. Use the bundled
+  // copy instead, so no storefront page requests a dead /uploads URL.
+  if(/^\/uploads\/[^/?#]*support-cross-pattern\.(?:png|jpe?g|webp)(?:[?#].*)?$/i.test(raw))return '/assets/images/support-cross-pattern.png';
+  return raw;
+}
 function supportConfig(settings={},lang=menuLang()){
   const pick=(en,ru,fallbackEn,fallbackRu)=>lang==='ru'?String(settings[ru]||fallbackRu):String(settings[en]||fallbackEn);
   return {
@@ -275,7 +284,7 @@ function supportConfig(settings={},lang=menuLang()){
     emailPlaceholder:pick('supportEmailPlaceholderEn','supportEmailPlaceholderRu','YOUR EMAIL','ВАША ПОЧТА'),
     messagePlaceholder:pick('supportMessagePlaceholderEn','supportMessagePlaceholderRu','HOW CAN WE HELP?','ЧЕМ МЫ МОЖЕМ ПОМОЧЬ?'),
     send:pick('supportSendTextEn','supportSendTextRu','SEND','ОТПРАВИТЬ'),
-    backgroundImage:String(settings.supportBackgroundImage||'/assets/images/support-cross-pattern.png'),
+    backgroundImage:normalizeSupportBackground(settings.supportBackgroundImage),
     buttonBg:safeCssColor(settings.supportButtonBg||'#000000','#000000'),buttonColor:safeCssColor(settings.supportButtonColor||'#ffffff','#ffffff'),
     fieldBg:safeCssColor(settings.supportFieldBg||'#000000','#000000'),fieldColor:safeCssColor(settings.supportFieldColor||'#ffffff','#ffffff'),
     buttonFont:safeCssFont(settings.supportButtonFont||''),windowFont:safeCssFont(settings.supportWindowFont||'')
@@ -468,7 +477,7 @@ function mountSharedChrome(site,menu=getMenuConfig(site.settings||{}),currentUse
           <div class="support-chat-body support-email-body">
             ${ddIsVideo(supportCfg.backgroundImage)?`<video class="support-background-video" src="${esc(supportCfg.backgroundImage)}" autoplay muted loop playsinline preload="auto"></video>`:''}
             <div class="support-mobile-intro">${esc(supportCfg.greeting)}</div>
-            <a class="support-contact-email" href="mailto:support@demideville.com" style="position:absolute;left:12px;right:12px;top:92px;min-height:72px;padding:12px;display:flex;align-items:center;justify-content:center;box-sizing:border-box;background:${esc(supportCfg.fieldBg||'#000000')};color:${esc(supportCfg.fieldColor||'#ffffff')};font:inherit;font-size:18px;font-weight:700;line-height:1.25;text-align:center;text-decoration:none;overflow-wrap:anywhere">support@demideville.com</a>
+            <a class="support-contact-email" href="mailto:support@demideville.com">support@demideville.com</a>
           </div>
         </div>
       </div>

@@ -196,7 +196,24 @@ function publicProduct(product) {
   out.priceMode=productPriceMode(out);out.purchasable=productPurchasable(out);
   return out;
 }
-function publicSite(db) { const settings={...db.settings}; delete settings.smtpPassword; return { settings, products:db.products.filter(p=>p.active!==false).sort((a,b)=>(a.sort||0)-(b.sort||0)).map(publicProduct), gallery:db.gallery.filter(g=>g.active!==false).sort((a,b)=>(a.sort||0)-(b.sort||0)), sections:db.sections.filter(s=>s.active!==false).sort((a,b)=>(a.sort||0)-(b.sort||0)) }; }
+function resolvePublicUploadUrl(value,fallback='') {
+  const raw=String(value||'').trim();
+  if(!raw)return fallback;
+  if(!raw.startsWith('/uploads/'))return raw;
+  try{
+    const rel=decodeURIComponent(raw.slice('/uploads/'.length).split(/[?#]/,1)[0]);
+    const file=path.normalize(path.join(UPLOAD_DIR,rel));
+    const safeBase=path.normalize(UPLOAD_DIR+path.sep);
+    if((file===path.normalize(UPLOAD_DIR)||file.startsWith(safeBase))&&fs.existsSync(file)&&fs.statSync(file).isFile())return raw;
+  }catch{}
+  return fallback;
+}
+function publicSite(db) {
+  const settings={...db.settings};
+  delete settings.smtpPassword;
+  settings.supportBackgroundImage=resolvePublicUploadUrl(settings.supportBackgroundImage,'/assets/images/support-cross-pattern.png');
+  return { settings, products:db.products.filter(p=>p.active!==false).sort((a,b)=>(a.sort||0)-(b.sort||0)).map(publicProduct), gallery:db.gallery.filter(g=>g.active!==false).sort((a,b)=>(a.sort||0)-(b.sort||0)), sections:db.sections.filter(s=>s.active!==false).sort((a,b)=>(a.sort||0)-(b.sort||0)) };
+}
 function sendJson(res,status,obj){const b=Buffer.from(JSON.stringify(obj));res.writeHead(status,{'Content-Type':'application/json; charset=utf-8','Content-Length':b.length,'Cache-Control':'no-store'});res.end(b)}
 function sendPublicSite(req,res,db){
   const body=Buffer.from(JSON.stringify(publicSite(db)));
@@ -442,6 +459,17 @@ function serveStatic(req,res,u){
   const file=path.normalize(path.join(base,relative));const safeBase=path.normalize(base+path.sep);if(file!==path.normalize(base)&&!file.startsWith(safeBase)){res.writeHead(403);return res.end('Forbidden')}
   fs.stat(file,(err,st)=>{
     if(err||!st.isFile()){
+      // Old deployments may still have a support background URL saved in PostgreSQL
+      // even though Railway's ephemeral /uploads file is gone. Serve the bundled
+      // support pattern for that legacy URL so storefront pages never get a 404.
+      if(isUpload&&/(?:^|-)support-cross-pattern\.(?:png|jpe?g|webp)$/i.test(path.basename(relative))){
+        const fallback=path.join(PUBLIC,'assets','images','support-cross-pattern.png');
+        try{
+          const fb=fs.readFileSync(fallback);
+          res.writeHead(200,{'Content-Type':'image/png','Cache-Control':'public, max-age=2592000, immutable','Content-Length':fb.length});
+          return res.end(fb);
+        }catch{}
+      }
       const nf=path.join(PUBLIC,'404.html');const b=fs.readFileSync(nf);
       res.writeHead(404,{'Content-Type':'text/html; charset=utf-8','Cache-Control':'no-store','Content-Length':b.length});return res.end(b)
     }
