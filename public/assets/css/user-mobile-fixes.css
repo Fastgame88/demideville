@@ -2024,3 +2024,36 @@ body.shared-chrome-page>#sharedSupportLayer .shared-support-window .support-form
   background:#fff!important;
   color:#000!important;
 }
+
+/* =========================================================
+   USER REQUEST — product card media 4:3 only.
+   Keep the original image proportions; never stretch/squash artwork.
+   ========================================================= */
+body.shop-page .product-card .media,
+body.shop-page .product-card:nth-child(n+5) .media,
+body.shop-page .product-card-1 .media,
+body.shop-page .product-card-2 .media,
+body.shop-page .product-card-3 .media,
+body.shop-page .product-card-4 .media,
+body.shop-page .product-grid[data-count="1"] .media,
+body.shop-page .product-grid[data-count="2"] .media{
+  aspect-ratio:4 / 3!important;
+  height:auto!important;
+  min-height:0!important;
+  overflow:hidden!important;
+  display:flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+}
+body.shop-page .product-card .product-art,
+body.shop-page .product-card:nth-child(n+5) .product-art,
+body.shop-page .product-grid[data-count="1"] .product-art,
+body.shop-page .product-grid[data-count="2"] .product-art{
+  width:auto!important;
+  height:auto!important;
+  max-width:100%!important;
+  max-height:100%!important;
+  object-fit:contain!important;
+  object-position:center center!important;
+  transform:none!important;
+}
