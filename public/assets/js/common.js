@@ -54,16 +54,20 @@ function ddPageBackgroundKey(){
   if(p.includes('/privacy'))return'privacy';
   return'';
 }
+function ddResolvedPageBackground(settings={},key=ddPageBackgroundKey()){
+  const backgrounds=settings.pageBackgrounds&&typeof settings.pageBackgrounds==='object'?settings.pageBackgrounds:{};
+  const raw=backgrounds[key];
+  if(raw&&typeof raw==='object'&&!Array.isArray(raw)){
+    const device=matchMedia('(max-width:900px)').matches?'mobile':'desktop';
+    return String(raw[device]||'').trim();
+  }
+  return String(raw||'').trim();
+}
 function ddApplyPageBackground(settings={}){
   const key=ddPageBackgroundKey();
-  // HOME uses the same media as its hero so the existing composition is not re-scaled.
+  // HOME keeps its own hero logic so the approved composition is not re-scaled.
   if(!key||key==='home')return;
-  const backgrounds=settings.pageBackgrounds&&typeof settings.pageBackgrounds==='object'?settings.pageBackgrounds:{};
-  const url=String(backgrounds[key]||'').trim();
-  if(url)ddWarmMedia(url);
-  document.getElementById('ddPageBackground')?.remove();
-  document.body.classList.toggle('dd-custom-page-bg',!!url);
-  if(!url)return;
+  const url=ddResolvedPageBackground(settings,key);
   let style=document.getElementById('dd-page-background-style');
   if(!style){style=document.createElement('style');style.id='dd-page-background-style';document.head.appendChild(style)}
   style.textContent=`
@@ -71,26 +75,45 @@ function ddApplyPageBackground(settings={}){
     body.dd-custom-page-bg{background:transparent!important}
     body.dd-custom-page-bg>main{position:relative;z-index:1;background-color:transparent!important}
     body.dd-custom-page-bg .page,body.dd-custom-page-bg .shop-wrap,body.dd-custom-page-bg .product-page,body.dd-custom-page-bg .gallery-wrap,body.dd-custom-page-bg .about-wrap,body.dd-custom-page-bg .login-wrap,body.dd-custom-page-bg .cart-wrap,body.dd-custom-page-bg .checkout-wrap,body.dd-custom-page-bg .legal-page{background-color:transparent!important}
+    body.shop-page.dd-custom-page-bg .shop-stage,body.shop-page.dd-custom-page-bg .shop-canvas,body.login-page.dd-custom-page-bg .login-canvas,body.cart-page.dd-custom-page-bg .cart-canvas-shell,body.cart-page.dd-custom-page-bg .cart-canvas,body.checkout-page.dd-custom-page-bg .checkout-stage{background:transparent!important}
     body.product-detail-page.dd-custom-page-bg #productPage.product-page{background:transparent!important}
-    #ddPageBackground{position:fixed;inset:0;width:100vw;height:100dvh;object-fit:cover;object-position:center;z-index:0;pointer-events:none;user-select:none}
+    #ddPageBackground{position:fixed;inset:0;width:100vw;height:100dvh;object-fit:cover;object-position:center;z-index:0;pointer-events:none;user-select:none;opacity:0}
   `;
+  const existing=document.getElementById('ddPageBackground');
+  if(!url){existing?.remove();document.body.classList.remove('dd-custom-page-bg');return}
+  if(existing?.dataset.ddSource===url){
+    if(existing.dataset.ddReady==='1')document.body.classList.add('dd-custom-page-bg');
+    return;
+  }
+  existing?.remove();
+  document.body.classList.remove('dd-custom-page-bg');
   const media=ddIsVideo(url)?document.createElement('video'):document.createElement('img');
-  media.id='ddPageBackground';media.src=url;media.setAttribute('aria-hidden','true');
-  if(media.tagName==='VIDEO'){media.autoplay=true;media.muted=true;media.loop=true;media.playsInline=true;media.preload='auto'}
-  else{media.alt='';media.decoding='async'}
-  document.body.prepend(media);if(media.tagName==='VIDEO')media.play().catch(()=>{});
+  media.id='ddPageBackground';media.dataset.ddSource=url;media.setAttribute('aria-hidden','true');
+  const reveal=()=>{if(!media.isConnected)return;media.dataset.ddReady='1';media.style.opacity='1';document.body.classList.add('dd-custom-page-bg')};
+  if(media.tagName==='VIDEO'){
+    media.autoplay=true;media.muted=true;media.loop=true;media.playsInline=true;media.preload='auto';
+    media.addEventListener('loadeddata',reveal,{once:true});media.addEventListener('canplay',reveal,{once:true});
+    media.src=url;document.body.prepend(media);media.load();media.play().catch(()=>{});
+    if(media.readyState>=2)reveal();
+  }else{
+    media.alt='';media.decoding='async';media.fetchPriority='high';media.addEventListener('load',reveal,{once:true});
+    media.src=url;document.body.prepend(media);if(media.complete&&media.naturalWidth)reveal();
+  }
 }
-window.ddPageBackgroundKey=ddPageBackgroundKey;window.ddApplyPageBackground=ddApplyPageBackground;
+window.ddPageBackgroundKey=ddPageBackgroundKey;window.ddResolvedPageBackground=ddResolvedPageBackground;window.ddApplyPageBackground=ddApplyPageBackground;
 SITE.then(site=>{
   const settings=site?.settings||{};
   const backgrounds=settings.pageBackgrounds&&typeof settings.pageBackgrounds==='object'?settings.pageBackgrounds:{};
   const key=ddPageBackgroundKey();
   if(key==='home'){
-    const homeBg=String(backgrounds.home||'').trim();
+    const rawHome=backgrounds.home;
+    const homeBg=rawHome&&typeof rawHome==='object'&&!Array.isArray(rawHome)?String(rawHome[matchMedia('(max-width:900px)').matches?'mobile':'desktop']||'').trim():String(rawHome||'').trim();
     const hero=homeBg||(matchMedia('(max-width:900px)').matches?settings.heroMobile:settings.heroDesktop);
     ddWarmMedia(hero);
   }else if(key){
-    ddWarmMedia(backgrounds[key]);
+    // Start loading the visible page background as soon as /api/site is ready,
+    // without waiting for the optional account/auth request.
+    ddApplyPageBackground(settings);
   }
   const warmSupport=()=>ddWarmMedia(settings.supportBackgroundImage||'/assets/images/support-cross-pattern.png');
   if('requestIdleCallback' in window)requestIdleCallback(warmSupport,{timeout:900});else setTimeout(warmSupport,450);
@@ -120,7 +143,11 @@ function productImagesList(product){
 }
 function productVariantList(product){
   if(Array.isArray(product?.variants)&&product.variants.length){
-    return product.variants.map(v=>({size:String(v?.size||'').trim(),stock:Math.max(0,Math.floor(Number(v?.stock)||0))})).filter(v=>v.size);
+    return product.variants.map(v=>{
+      const rawStock=v?.stock;
+      const stock=rawStock===null||rawStock===undefined||rawStock===''?null:Math.max(0,Math.floor(Number(rawStock)||0));
+      return {size:String(v?.size||'').trim(),stock};
+    }).filter(v=>v.size);
   }
   return (Array.isArray(product?.sizes)?product.sizes:[]).map(size=>({size:String(size||'').trim(),stock:null})).filter(v=>v.size);
 }
@@ -354,6 +381,8 @@ function updateCartCount(){
 }
 async function renderChrome({home=false}={}){
   const site=await SITE,s=site.settings||{};
+  // Apply the page background before any optional auth request so video does not wait for login-state checks.
+  ddApplyPageBackground(s);
   const currentUser=await currentUserSafe();
   const menu=getMenuConfig(s),lang=menuLang();
   if(currentUser){
@@ -362,7 +391,6 @@ async function renderChrome({home=false}={}){
   }
   applyMenuRuntimeStyles(s);
   applySupportRuntimeStyles(s);
-  ddApplyPageBackground(s);
   document.documentElement.style.setProperty('--font',s.baseFont||'Arial, Helvetica, sans-serif');
   document.documentElement.style.setProperty('--display',s.displayFont||'Arial Black, Arial, sans-serif');
   document.documentElement.style.setProperty('--condensed',s.condensedFont||'Impact, Arial Narrow, sans-serif');

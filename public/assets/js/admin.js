@@ -85,6 +85,7 @@ const DEFAULT_COUNTRIES=['Albania','Andorra','Armenia','Austria','Azerbaijan','B
 const PAGE_BACKGROUND_DEFS=[
   ['home','Главная'],['shop','SHOP'],['product','Карточка товара'],['gallery','Галерея'],['about','ABOUT'],['login','LOGIN / регистрация'],['cart','Корзина'],['checkout','Оплата'],['account','Аккаунт'],['contact','Контакты'],['terms','Terms & Conditions'],['privacy','Privacy Policy']
 ];
+const RESPONSIVE_PAGE_BACKGROUND_KEYS=new Set(['shop','login','cart','checkout']);
 const DEFAULT_SUPPORT_SETTINGS={
   supportButtonTextEn:'SUPPORT',supportButtonTextRu:'ПОДДЕРЖКА',
   supportGreetingEn:'Thanks for stopping by! How can I help you?',supportGreetingRu:'Спасибо, что заглянули! Чем я могу помочь?',
@@ -322,19 +323,37 @@ $$('[data-admin-tab]').forEach(btn=>btn.addEventListener('click',()=>switchAdmin
 
 function normalizedPageBackgrounds(){
   const raw=settings.pageBackgrounds&&typeof settings.pageBackgrounds==='object'?settings.pageBackgrounds:{};
-  const out={};for(const [key] of PAGE_BACKGROUND_DEFS)out[key]=String(raw[key]||'').trim();return out;
+  const out={};
+  for(const [key] of PAGE_BACKGROUND_DEFS){
+    const value=raw[key];
+    if(RESPONSIVE_PAGE_BACKGROUND_KEYS.has(key)){
+      if(value&&typeof value==='object'&&!Array.isArray(value))out[key]={desktop:String(value.desktop||'').trim(),mobile:String(value.mobile||'').trim()};
+      else{const legacy=String(value||'').trim();out[key]={desktop:legacy,mobile:legacy}}
+    }else out[key]=value&&typeof value==='object'&&!Array.isArray(value)?String(value.desktop||value.mobile||'').trim():String(value||'').trim();
+  }
+  return out;
+}
+function pageBackgroundInputSelector(key,device=''){
+  return device?`[data-page-bg-key="${CSS.escape(key)}"][data-page-bg-device="${CSS.escape(device)}"]`:`[data-page-bg-key="${CSS.escape(key)}"]:not([data-page-bg-device])`;
 }
 function renderPageBackgroundsEditor(){
   const box=$('#pageBackgroundsEditor');if(!box)return;const current=normalizedPageBackgrounds();
-  box.innerHTML=PAGE_BACKGROUND_DEFS.map(([key,label])=>`<div class="page-background-row" data-page-bg-row="${esc(key)}"><label class="field"><span>${esc(label)} — фон фото / видео</span><input data-page-bg-key="${esc(key)}" value="${esc(current[key])}" placeholder="Оставьте пустым для текущего фона"></label><label class="upload-btn page-bg-upload"><input type="file" data-page-bg-upload="${esc(key)}" accept="image/*,video/mp4,video/webm,video/quicktime"><span>Загрузить фото / видео</span></label><button class="secondary-btn small" type="button" data-page-bg-clear="${esc(key)}">Сбросить</button></div>`).join('');
+  box.innerHTML=PAGE_BACKGROUND_DEFS.flatMap(([key,label])=>{
+    if(!RESPONSIVE_PAGE_BACKGROUND_KEYS.has(key))return [`<div class="page-background-row" data-page-bg-row="${esc(key)}"><label class="field"><span>${esc(label)} — фон фото / видео</span><input data-page-bg-key="${esc(key)}" value="${esc(current[key])}" placeholder="Оставьте пустым для текущего фона"></label><label class="upload-btn page-bg-upload"><input type="file" data-page-bg-upload="${esc(key)}" accept="image/*,video/mp4,video/webm,video/quicktime"><span>Загрузить фото / видео</span></label><button class="secondary-btn small" type="button" data-page-bg-clear="${esc(key)}">Сбросить</button></div>`];
+    return [['desktop','ПК'],['mobile','Телефон']].map(([device,deviceLabel])=>`<div class="page-background-row" data-page-bg-row="${esc(key)}-${device}"><label class="field"><span>${esc(label)} — ${deviceLabel}, фон фото / видео</span><input data-page-bg-key="${esc(key)}" data-page-bg-device="${device}" value="${esc(current[key][device])}" placeholder="Оставьте пустым для текущего фона"></label><label class="upload-btn page-bg-upload"><input type="file" data-page-bg-upload="${esc(key)}" data-page-bg-device="${device}" accept="image/*,video/mp4,video/webm,video/quicktime"><span>Загрузить фото / видео</span></label><button class="secondary-btn small" type="button" data-page-bg-clear="${esc(key)}" data-page-bg-device="${device}">Сбросить</button></div>`);
+  }).join('');
 }
-$('#pageBackgroundsEditor')?.addEventListener('click',e=>{const btn=e.target.closest('[data-page-bg-clear]');if(!btn)return;const input=$(`[data-page-bg-key="${CSS.escape(btn.dataset.pageBgClear)}"]`);if(input)input.value=''});
+$('#pageBackgroundsEditor')?.addEventListener('click',e=>{const btn=e.target.closest('[data-page-bg-clear]');if(!btn)return;const input=$(pageBackgroundInputSelector(btn.dataset.pageBgClear,btn.dataset.pageBgDevice||''));if(input)input.value=''});
 $('#pageBackgroundsEditor')?.addEventListener('change',async e=>{
   const input=e.target.closest('[data-page-bg-upload]');if(!input)return;const file=input.files?.[0];if(!file)return;
-  try{input.disabled=true;const dataUrl=await new Promise((resolve,reject)=>{const r=new FileReader();r.onload=()=>resolve(r.result);r.onerror=reject;r.readAsDataURL(file)});const out=await api('/api/admin/upload',{method:'POST',body:JSON.stringify({dataUrl,filename:file.name})});const target=$(`[data-page-bg-key="${CSS.escape(input.dataset.pageBgUpload)}"]`);if(target)target.value=out.url;showNotice('Фон загружен. Нажмите «Сохранить фоны».')}catch(err){showNotice(err.message,'error')}finally{input.disabled=false;input.value=''}
+  try{input.disabled=true;const dataUrl=await new Promise((resolve,reject)=>{const r=new FileReader();r.onload=()=>resolve(r.result);r.onerror=reject;r.readAsDataURL(file)});const out=await api('/api/admin/upload',{method:'POST',body:JSON.stringify({dataUrl,filename:file.name})});const target=$(pageBackgroundInputSelector(input.dataset.pageBgUpload,input.dataset.pageBgDevice||''));if(target)target.value=out.url;showNotice('Фон загружен. Нажмите «Сохранить фоны».')}catch(err){showNotice(err.message,'error')}finally{input.disabled=false;input.value=''}
 });
 async function savePageBackgrounds(){
-  const pageBackgrounds={};PAGE_BACKGROUND_DEFS.forEach(([key])=>{pageBackgrounds[key]=String($(`[data-page-bg-key="${CSS.escape(key)}"]`)?.value||'').trim()});
+  const pageBackgrounds={};PAGE_BACKGROUND_DEFS.forEach(([key])=>{
+    if(RESPONSIVE_PAGE_BACKGROUND_KEYS.has(key)){
+      pageBackgrounds[key]={desktop:String($(pageBackgroundInputSelector(key,'desktop'))?.value||'').trim(),mobile:String($(pageBackgroundInputSelector(key,'mobile'))?.value||'').trim()};
+    }else pageBackgrounds[key]=String($(pageBackgroundInputSelector(key))?.value||'').trim();
+  });
   try{setBusy(true);settings=await api('/api/admin/settings',{method:'PUT',body:JSON.stringify({pageBackgrounds})});renderPageBackgroundsEditor();showNotice('Фоны страниц сохранены.')}catch(err){showNotice(err.message,'error')}finally{setBusy(false)}
 }
 $('#savePageBackgrounds')?.addEventListener('click',savePageBackgrounds);

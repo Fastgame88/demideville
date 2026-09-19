@@ -22,11 +22,11 @@
   const hero=$('#heroImage');
   const title=$('#heroTitle');
   const mobileBrand=$('#mobileBrand');
-  const supportOpen=$('#sharedSupportOpen');
-  const supportLayer=$('#sharedSupportLayer');
-  const supportWindow=$('.shared-support-window');
-  const supportClose=$('#sharedSupportClose');
-  const supportGreeting=supportWindow?.querySelector('.support-mobile-intro');
+  const supportOpen=$('#supportOpen');
+  const supportLayer=$('#supportLayer');
+  const supportWindow=$('.support-window');
+  const supportClose=$('#supportClose');
+  const supportGreeting=$('#supportGreeting');
   const mobileMenu=$('#homeMobileMenu');
   const menuOpen=$('#homeMenuOpen');
   const langToggle=$('#langToggle');
@@ -131,28 +131,10 @@
 
   let hideTimer=0;
   const setSupport=open=>{clearTimeout(hideTimer);supportLayer?.classList.toggle('open',open);supportLayer?.setAttribute('aria-hidden',String(!open))};
-  const delayedClose=()=>{clearTimeout(hideTimer);hideTimer=setTimeout(()=>setSupport(false),320)};
+  const delayedClose=()=>{clearTimeout(hideTimer);hideTimer=setTimeout(()=>setSupport(false),380)};
   supportOpen?.addEventListener('mouseenter',()=>setSupport(true));supportOpen?.addEventListener('focus',()=>setSupport(true));supportOpen?.addEventListener('mouseleave',delayedClose);supportOpen?.addEventListener('click',()=>setSupport(true));
   supportWindow?.addEventListener('mouseenter',()=>clearTimeout(hideTimer));supportWindow?.addEventListener('mouseleave',delayedClose);
   supportClose?.addEventListener('click',e=>{e.preventDefault();e.stopPropagation();clearTimeout(hideTimer);setSupport(false)});
   document.addEventListener('keydown',e=>{if(e.key==='Escape'){setMenu(false);setSupport(false)}});
-
-  // Keep the HOME support popup on the same responsive geometry as the SHOP support popup.
-  const fitSharedSupport=()=>{
-    if(innerWidth<=900){
-      document.body.style.removeProperty('--shared-support-scale');
-      document.body.style.removeProperty('--shared-support-right');
-      document.body.style.removeProperty('--shared-support-bottom');
-      return;
-    }
-    const h=window.visualViewport?.height||innerHeight;
-    const sx=innerWidth/1920,sy=h/1080,scale=Math.min(sx,sy);
-    document.body.style.setProperty('--shared-support-scale',scale);
-    document.body.style.setProperty('--shared-support-right',`${22*scale}px`);
-    document.body.style.setProperty('--shared-support-bottom',`${25*scale}px`);
-  };
-  fitSharedSupport();
-  addEventListener('resize',fitSharedSupport,{passive:true});
-  window.visualViewport?.addEventListener('resize',fitSharedSupport,{passive:true});
 
 })();
