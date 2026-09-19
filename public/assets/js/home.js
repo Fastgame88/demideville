@@ -31,6 +31,20 @@
   const menuOpen=$('#homeMenuOpen');
   const langToggle=$('#langToggle');
 
+  // Keep HOME SUPPORT at the same visual scale/offset as the shared SHOP-style
+  // support used by every internal desktop page.
+  const syncHomeSupportViewport=()=>{
+    if(innerWidth<=900)return;
+    const h=window.visualViewport?.height||innerHeight;
+    const s=Math.min(innerWidth/1920,h/1080);
+    page?.style.setProperty('--home-support-scale',String(s));
+    page?.style.setProperty('--home-support-right',`${22*s}px`);
+    page?.style.setProperty('--home-support-bottom',`${25*s}px`);
+  };
+  syncHomeSupportViewport();
+  addEventListener('resize',syncHomeSupportViewport,{passive:true});
+  window.visualViewport?.addEventListener('resize',syncHomeSupportViewport,{passive:true});
+
   const brand=s.heroTitle||s.brand||'DEMI DEVILLE';
   if(title){
     // The desktop brand is always the approved PNG artwork. Keeping the element empty
