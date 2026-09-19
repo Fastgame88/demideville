@@ -51,6 +51,20 @@
     if(lang==='ru'&&String(p?.[`${field}Ru`]||'').trim())return String(p[`${field}Ru`]);
     return String(p?.[field]||'');
   }
+  function bindProductMediaErrors(){
+    $$('img.product-art',grid).forEach(img=>{
+      if(img.dataset.mediaErrorBound==='1')return;
+      img.dataset.mediaErrorBound='1';
+      img.addEventListener('error',()=>{
+        const fallback=String(img.dataset.fallback||'').trim();
+        if(fallback&&img.dataset.fallbackUsed!=='1'&&img.getAttribute('src')!==fallback){
+          img.dataset.fallbackUsed='1';img.src=fallback;return;
+        }
+        img.alt='';img.removeAttribute('src');img.classList.add('media-load-failed');
+      });
+    });
+  }
+
   function productCopy(p){
     let name=localized(p,'name');
     const priceMode=String(p?.priceMode||'number');
@@ -111,14 +125,16 @@
          without inheriting transparent padding from the old reference artwork. */
       const useReference=lang!=='ru'&&ref&&primary===ref.image&&pageItems.length>2&&String(p.priceMode||'number')==='number'&&!window.ddIsVideo?.(primary);
       const art=useReference?ref.art:primary;
+      const fallbackArt=ref?.art||ref?.image||'';
       const copy=productCopy(p);
       const referenceCopy=(useReference&&ref.label)?`<span class="product-reference-copy" aria-hidden="true">
           <img class="product-reference-label" src="${esc(ref.label)}" alt="" loading="lazy" decoding="async">
           ${ref.detail?`<img class="product-reference-detail" src="${esc(ref.detail)}" alt="" loading="lazy" decoding="async">`:''}
         </span>`:'';
-      const mediaHtml=window.ddIsVideo?.(art)
+      const mediaHtml=art?(window.ddIsVideo?.(art)
         ? `<video class="product-art" src="${esc(art)}" autoplay muted loop playsinline preload="metadata"></video>`
-        : `<img class="product-art" src="${esc(art)}" alt="${esc(copy.name)}" loading="eager" fetchpriority="${i<4?'high':'auto'}" decoding="async">`;
+        : `<img class="product-art" src="${esc(art)}" data-fallback="${esc(fallbackArt)}" alt="${esc(copy.name)}" loading="eager" fetchpriority="${i<4?'high':'auto'}" decoding="async">`)
+        : `<span class="product-art product-art-missing" aria-hidden="true"></span>`;
       return `<a class="product-card product-card-${i+1}${referenceCopy?' has-reference-copy':''}" href="/product.html?id=${encodeURIComponent(p.id)}">
         <span class="media">${mediaHtml}</span>
         ${referenceCopy}
@@ -128,6 +144,7 @@
         </span>
       </a>`;
     }).join('');
+    bindProductMediaErrors();
   }
 
   function pageUrl(page){
@@ -215,6 +232,7 @@
      replaced (pagination/category changes). Do not observe the grid size itself:
      canvas resizing must never trigger another canvas resize cycle. */
   const bindMediaLayoutRefresh=()=>{
+    bindProductMediaErrors();
     $$('img.product-art,video.product-art',grid).forEach(media=>{
       if(media.dataset.shopLayoutBound==='1')return;
       media.dataset.shopLayoutBound='1';

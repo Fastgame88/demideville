@@ -14,6 +14,7 @@ const DATABASE_URL = String(process.env.DATABASE_URL || '').trim();
 const USE_POSTGRES = !!DATABASE_URL;
 let PG_POOL = null;
 let DB_SAVE_QUEUE = Promise.resolve();
+const PERSISTED_MEDIA_NAMES = new Set();
 const DEFAULT_CHECKOUT_COUNTRIES=['Albania','Andorra','Armenia','Austria','Azerbaijan','Belgium','Bosnia and Herzegovina','Bulgaria','Croatia','Cyprus','Czechia','Denmark','Estonia','Finland','France','Georgia','Germany','Greece','Hungary','Iceland','Ireland','Italy','Kazakhstan','Kosovo','Latvia','Liechtenstein','Lithuania','Luxembourg','Malta','Moldova','Monaco','Montenegro','Netherlands','North Macedonia','Norway','Poland','Portugal','Romania','San Marino','Serbia','Slovakia','Slovenia','Spain','Sweden','Switzerland','Turkey','Ukraine','United Kingdom','Vatican City'];
 
 let DB_CACHE = null;
@@ -135,6 +136,9 @@ async function initDbStore(){
   const pgSslMode=String(process.env.PGSSL||'auto').toLowerCase();const isRailwayPrivate=/\.railway\.internal(?::|\/|$)/i.test(DATABASE_URL);const ssl=pgSslMode==='disable'||(pgSslMode==='auto'&&isRailwayPrivate)?false:{rejectUnauthorized:false};
   PG_POOL=new Pool({connectionString:DATABASE_URL,ssl,max:Number(process.env.PGPOOL_MAX||5),idleTimeoutMillis:30000,connectionTimeoutMillis:10000});
   await PG_POOL.query(`CREATE TABLE IF NOT EXISTS app_state (id integer PRIMARY KEY, data jsonb NOT NULL, updated_at timestamptz NOT NULL DEFAULT now())`);
+  await PG_POOL.query(`CREATE TABLE IF NOT EXISTS media_files (name text PRIMARY KEY, mime text NOT NULL, data bytea NOT NULL, updated_at timestamptz NOT NULL DEFAULT now())`);
+  const mediaRows=await PG_POOL.query('SELECT name FROM media_files');
+  for(const item of mediaRows.rows)PERSISTED_MEDIA_NAMES.add(String(item.name||''));
   const row=await PG_POOL.query('SELECT data FROM app_state WHERE id=1');
   if(row.rows[0]?.data){DB_CACHE=ensureDbShape(row.rows[0].data);}
   else{
@@ -205,14 +209,23 @@ function resolvePublicUploadUrl(value,fallback='') {
     const file=path.normalize(path.join(UPLOAD_DIR,rel));
     const safeBase=path.normalize(UPLOAD_DIR+path.sep);
     if((file===path.normalize(UPLOAD_DIR)||file.startsWith(safeBase))&&fs.existsSync(file)&&fs.statSync(file).isFile())return raw;
+    if(PERSISTED_MEDIA_NAMES.has(rel))return raw;
   }catch{}
   return fallback;
+}
+function publicProductForSite(product){
+  const out=publicProduct(product);
+  const resolved=(out.images||[]).map(url=>resolvePublicUploadUrl(url,'')).filter(Boolean);
+  out.images=resolved;
+  out.image=resolved[0]||'';
+  return out;
 }
 function publicSite(db) {
   const settings={...db.settings};
   delete settings.smtpPassword;
   settings.supportBackgroundImage=resolvePublicUploadUrl(settings.supportBackgroundImage,'/assets/images/support-cross-pattern.png');
-  return { settings, products:db.products.filter(p=>p.active!==false).sort((a,b)=>(a.sort||0)-(b.sort||0)).map(publicProduct), gallery:db.gallery.filter(g=>g.active!==false).sort((a,b)=>(a.sort||0)-(b.sort||0)), sections:db.sections.filter(s=>s.active!==false).sort((a,b)=>(a.sort||0)-(b.sort||0)) };
+  const gallery=db.gallery.filter(g=>g.active!==false).sort((a,b)=>(a.sort||0)-(b.sort||0)).map(item=>({...item,image:resolvePublicUploadUrl(item.image,'')}));
+  return { settings, products:db.products.filter(p=>p.active!==false).sort((a,b)=>(a.sort||0)-(b.sort||0)).map(publicProductForSite), gallery, sections:db.sections.filter(s=>s.active!==false).sort((a,b)=>(a.sort||0)-(b.sort||0)) };
 }
 function sendJson(res,status,obj){const b=Buffer.from(JSON.stringify(obj));res.writeHead(status,{'Content-Type':'application/json; charset=utf-8','Content-Length':b.length,'Cache-Control':'no-store'});res.end(b)}
 function sendPublicSite(req,res,db){
@@ -383,7 +396,7 @@ async function handleApi(req,res,u){
   }
   if(m==='GET'&&p==='/api/admin/state'){const a=needUser(req,res,true);if(!a)return;return sendJson(res,200,{settings:a.db.settings,products:a.db.products,gallery:a.db.gallery,sections:a.db.sections,orders:a.db.orders,supportMessages:Array.isArray(a.db.supportMessages)?a.db.supportMessages:[],users:a.db.users.map(sanitizeUser),coupons:(Array.isArray(a.db.coupons)?a.db.coupons:[]).map(sanitizeCoupon)});}
   if(m==='PUT'&&p==='/api/admin/settings'){const a=needUser(req,res,true);if(!a)return;const b=await readJson(req);if(b.shopPageSize!=null)b.shopPageSize=Math.max(1,Math.min(8,Math.floor(Number(b.shopPageSize)||8)));if(Array.isArray(b.checkoutCountries)){b.checkoutCountries=[...new Set(b.checkoutCountries.map(x=>String(x||'').trim()).filter(x=>x&&!/^(russia|belarus)$/i.test(x)))];if(!b.checkoutCountries.length)b.checkoutCountries=[...DEFAULT_CHECKOUT_COUNTRIES]}if(b.pageBackgrounds!=null&&(!b.pageBackgrounds||typeof b.pageBackgrounds!=='object'||Array.isArray(b.pageBackgrounds)))b.pageBackgrounds={};a.db.settings={...a.db.settings,...b};await saveDb(a.db);return sendJson(res,200,a.db.settings);}
-  if(m==='POST'&&p==='/api/admin/upload'){const a=needUser(req,res,true);if(!a)return;const uploadLimit=Math.max(5,Number(process.env.MAX_UPLOAD_MB||60))*1024*1024*1.45;const b=await readJson(req,uploadLimit),match=String(b.dataUrl||'').match(/^data:((?:image|video)\/[a-zA-Z0-9.+-]+);base64,(.+)$/);if(!match)return sendJson(res,400,{error:'Invalid image/video data'});const mime=match[1];let ext=(mime.split('/')[1]||'bin').replace('jpeg','jpg').replace('quicktime','mov').replace(/[^a-z0-9]/gi,'');if(mime==='video/mp4')ext='mp4';if(mime==='video/webm')ext='webm';const safe=String(b.filename||'media').replace(/[^a-zA-Z0-9._-]/g,'-').replace(/\.[^.]+$/,'').slice(0,60)||'media',name=`${Date.now()}-${safe}.${ext}`;fs.mkdirSync(UPLOAD_DIR,{recursive:true});fs.writeFileSync(path.join(UPLOAD_DIR,name),Buffer.from(match[2],'base64'));return sendJson(res,200,{url:`/uploads/${name}`});}
+  if(m==='POST'&&p==='/api/admin/upload'){const a=needUser(req,res,true);if(!a)return;const uploadLimit=Math.max(5,Number(process.env.MAX_UPLOAD_MB||60))*1024*1024*1.45;const b=await readJson(req,uploadLimit),match=String(b.dataUrl||'').match(/^data:((?:image|video)\/[a-zA-Z0-9.+-]+);base64,(.+)$/);if(!match)return sendJson(res,400,{error:'Invalid image/video data'});const mime=match[1];let ext=(mime.split('/')[1]||'bin').replace('jpeg','jpg').replace('quicktime','mov').replace(/[^a-z0-9]/gi,'');if(mime==='video/mp4')ext='mp4';if(mime==='video/webm')ext='webm';const safe=String(b.filename||'media').replace(/[^a-zA-Z0-9._-]/g,'-').replace(/\.[^.]+$/,'').slice(0,60)||'media',name=`${Date.now()}-${safe}.${ext}`;const mediaBuffer=Buffer.from(match[2],'base64');fs.mkdirSync(UPLOAD_DIR,{recursive:true});fs.writeFileSync(path.join(UPLOAD_DIR,name),mediaBuffer);if(USE_POSTGRES&&PG_POOL){await PG_POOL.query('INSERT INTO media_files(name,mime,data,updated_at) VALUES($1,$2,$3,now()) ON CONFLICT(name) DO UPDATE SET mime=EXCLUDED.mime,data=EXCLUDED.data,updated_at=now()',[name,mime,mediaBuffer]);PERSISTED_MEDIA_NAMES.add(name)}return sendJson(res,200,{url:`/uploads/${name}`});}
   if(m==='POST'&&p==='/api/admin/change-password'){const a=needUser(req,res,true);if(!a)return;const b=await readJson(req);if(String(b.newPassword||'').length<8)return sendJson(res,400,{error:'New password must be at least 8 characters.'});if(!verifyPassword(String(b.currentPassword||''),a.user.passwordHash))return sendJson(res,400,{error:'Current password is wrong.'});a.user.passwordHash=hashPassword(b.newPassword);await saveDb(a.db);return sendJson(res,200,{ok:true});}
   const crud=p.match(/^\/api\/admin\/(products|gallery|sections)(?:\/([^/]+))?$/);
   if(crud){
@@ -452,13 +465,31 @@ async function handleApi(req,res,u){
 
 const MIME={'.html':'text/html; charset=utf-8','.css':'text/css; charset=utf-8','.js':'application/javascript; charset=utf-8','.json':'application/json; charset=utf-8','.jpg':'image/jpeg','.jpeg':'image/jpeg','.png':'image/png','.gif':'image/gif','.svg':'image/svg+xml','.webp':'image/webp','.ico':'image/x-icon','.woff':'font/woff','.woff2':'font/woff2','.ttf':'font/ttf','.mp4':'video/mp4','.webm':'video/webm','.mov':'video/quicktime'};
 const TEXT_EXT=new Set(['.html','.css','.js','.json','.svg']);
+function sendStoredMedia(req,res,buffer,mime='application/octet-stream',name='media'){
+  const data=Buffer.isBuffer(buffer)?buffer:Buffer.from(buffer||'');
+  const headers={'Content-Type':mime||MIME[path.extname(name).toLowerCase()]||'application/octet-stream','Cache-Control':'public, max-age=31536000, immutable','Accept-Ranges':'bytes'};
+  const range=String(req.headers.range||'').match(/^bytes=(\d*)-(\d*)$/);
+  if(range&&data.length){
+    let start=range[1]?Number(range[1]):0,end=range[2]?Number(range[2]):data.length-1;
+    if(!range[1]&&range[2]){const tail=Math.max(0,Number(range[2])||0);start=Math.max(0,data.length-tail);end=data.length-1}
+    start=Math.max(0,Math.min(data.length-1,start));end=Math.max(start,Math.min(data.length-1,end));
+    headers['Content-Range']=`bytes ${start}-${end}/${data.length}`;headers['Content-Length']=end-start+1;res.writeHead(206,headers);if(req.method==='HEAD')return res.end();return res.end(data.subarray(start,end+1));
+  }
+  headers['Content-Length']=data.length;res.writeHead(200,headers);if(req.method==='HEAD')return res.end();return res.end(data);
+}
 function serveStatic(req,res,u){
   let rel=decodeURIComponent(u.pathname);if(rel==='/')rel='/index.html';if(rel==='/admin')rel='/admin/index.html';if(!path.extname(rel))rel += '.html';
   const isUpload=rel.startsWith('/uploads/');
   const base=isUpload?UPLOAD_DIR:PUBLIC;const relative=isUpload?rel.slice('/uploads/'.length):rel;
   const file=path.normalize(path.join(base,relative));const safeBase=path.normalize(base+path.sep);if(file!==path.normalize(base)&&!file.startsWith(safeBase)){res.writeHead(403);return res.end('Forbidden')}
-  fs.stat(file,(err,st)=>{
+  fs.stat(file,async(err,st)=>{
     if(err||!st.isFile()){
+      if(isUpload&&USE_POSTGRES&&PG_POOL){
+        try{
+          const stored=await PG_POOL.query('SELECT mime,data FROM media_files WHERE name=$1 LIMIT 1',[relative]);
+          if(stored.rows[0]?.data){PERSISTED_MEDIA_NAMES.add(relative);return sendStoredMedia(req,res,stored.rows[0].data,stored.rows[0].mime,relative)}
+        }catch(mediaErr){console.error('Stored media read failed:',mediaErr.message)}
+      }
       // Old deployments may still have a support background URL saved in PostgreSQL
       // even though Railway's ephemeral /uploads file is gone. Serve the bundled
       // support pattern for that legacy URL so storefront pages never get a 404.

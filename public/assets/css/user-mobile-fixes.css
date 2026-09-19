@@ -2344,3 +2344,142 @@ body.shared-chrome-page>#sharedSupportLayer .shared-support-window .support-back
     transform:none!important;
   }
 }
+
+/* =========================================================
+   2026-09-20 — FINAL requested fixes
+   1) One SUPPORT window, identical to SHOP, on every page.
+   2) Mobile SHOP pager/legal links are viewport-fixed.
+   3) Product zoom overlay is invisible until explicitly opened.
+   4) Broken media never exposes browser broken-image icon/alt text.
+   ========================================================= */
+body.shared-support-page>#sharedSupportOpen.shared-support-button{
+  position:fixed!important;z-index:700!important;left:auto!important;top:auto!important;
+  right:var(--shared-support-right,22px)!important;bottom:var(--shared-support-bottom,25px)!important;
+  width:145px!important;min-width:145px!important;height:48px!important;margin:0!important;padding:0!important;
+  border:0!important;border-radius:0!important;background:#050505!important;color:#fff!important;
+  font:700 17px/48px "Benzin Semibold","Benzin-Semibold","Arial Black",Arial,sans-serif!important;
+  letter-spacing:-.65px!important;text-align:center!important;display:block!important;
+  transform:scale(var(--shared-support-scale,1))!important;transform-origin:right bottom!important;
+}
+body.shared-support-page>#sharedSupportLayer.shared-support-layer{
+  position:fixed!important;inset:0!important;z-index:701!important;display:block!important;
+  opacity:0!important;visibility:hidden!important;pointer-events:none!important;
+  transition:opacity .16s ease,visibility 0s linear .22s!important;
+}
+body.shared-support-page>#sharedSupportLayer.shared-support-layer.open{
+  opacity:1!important;visibility:visible!important;pointer-events:auto!important;transition-delay:0s!important;
+}
+body.shared-support-page>#sharedSupportLayer .shared-support-window,
+body.shared-support-page>#sharedSupportLayer.open .shared-support-window{
+  position:absolute!important;left:auto!important;top:auto!important;
+  right:var(--shared-support-right,22px)!important;bottom:var(--shared-support-bottom,25px)!important;
+  width:368px!important;height:592px!important;overflow:visible!important;
+  transform:scale(var(--shared-support-scale,1))!important;transform-origin:right bottom!important;
+}
+body.shared-support-page>#sharedSupportLayer:not(.open) .shared-support-window{
+  transform:scale(var(--shared-support-scale,1)) translateY(10px)!important;
+}
+body.shared-support-page>#sharedSupportLayer .shared-support-window .support-panel{
+  position:absolute!important;right:0!important;bottom:0!important;width:368px!important;height:545px!important;
+  min-height:0!important;box-sizing:border-box!important;border:5px solid #111!important;background:#fff!important;
+  overflow:hidden!important;
+}
+body.shared-support-page>#sharedSupportLayer .shared-support-window .support-close{
+  position:absolute!important;left:-47px!important;right:auto!important;top:0!important;bottom:auto!important;
+  width:47px!important;height:47px!important;margin:0!important;padding:0 0 5px!important;
+  box-sizing:border-box!important;border:5px solid #111!important;background:#fff!important;color:#111!important;
+  font:300 40px/36px Arial,sans-serif!important;z-index:5!important;
+}
+body.shared-support-page>#sharedSupportLayer .shared-support-window .support-brand{
+  display:flex!important;align-items:flex-start!important;justify-content:center!important;
+  width:100%!important;height:59px!important;margin:0!important;padding:9px 12px 0!important;box-sizing:border-box!important;
+  background:none!important;color:#000!important;
+  font:900 31px/1 "Benzin Semibold","Benzin-Semibold","Arial Black",Arial,sans-serif!important;
+  letter-spacing:-1.25px!important;text-align:center!important;
+}
+body.shared-support-page>#sharedSupportLayer .shared-support-window .support-chat-body{
+  position:relative!important;display:flex!important;flex-direction:column!important;align-items:stretch!important;
+  justify-content:flex-start!important;gap:14px!important;width:100%!important;height:486px!important;
+  margin:0!important;padding:18px 12px 13px!important;box-sizing:border-box!important;overflow:hidden!important;
+  background-image:var(--dd-support-bg-image)!important;background-size:62px 62px!important;background-position:center!important;
+}
+body.shared-support-page>#sharedSupportLayer .shared-support-window .support-mobile-intro,
+body.shared-support-page>#sharedSupportLayer .shared-support-window .support-contact-email{
+  position:relative!important;inset:auto!important;width:100%!important;height:auto!important;min-height:58px!important;
+  margin:0!important;padding:10px 12px!important;box-sizing:border-box!important;display:flex!important;flex:0 0 auto!important;
+  align-items:center!important;justify-content:center!important;background:var(--dd-support-field-bg,#000)!important;
+  color:var(--dd-support-field-color,#fff)!important;font-family:var(--dd-support-window-font,"DD Oswald","Arial Narrow",Arial,sans-serif)!important;
+  line-height:1.2!important;text-align:center!important;overflow-wrap:anywhere!important;text-decoration:none!important;z-index:2!important;
+}
+body.shared-support-page>#sharedSupportLayer .shared-support-window .support-mobile-intro{font-size:14px!important;font-weight:400!important}
+body.shared-support-page>#sharedSupportLayer .shared-support-window .support-contact-email{font-size:18px!important;font-weight:700!important}
+body.shared-support-page>#sharedSupportLayer .shared-support-window .support-background-video{
+  position:absolute!important;inset:0!important;width:100%!important;height:100%!important;object-fit:cover!important;z-index:0!important;pointer-events:none!important;
+}
+
+/* Product zoom is created by JS on every product page. Keep it out of the
+   document flow until the user really opens it, so no empty image + alt text
+   can appear at the bottom of the product page. */
+body.product-detail-page .dd-product-zoom{
+  display:none!important;position:fixed!important;inset:0!important;z-index:900!important;
+  align-items:center!important;justify-content:center!important;background:rgba(255,255,255,.96)!important;
+  padding:60px 24px 24px!important;box-sizing:border-box!important;
+}
+body.product-detail-page .dd-product-zoom.open{display:flex!important}
+body.product-detail-page .dd-product-zoom-image{
+  display:block!important;max-width:94vw!important;max-height:90dvh!important;width:auto!important;height:auto!important;
+  object-fit:contain!important;transform-origin:center center!important;touch-action:none!important;user-select:none!important;
+}
+body.product-detail-page .dd-product-zoom-close{
+  position:fixed!important;left:14px!important;top:14px!important;width:42px!important;height:42px!important;
+  border:1px solid #111!important;background:#fff!important;color:#111!important;font:400 30px/38px Arial,sans-serif!important;z-index:901!important;
+}
+body.product-detail-page img.media-load-failed,
+body.shop-page img.media-load-failed{visibility:hidden!important}
+
+@media (max-width:900px){
+  body.shared-support-page>#sharedSupportOpen.shared-support-button{
+    right:12px!important;bottom:15px!important;width:120px!important;min-width:120px!important;height:42px!important;
+    font-size:14px!important;line-height:42px!important;transform:none!important;
+  }
+  body.shared-support-page>#sharedSupportLayer .shared-support-window,
+  body.shared-support-page>#sharedSupportLayer.open .shared-support-window{
+    right:12px!important;bottom:15px!important;width:min(368px,calc(100vw - 60px))!important;
+    height:min(592px,calc(100dvh - 70px))!important;transform:none!important;
+  }
+  body.shared-support-page>#sharedSupportLayer:not(.open) .shared-support-window{transform:translateY(10px)!important}
+  body.shared-support-page>#sharedSupportLayer .shared-support-window .support-panel{
+    width:100%!important;height:calc(100% - 47px)!important;
+  }
+  body.shared-support-page>#sharedSupportLayer .shared-support-window .support-close{
+    left:-42px!important;top:0!important;width:42px!important;height:42px!important;font-size:35px!important;line-height:31px!important;
+  }
+  body.shared-support-page>#sharedSupportLayer .shared-support-window .support-brand{
+    height:59px!important;padding-top:9px!important;font-size:31px!important;
+  }
+  body.shared-support-page>#sharedSupportLayer .shared-support-window .support-chat-body{
+    height:calc(100% - 59px)!important;padding:18px 12px 13px!important;gap:14px!important;
+  }
+
+  /* Pager number and Terms/Privacy are locked to the viewport bottom and do
+     not travel with the product document while the catalogue is scrolled. */
+  html body.shop-page .shop-wrap{padding-bottom:116px!important}
+  html body.shop-page .shop-footer{
+    position:fixed!important;left:0!important;right:0!important;top:auto!important;bottom:0!important;
+    width:100vw!important;max-width:none!important;height:82px!important;margin:0!important;padding:0!important;
+    transform:none!important;background:transparent!important;border:0!important;box-shadow:none!important;
+    overflow:visible!important;z-index:690!important;pointer-events:none!important;
+  }
+  html body.shop-page .shop-pagination{
+    position:absolute!important;left:0!important;right:0!important;top:0!important;height:40px!important;
+    margin:0!important;padding:0!important;display:flex!important;align-items:flex-start!important;justify-content:center!important;
+    pointer-events:auto!important;overflow:visible!important;
+  }
+  html body.shop-page .shop-page-number{pointer-events:auto!important}
+  html body.shop-page .shop-legal-links{
+    position:absolute!important;left:50%!important;right:auto!important;bottom:3px!important;
+    transform:translateX(-50%)!important;margin:0!important;padding:0!important;width:max-content!important;
+    max-width:calc(100vw - 150px)!important;display:flex!important;align-items:center!important;justify-content:center!important;
+    gap:4px!important;white-space:nowrap!important;pointer-events:auto!important;
+  }
+}

@@ -23,13 +23,27 @@
 
   const setMainMedia=url=>{
     const mediaUrl=displayImage(url||'');
+    if(!mediaUrl){
+      if(mainMedia){mainMedia.removeAttribute('src');mainMedia.removeAttribute('aria-label');mainMedia.alt='';mainMedia.classList.add('media-load-failed')}
+      return;
+    }
     const wantsVideo=window.ddIsVideo?.(mediaUrl);
     if(wantsVideo&&mainMedia?.tagName!=='VIDEO'){
       const video=document.createElement('video');video.id='productImage';video.setAttribute('aria-label',text('name'));video.controls=true;video.playsInline=true;video.preload='metadata';mainMedia.replaceWith(video);mainMedia=video;
     }else if(!wantsVideo&&mainMedia?.tagName!=='IMG'){
       const img=document.createElement('img');img.id='productImage';img.alt=text('name');img.decoding='async';mainMedia.replaceWith(img);mainMedia=img;
     }
-    if(mainMedia){mainMedia.src=mediaUrl;if(mainMedia.tagName==='IMG'){mainMedia.alt=text('name');mainMedia.decoding='async';mainMedia.fetchPriority='high'}else mainMedia.load()}
+    if(mainMedia){
+      mainMedia.classList.remove('media-load-failed');
+      if(mainMedia.tagName==='IMG'){
+        mainMedia.alt=text('name');mainMedia.decoding='async';mainMedia.fetchPriority='high';
+        mainMedia.onerror=()=>{mainMedia.alt='';mainMedia.removeAttribute('src');mainMedia.classList.add('media-load-failed')};
+        mainMedia.src=mediaUrl;
+      }else{
+        mainMedia.onerror=()=>{mainMedia.removeAttribute('src');mainMedia.classList.add('media-load-failed')};
+        mainMedia.src=mediaUrl;mainMedia.load();
+      }
+    }
   };
   setMainMedia(images[0]||p.image||'');
   $('#productName').innerHTML=`<span class="product-title-shape">${esc(text('name'))}</span>`;
@@ -44,6 +58,8 @@
     gallery=document.createElement('div');gallery.className='product-customer-gallery';
     gallery.innerHTML=`<div class="product-customer-thumbs">${images.map((url,i)=>{const shown=displayImage(url);return `<button class="product-customer-thumb${i===0?' is-active':''}" type="button" data-product-image="${i}" aria-label="${lang==='ru'?'Фото':'Image'} ${i+1}">${window.ddIsVideo?.(shown)?`<video src="${esc(shown)}" muted playsinline preload="metadata"></video>`:`<img src="${esc(shown)}" alt="" ${i<4?'loading="eager"':'loading="lazy"'} decoding="async">`}</button>`}).join('')}</div>`;
     visualMedia.appendChild(gallery);
+    $$('img',gallery).forEach(img=>img.addEventListener('error',()=>{const btn=img.closest('.product-customer-thumb');if(btn)btn.hidden=true;img.alt='';img.removeAttribute('src')},{once:true}));
+    $$('video',gallery).forEach(video=>video.addEventListener('error',()=>{const btn=video.closest('.product-customer-thumb');if(btn)btn.hidden=true;video.removeAttribute('src')},{once:true}));
     const showImage=index=>{
       activeImage=(index+images.length)%images.length;
       setMainMedia(images[activeImage]);
@@ -54,7 +70,7 @@
   }
 
   // Click-to-zoom for product photos. It is added as an overlay, so the original product layout is untouched.
-  const zoomLayer=document.createElement('div');zoomLayer.className='dd-product-zoom';zoomLayer.setAttribute('aria-hidden','true');zoomLayer.innerHTML=`<button class="dd-product-zoom-close" type="button" aria-label="${lang==='ru'?'Закрыть':'Close'}">×</button><img class="dd-product-zoom-image" alt="${esc(text('name'))}">`;
+  const zoomLayer=document.createElement('div');zoomLayer.className='dd-product-zoom';zoomLayer.setAttribute('aria-hidden','true');zoomLayer.innerHTML=`<button class="dd-product-zoom-close" type="button" aria-label="${lang==='ru'?'Закрыть':'Close'}">×</button><img class="dd-product-zoom-image" alt="">`;
   document.body.appendChild(zoomLayer);
   const zoomImg=$('.dd-product-zoom-image',zoomLayer),zoomClose=$('.dd-product-zoom-close',zoomLayer);let zoomScale=1,zoomX=0,zoomY=0,lastPointer=null,touches=new Map(),lastDistance=0;
   const applyZoom=()=>{zoomImg.style.transform=`translate3d(${zoomX}px,${zoomY}px,0) scale(${zoomScale})`};

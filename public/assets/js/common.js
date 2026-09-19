@@ -440,8 +440,57 @@ function flyoutItemsHtml(items,lang){
   return (items||[]).filter(x=>x.enabled!==false).map(item=>`${item.separatorBefore?'<span class="shared-header-flyout-gap"></span>':''}${menuItemHtml(item,lang)}`).join('');
 }
 /* All storefront pages except the home page use one shared header and support shell. */
+function mountSharedSupport(site){
+  document.body.classList.add('shared-support-page');
+  $$('#shopSupportOpen, #supportOpen, [data-support], #shopSupportLayer, #supportLayer, #sharedSupportOpen, #sharedSupportLayer').forEach(el=>el.remove());
+  const lang=menuLang();
+  const tr=text=>window.ddTranslate?.(text)||text;
+  const supportCfg=supportConfig(site.settings||{},lang);
+  ddWarmMedia(supportCfg.backgroundImage);
+  applySupportRuntimeStyles(site.settings||{});
+  const shell=document.createElement('div');
+  shell.className='shared-support-root';
+  shell.innerHTML=`<button id="sharedSupportOpen" class="support-btn shared-support-button" type="button">${esc(supportCfg.buttonText)}</button>
+    <div id="sharedSupportLayer" class="support-layer shared-support-layer" aria-hidden="true">
+      <div class="support-window shared-support-window" role="dialog" aria-label="DEMI DEVILLE support">
+        <button id="sharedSupportClose" class="support-close" type="button" aria-label="${tr('Close support')}">×</button>
+        <div class="support-panel">
+          <div class="support-brand">DEMI DEVILLE</div>
+          <div class="support-chat-body support-email-body">
+            ${ddIsVideo(supportCfg.backgroundImage)?`<video class="support-background-video" src="${esc(supportCfg.backgroundImage)}" autoplay muted loop playsinline preload="auto"></video>`:''}
+            <div id="sharedSupportGreeting" class="support-mobile-intro">${esc(supportCfg.greeting)}</div>
+            <a class="support-contact-email" href="mailto:support@demideville.com">support@demideville.com</a>
+          </div>
+        </div>
+      </div>
+    </div>`;
+  document.body.append(...shell.childNodes);
+  const button=$('#sharedSupportOpen'),layer=$('#sharedSupportLayer'),windowEl=$('.shared-support-window');
+  const closeButton=$('#sharedSupportClose');
+  let timer=0;
+  const setOpen=open=>{clearTimeout(timer);layer.classList.toggle('open',open);layer.setAttribute('aria-hidden',String(!open))};
+  const delayedClose=()=>{clearTimeout(timer);timer=setTimeout(()=>setOpen(false),320)};
+  button.addEventListener('mouseenter',()=>setOpen(true));button.addEventListener('focus',()=>setOpen(true));button.addEventListener('mouseleave',delayedClose);button.addEventListener('click',()=>setOpen(true));
+  windowEl.addEventListener('mouseenter',()=>clearTimeout(timer));windowEl.addEventListener('mouseleave',delayedClose);closeButton.addEventListener('click',e=>{e.preventDefault();e.stopPropagation();setOpen(false)});document.addEventListener('keydown',e=>{if(e.key==='Escape')setOpen(false)});
+  const fit=()=>{
+    if(innerWidth<=900){
+      document.body.style.removeProperty('--shared-support-scale');
+      document.body.style.removeProperty('--shared-support-right');
+      document.body.style.removeProperty('--shared-support-bottom');
+      return;
+    }
+    const h=window.visualViewport?.height||innerHeight;
+    const sx=innerWidth/1920,sy=h/1080,s=Math.min(sx,sy);
+    document.body.style.setProperty('--shared-support-scale',s);
+    document.body.style.setProperty('--shared-support-right',`${22*s}px`);
+    document.body.style.setProperty('--shared-support-bottom',`${25*s}px`);
+  };
+  fit();addEventListener('resize',fit,{passive:true});window.visualViewport?.addEventListener('resize',fit,{passive:true});
+}
+window.ddMountSharedSupport=mountSharedSupport;
+
 function mountSharedChrome(site,menu=getMenuConfig(site.settings||{}),currentUser=null){
-  if(document.body.classList.contains('shared-chrome-page'))return;
+  if(document.body.classList.contains('shared-chrome-page')){mountSharedSupport(site);return;}
   document.body.classList.add('shared-chrome-page');
   const lang=menuLang();
   const shopGroup=menu.groups.find(g=>g.id==='shop'&&g.enabled!==false);
@@ -460,37 +509,8 @@ function mountSharedChrome(site,menu=getMenuConfig(site.settings||{}),currentUse
       trigger.addEventListener('mouseenter',open);trigger.addEventListener('focus',open);trigger.addEventListener('mouseleave',close);trigger.addEventListener('blur',close);panel.addEventListener('mouseenter',open);panel.addEventListener('mouseleave',close);
     }
   }
-
-  $$('#shopSupportOpen, #supportOpen, [data-support], #shopSupportLayer, #supportLayer').forEach(el=>el.remove());
-  const tr=text=>window.ddTranslate?.(text)||text;
-  const supportCfg=supportConfig(site.settings||{},lang);
-  ddWarmMedia(supportCfg.backgroundImage);
-  applySupportRuntimeStyles(site.settings||{});
-  const shell=document.createElement('div');
-  shell.className='shared-support-root';
-  shell.innerHTML=`<button id="sharedSupportOpen" class="support-btn shared-support-button" type="button">${esc(supportCfg.buttonText)}</button>
-    <div id="sharedSupportLayer" class="support-layer shared-support-layer" aria-hidden="true">
-      <div class="support-window shared-support-window" role="dialog" aria-label="DEMI DEVILLE support">
-        <button id="sharedSupportClose" class="support-close" type="button" aria-label="${tr('Close support')}">×</button>
-        <div class="support-panel">
-          <div class="support-brand">DEMI DEVILLE</div>
-          <div class="support-chat-body support-email-body">
-            ${ddIsVideo(supportCfg.backgroundImage)?`<video class="support-background-video" src="${esc(supportCfg.backgroundImage)}" autoplay muted loop playsinline preload="auto"></video>`:''}
-            <div class="support-mobile-intro">${esc(supportCfg.greeting)}</div>
-            <a class="support-contact-email" href="mailto:support@demideville.com">support@demideville.com</a>
-          </div>
-        </div>
-      </div>
-    </div>`;
-  document.body.append(...shell.childNodes);
-  const button=$('#sharedSupportOpen'),layer=$('#sharedSupportLayer'),windowEl=$('.shared-support-window');
-  const closeButton=$('#sharedSupportClose');
-  let timer=0;
-  const setOpen=open=>{clearTimeout(timer);layer.classList.toggle('open',open);layer.setAttribute('aria-hidden',String(!open))};
-  const delayedClose=()=>{clearTimeout(timer);timer=setTimeout(()=>setOpen(false),320)};
-  button.addEventListener('mouseenter',()=>setOpen(true));button.addEventListener('focus',()=>setOpen(true));button.addEventListener('mouseleave',delayedClose);button.addEventListener('click',()=>setOpen(true));
-  windowEl.addEventListener('mouseenter',()=>clearTimeout(timer));windowEl.addEventListener('mouseleave',delayedClose);closeButton.addEventListener('click',e=>{e.preventDefault();e.stopPropagation();setOpen(false)});document.addEventListener('keydown',e=>{if(e.key==='Escape')setOpen(false)});
-  const fit=()=>{if(innerWidth<=900)return;const h=window.visualViewport?.height||innerHeight;const sx=innerWidth/1920,sy=h/1080,s=Math.min(sx,sy);document.body.style.setProperty('--shared-chrome-x',sx);document.body.style.setProperty('--shared-chrome-y',sy);document.body.style.setProperty('--shared-chrome-y-inverse',1/sy);document.body.style.setProperty('--shared-support-scale',s);document.body.style.setProperty('--shared-support-right',`${22*s}px`);document.body.style.setProperty('--shared-support-bottom',`${25*s}px`)};
+  mountSharedSupport(site);
+  const fit=()=>{if(innerWidth<=900)return;const h=window.visualViewport?.height||innerHeight;const sx=innerWidth/1920,sy=h/1080;document.body.style.setProperty('--shared-chrome-x',sx);document.body.style.setProperty('--shared-chrome-y',sy);document.body.style.setProperty('--shared-chrome-y-inverse',1/sy)};
   fit();addEventListener('resize',fit,{passive:true});window.visualViewport?.addEventListener('resize',fit,{passive:true});
 }
 function addToCart(productId,size,qty=1){
