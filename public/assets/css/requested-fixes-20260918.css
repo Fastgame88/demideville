@@ -185,13 +185,14 @@ body.dd-custom-page-bg{isolation:isolate!important}
 body.dd-custom-page-bg>#ddPageBackground{z-index:-1!important}
 
 /* =========================================================
-   USER REQUEST — mobile SUPPORT close button only.
-   Same placement as desktop: outside the window at top-left.
-   Keep enough left gutter so the button never leaves the viewport.
+   USER REQUEST — HOME MOBILE ONLY.
+   Put the SUPPORT close square outside the window at top-left,
+   matching the desktop arrangement. No inner-page SUPPORT rules here.
    ========================================================= */
 @media (max-width:900px){
   .home #supportLayer .support-window,
   .home #supportLayer.open .support-window{
+    left:auto!important;
     right:7px!important;
     width:min(334px,calc(100vw - 56px))!important;
   }
@@ -205,18 +206,5 @@ body.dd-custom-page-bg>#ddPageBackground{z-index:-1!important}
     font-size:35px!important;
     line-height:31px!important;
     background:#fff!important;
-  }
-
-  body.shared-chrome-page>#sharedSupportLayer .shared-support-window,
-  body.shared-chrome-page>#sharedSupportLayer.open .shared-support-window{
-    right:12px!important;
-    width:min(368px,calc(100vw - 60px))!important;
-  }
-  body.shared-chrome-page>#sharedSupportLayer .shared-support-window .support-close{
-    left:-42px!important;
-    right:auto!important;
-    top:0!important;
-    width:42px!important;
-    height:42px!important;
   }
 }
