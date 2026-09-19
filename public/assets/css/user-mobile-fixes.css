@@ -2083,53 +2083,48 @@ body.gallery-page:not(.product-detail-page):not(.cart-page) .gallery-media video
 }
 
 /* =========================================================
-   2026-09-20 — unified desktop SUPPORT window on every storefront page.
-   Keeps the SHOP reference geometry, prevents the greeting/email blocks from
-   overlapping, and pins the close square to the same top-left corner.
-   Mobile SUPPORT rules above remain unchanged.
+   2026-09-20 — SUPPORT-only correction.
+   One desktop SUPPORT geometry for HOME + every shared storefront page.
+   The greeting and email are laid out as a real vertical stack so they can
+   never overlap. No page/header/product layout is changed here.
    ========================================================= */
 @media (min-width:901px){
-  /* One reference shell for HOME and all shared-chrome pages. */
-  .home #supportLayer,
-  body.shared-chrome-page>#sharedSupportLayer.shared-support-layer{
-    position:fixed!important;
-    inset:0!important;
-    z-index:701!important;
-  }
-
-  .home #supportLayer .support-window{
+  .home #supportLayer .support-window,
+  body.shared-chrome-page>#sharedSupportLayer .shared-support-window,
+  body.shared-chrome-page>#sharedSupportLayer.open .shared-support-window{
     position:absolute!important;
     left:auto!important;
     top:auto!important;
-    right:var(--home-support-right,22px)!important;
-    bottom:var(--home-support-bottom,25px)!important;
+    right:22px!important;
+    bottom:25px!important;
     width:368px!important;
     height:592px!important;
+    max-width:none!important;
+    max-height:none!important;
     overflow:visible!important;
-    transform:scale(var(--home-support-scale,1))!important;
+    transform:none!important;
     transform-origin:right bottom!important;
   }
-  .home #supportLayer:not(.open) .support-window{
-    transform:scale(var(--home-support-scale,1)) translateY(10px)!important;
+  .home #supportLayer:not(.open) .support-window,
+  body.shared-chrome-page>#sharedSupportLayer:not(.open) .shared-support-window{
+    transform:translateY(10px)!important;
   }
-  .home #supportLayer.open .support-window{
-    transform:scale(var(--home-support-scale,1))!important;
-  }
-
-  body.shared-chrome-page>#sharedSupportLayer .shared-support-window,
+  .home #supportLayer.open .support-window,
   body.shared-chrome-page>#sharedSupportLayer.open .shared-support-window{
-    width:368px!important;
-    height:592px!important;
+    transform:none!important;
   }
 
   .home #supportLayer .support-panel,
   body.shared-chrome-page>#sharedSupportLayer .shared-support-window .support-panel{
     position:absolute!important;
+    left:auto!important;
     right:0!important;
+    top:auto!important;
     bottom:0!important;
     width:368px!important;
     height:545px!important;
     min-height:0!important;
+    margin:0!important;
     box-sizing:border-box!important;
     border:5px solid #111!important;
     background:#fff!important;
@@ -2140,12 +2135,14 @@ body.gallery-page:not(.product-detail-page):not(.cart-page) .gallery-media video
   body.shared-chrome-page>#sharedSupportLayer .shared-support-window .support-close{
     position:absolute!important;
     left:-47px!important;
+    right:auto!important;
     top:0!important;
+    bottom:auto!important;
     width:47px!important;
     height:47px!important;
-    box-sizing:border-box!important;
     margin:0!important;
     padding:0 0 5px!important;
+    box-sizing:border-box!important;
     border:5px solid #111!important;
     background:#fff!important;
     color:#111!important;
@@ -2155,89 +2152,75 @@ body.gallery-page:not(.product-detail-page):not(.cart-page) .gallery-media video
 
   .home #supportLayer .support-brand,
   body.shared-chrome-page>#sharedSupportLayer .shared-support-window .support-brand{
+    display:flex!important;
+    align-items:flex-start!important;
+    justify-content:center!important;
     width:100%!important;
     height:59px!important;
     margin:0!important;
     padding:9px 12px 0!important;
     box-sizing:border-box!important;
-    background:url('/assets/images/shop-brand.png') center/326px 28px no-repeat!important;
-    color:transparent!important;
-    font-size:0!important;
-    line-height:0!important;
+    background:none!important;
+    color:#000!important;
+    font:900 31px/1 "Benzin Semibold","Benzin-Semibold","Arial Black",Arial,sans-serif!important;
+    letter-spacing:-1.25px!important;
+    text-align:center!important;
   }
 
   .home #supportLayer .support-chat-body,
   body.shared-chrome-page>#sharedSupportLayer .shared-support-window .support-chat-body{
     position:relative!important;
-    display:block!important;
+    display:flex!important;
+    flex-direction:column!important;
+    align-items:stretch!important;
+    justify-content:flex-start!important;
+    gap:14px!important;
     width:100%!important;
     height:486px!important;
+    margin:0!important;
+    padding:18px 12px 13px!important;
     box-sizing:border-box!important;
-    padding:0!important;
     overflow:hidden!important;
   }
 
-  /* Only the two intended text blocks are visible. They are vertically
-     separated, so neither plaque can cover the other. */
   .home #supportLayer .support-mobile-intro,
-  body.shared-chrome-page>#sharedSupportLayer .shared-support-window .support-mobile-intro{
-    display:flex!important;
-    position:absolute!important;
-    left:12px!important;
-    right:12px!important;
-    top:18px!important;
-    width:auto!important;
-    min-height:52px!important;
-    margin:0!important;
-    padding:10px 12px!important;
-    box-sizing:border-box!important;
-    align-items:center!important;
-    justify-content:center!important;
-    background:var(--dd-support-field-bg,#000)!important;
-    color:var(--dd-support-field-color,#fff)!important;
-    font-family:var(--dd-support-window-font,"DD Oswald","Arial Narrow",Arial,sans-serif)!important;
-    font-size:15px!important;
-    font-weight:400!important;
-    line-height:1.2!important;
-    text-align:center!important;
-    overflow-wrap:anywhere!important;
-    z-index:2!important;
-  }
-
+  body.shared-chrome-page>#sharedSupportLayer .shared-support-window .support-mobile-intro,
   .home #supportLayer .support-contact-email,
   body.shared-chrome-page>#sharedSupportLayer .shared-support-window .support-contact-email{
-    display:flex!important;
-    position:absolute!important;
-    left:12px!important;
-    right:12px!important;
-    top:84px!important;
-    width:auto!important;
-    min-height:54px!important;
+    position:relative!important;
+    inset:auto!important;
+    left:auto!important;
+    right:auto!important;
+    top:auto!important;
+    bottom:auto!important;
+    width:100%!important;
+    height:auto!important;
+    min-height:58px!important;
     margin:0!important;
     padding:10px 12px!important;
     box-sizing:border-box!important;
+    display:flex!important;
+    flex:0 0 auto!important;
     align-items:center!important;
     justify-content:center!important;
     background:var(--dd-support-field-bg,#000)!important;
     color:var(--dd-support-field-color,#fff)!important;
     font-family:var(--dd-support-window-font,"DD Oswald","Arial Narrow",Arial,sans-serif)!important;
-    font-size:18px!important;
-    font-weight:700!important;
     line-height:1.2!important;
     text-align:center!important;
-    text-decoration:none!important;
     overflow-wrap:anywhere!important;
     z-index:2!important;
   }
-
-  /* Old form/reference fragments must not reappear beneath the email-only
-     support layout on any page. */
-  .home #supportLayer .support-form-heading,
-  .home #supportLayer .support-form,
-  body.shared-chrome-page>#sharedSupportLayer .shared-support-window .support-form-heading,
-  body.shared-chrome-page>#sharedSupportLayer .shared-support-window .support-form,
-  body.shared-chrome-page>#sharedSupportLayer .shop-reference-chat{
-    display:none!important;
+  .home #supportLayer .support-mobile-intro,
+  body.shared-chrome-page>#sharedSupportLayer .shared-support-window .support-mobile-intro{
+    font-size:14px!important;
+    font-weight:400!important;
+  }
+  .home #supportLayer .support-contact-email,
+  body.shared-chrome-page>#sharedSupportLayer .shared-support-window .support-contact-email{
+    font-size:18px!important;
+    font-weight:700!important;
+    text-decoration:none!important;
   }
 
   .home #supportLayer .support-background-video,
@@ -2249,5 +2232,16 @@ body.gallery-page:not(.product-detail-page):not(.cart-page) .gallery-media video
     object-fit:cover!important;
     z-index:0!important;
     pointer-events:none!important;
+  }
+}
+
+/* The footer controls stay pinned, but the old partial white strip itself is removed. */
+@media (max-width:900px){
+  html body.shop-page .shop-footer{
+    width:100vw!important;
+    max-width:none!important;
+    background:transparent!important;
+    box-shadow:none!important;
+    border:0!important;
   }
 }
