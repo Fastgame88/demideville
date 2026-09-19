@@ -52,9 +52,15 @@
   }
   function productCopy(p){
     let name=localized(p,'name');
-    let detail=window.ddProductPriceLabel?window.ddProductPriceLabel(p,curr,lang):money(p.price,curr);
+    const priceMode=String(p?.priceMode||'number').toLowerCase();
+    let detail='';
+    if(priceMode==='text'){
+      detail=String(lang==='ru'?(p?.priceTextRu||p?.priceText||''):(p?.priceText||p?.priceTextRu||''));
+    }else if(priceMode!=='hidden'){
+      detail=money(p.price,curr);
+    }
     /* Keep the historical English formatting only for the original EN artwork/numeric prices. */
-    if(lang!=='ru'&&String(p.priceMode||'number')==='number'){
+    if(lang!=='ru'&&priceMode==='number'){
       if(/Black&White$/i.test(name)){
         name=name.replace(/\s*Black&White$/i,'');
         detail=`Black&White - ${detail}`;
@@ -102,10 +108,12 @@
       const primary=(window.ddProductImages?.(p)||[])[0]||p.image||'';
       /* For one or two products use the real source image so the card can scale up
          without inheriting transparent padding from the old reference artwork. */
-      const useReference=lang!=='ru'&&ref&&primary===ref.image&&pageItems.length>2&&String(p.priceMode||'number')==='number'&&!window.ddIsVideo?.(primary);
-      const art=useReference?ref.art:primary;
+      const priceMode=String(p?.priceMode||'number').toLowerCase();
+      const useReferenceArt=lang!=='ru'&&ref&&primary===ref.image&&pageItems.length>2&&!window.ddIsVideo?.(primary);
+      const useReferenceCopy=useReferenceArt&&priceMode==='number';
+      const art=useReferenceArt?ref.art:primary;
       const copy=productCopy(p);
-      const referenceCopy=(useReference&&ref.label)?`<span class="product-reference-copy" aria-hidden="true">
+      const referenceCopy=(useReferenceCopy&&ref.label)?`<span class="product-reference-copy" aria-hidden="true">
           <img class="product-reference-label" src="${esc(ref.label)}" alt="" loading="lazy" decoding="async">
           ${ref.detail?`<img class="product-reference-detail" src="${esc(ref.detail)}" alt="" loading="lazy" decoding="async">`:''}
         </span>`:'';

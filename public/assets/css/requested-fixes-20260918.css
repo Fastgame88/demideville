@@ -1,0 +1,105 @@
+/* DEMI DEVILLE — requested storefront fixes, 2026-09-19.
+   1) SHOP uses the same price mode as the product page (number / custom text / hidden).
+   2) SHOP and PRODUCT media keep their source aspect ratio. No forced 4:3/16:9 box,
+      no stretching and no cropping for either images or videos. */
+
+/* SHOP: let every product media element keep its own natural height. */
+body.shop-page .product-grid{
+  grid-auto-rows:auto!important;
+  align-items:start!important;
+}
+body.shop-page .product-card,
+body.shop-page .product-card:nth-child(n+5),
+body.shop-page .product-grid[data-count="1"] .product-card,
+body.shop-page .product-grid[data-count="2"] .product-card{
+  height:auto!important;
+  min-height:0!important;
+}
+body.shop-page .product-card .media,
+body.shop-page .product-card:nth-child(n+5) .media,
+body.shop-page .product-card-1 .media,
+body.shop-page .product-card-2 .media,
+body.shop-page .product-card-3 .media,
+body.shop-page .product-card-4 .media,
+body.shop-page .product-grid[data-count="1"] .media,
+body.shop-page .product-grid[data-count="2"] .media{
+  height:auto!important;
+  min-height:0!important;
+  max-height:none!important;
+  aspect-ratio:auto!important;
+  overflow:visible!important;
+  display:flex!important;
+  align-items:flex-start!important;
+  justify-content:center!important;
+}
+body.shop-page .product-card .product-art,
+body.shop-page .product-card:nth-child(n+5) .product-art,
+body.shop-page .product-card-1 .product-art,
+body.shop-page .product-card-2 .product-art,
+body.shop-page .product-card-3 .product-art,
+body.shop-page .product-card-4 .product-art,
+body.shop-page .product-grid[data-count="1"] .product-art,
+body.shop-page .product-grid[data-count="2"] .product-art{
+  display:block!important;
+  width:auto!important;
+  height:auto!important;
+  max-width:100%!important;
+  max-height:none!important;
+  aspect-ratio:auto!important;
+  object-fit:contain!important;
+  object-position:center top!important;
+  transform:none!important;
+}
+body.shop-page video.product-art{
+  object-fit:contain!important;
+}
+
+/* Keep the caption immediately after the real image/video height. */
+body.shop-page .product-live-copy,
+body.shop-page .product-card.has-reference-copy .product-reference-copy{
+  flex:0 0 auto!important;
+}
+
+/* PRODUCT DETAIL: the source ratio controls the visible garment/media size.
+   Bounds only limit how large it can become; they never force width + height together. */
+body.product-detail-page .product-visual{
+  height:auto!important;
+  min-height:0!important;
+}
+body.product-detail-page .product-visual>img#productImage,
+body.product-detail-page .product-visual>video#productImage{
+  display:block!important;
+  width:auto!important;
+  height:auto!important;
+  aspect-ratio:auto!important;
+  object-fit:contain!important;
+  object-position:center top!important;
+  transform:none!important;
+}
+
+@media (min-width:901px){
+  body.shop-page .product-card .product-art,
+  body.shop-page .product-card:nth-child(n+5) .product-art,
+  body.shop-page .product-grid[data-count="1"] .product-art,
+  body.shop-page .product-grid[data-count="2"] .product-art{
+    max-width:306px!important;
+    max-height:430px!important;
+  }
+  body.product-detail-page .product-visual>img#productImage,
+  body.product-detail-page .product-visual>video#productImage{
+    max-width:543px!important;
+    max-height:643px!important;
+  }
+}
+
+@media (max-width:900px){
+  body.product-detail-page .product-visual{
+    height:auto!important;
+    max-height:none!important;
+  }
+  body.product-detail-page .product-visual>img#productImage,
+  body.product-detail-page .product-visual>video#productImage{
+    max-width:82vw!important;
+    max-height:450px!important;
+  }
+}
