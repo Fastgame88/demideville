@@ -2057,3 +2057,27 @@ body.shop-page .product-grid[data-count="2"] .product-art{
   object-position:center center!important;
   transform:none!important;
 }
+
+
+/* 2026-09-19 — GALLERY keeps each uploaded photo/video in its original aspect ratio.
+   16:9, 4:3, 3:4 and other source ratios are displayed without cropping or distortion. */
+body.gallery-page:not(.product-detail-page):not(.cart-page) .gallery-media{
+  height:auto!important;
+  aspect-ratio:auto!important;
+  overflow:visible!important;
+}
+body.gallery-page:not(.product-detail-page):not(.cart-page) .gallery-media img,
+body.gallery-page:not(.product-detail-page):not(.cart-page) .gallery-media video{
+  display:block!important;
+  width:100%!important;
+  height:auto!important;
+  max-height:none!important;
+  object-fit:contain!important;
+  object-position:center!important;
+}
+@media (min-width:901px){
+  body.gallery-page:not(.product-detail-page):not(.cart-page) .gallery-media{width:458px!important}
+}
+@media (max-width:900px){
+  body.gallery-page:not(.product-detail-page):not(.cart-page) .gallery-media{width:100%!important}
+}

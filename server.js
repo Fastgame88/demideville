@@ -176,7 +176,11 @@ function productImages(product) {
 }
 function productVariants(product) {
   if (Array.isArray(product?.variants) && product.variants.length) {
-    return product.variants.map(v=>({size:String(v?.size||'').trim(),stock:Math.max(0,Math.floor(Number(v?.stock)||0))})).filter(v=>v.size);
+    return product.variants.map(v=>{
+      const rawStock=v?.stock;
+      const stock=rawStock===null||rawStock===undefined||rawStock===''?null:Math.max(0,Math.floor(Number(rawStock)||0));
+      return {size:String(v?.size||'').trim(),stock};
+    }).filter(v=>v.size);
   }
   return (Array.isArray(product?.sizes)?product.sizes:[]).map(size=>({size:String(size||'').trim(),stock:null})).filter(v=>v.size);
 }
@@ -334,9 +338,9 @@ async function handleApi(req,res,u){
       const variants=productVariants(prod);
       if(Array.isArray(prod.variants)&&prod.variants.length){
         const variant=variants.find(v=>v.size.toUpperCase()===size.toUpperCase());
-        if(!variant||variant.stock<=0)return sendJson(res,409,{error:`Size ${size||'—'} is out of stock for ${prod.name}.`});
-        if(qty>variant.stock)return sendJson(res,409,{error:`Only ${variant.stock} item(s) left for ${prod.name}, size ${variant.size}.`});
-        reservations.push({prod,size:variant.size,qty});
+        if(!variant||(variant.stock!==null&&variant.stock<=0))return sendJson(res,409,{error:`Size ${size||'—'} is out of stock for ${prod.name}.`});
+        if(variant.stock!==null&&qty>variant.stock)return sendJson(res,409,{error:`Only ${variant.stock} item(s) left for ${prod.name}, size ${variant.size}.`});
+        reservations.push({prod,size:variant.size,qty,unlimited:variant.stock===null});
       }
       subtotal+=(Number(prod.price)||0)*qty;
       const images=productImages(prod);
@@ -351,8 +355,8 @@ async function handleApi(req,res,u){
     }
     for(const r of reservations){
       const raw=(r.prod.variants||[]).find(v=>String(v?.size||'').trim().toUpperCase()===String(r.size).trim().toUpperCase());
-      if(raw)raw.stock=Math.max(0,Math.floor(Number(raw.stock)||0)-r.qty);
-      r.prod.sizes=(r.prod.variants||[]).filter(v=>Number(v?.stock)>0).map(v=>String(v.size));
+      if(raw&&!r.unlimited)raw.stock=Math.max(0,Math.floor(Number(raw.stock)||0)-r.qty);
+      r.prod.sizes=productVariants(r.prod).filter(v=>v.stock===null||v.stock>0).map(v=>String(v.size));
     }
     const shipping=Number(db.settings.shipping||0);const total=Math.max(0,subtotal-discount+shipping);
     const order={id:id(),number:`DD-${String(Date.now()).slice(-8)}`,userId:user?.id||null,email:b.email||user?.email||'',customer:b.customer||{},items,subtotal,discount,couponCode,shipping,total,paymentMethod:b.paymentMethod||'Card payment',status:'new',createdAt:now()};

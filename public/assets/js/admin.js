@@ -283,9 +283,9 @@ function productImagesOf(p){
 }
 function productSizesOf(p){
   if(Array.isArray(p?.variants)&&p.variants.length){
-    return p.variants.map(v=>({size:String(v?.size||'').trim(),stock:Math.max(0,Math.floor(Number(v?.stock)||0))})).filter(v=>v.size);
+    return p.variants.map(v=>{const raw=v?.stock;return {size:String(v?.size||'').trim(),stock:raw===null||raw===undefined||raw===''?null:Math.max(0,Math.floor(Number(raw)||0))}}).filter(v=>v.size);
   }
-  return (Array.isArray(p?.sizes)?p.sizes:[]).map(size=>({size:String(size),stock:1}));
+  return (Array.isArray(p?.sizes)?p.sizes:[]).map(size=>({size:String(size),stock:null}));
 }
 function fillShopEditor(){
   $('#shopPageSize').value=Math.max(1,Math.min(8,Number(settings.shopPageSize)||8));
@@ -413,13 +413,13 @@ function renderProductsAdmin(){
   }).sort((a,b)=>(Number(a.sort)||0)-(Number(b.sort)||0));
   if(!list.length){box.innerHTML='<div class="empty-admin-list">Товары не найдены.</div>';return}
   box.innerHTML=list.map(p=>{
-    const images=productImagesOf(p),sizes=productSizesOf(p),stock=sizes.reduce((a,v)=>a+Math.max(0,Number(v.stock)||0),0),cats=productCategoriesOf(p);
+    const images=productImagesOf(p),sizes=productSizesOf(p),hasUnlimited=sizes.some(v=>v.stock===null),stock=sizes.reduce((a,v)=>a+(v.stock===null?0:Math.max(0,Number(v.stock)||0)),0),cats=productCategoriesOf(p);
     return `<article class="product-admin-row${p.active===false?' is-hidden-product':''}" data-product-id="${esc(p.id)}">
       <div class="product-admin-thumb">${images[0]?(mediaIsVideo(images[0])?`<video src="${esc(images[0])}" muted loop autoplay playsinline style="width:100%;height:100%;object-fit:contain"></video>`:`<img src="${esc(images[0])}" alt="">`):'—'}</div>
       <div class="product-admin-copy">
         <div class="product-admin-name">${esc(p.name||'Без названия')}</div>
         <div class="product-admin-ru">${esc(p.nameRu||'RU не заполнено')}</div>
-        <div class="product-admin-meta"><span>${esc(p.priceMode==='hidden'?'Цена скрыта':p.priceMode==='text'?(p.priceTextRu||p.priceText||'Текстовая цена'):`${String(p.price??0)}${settings.currency||'$'}`)}</span><span>${p.active===false?'Скрыт':'Показывается'}</span><span>Фото: ${images.length}</span><span>Остаток: ${stock}</span>${cats.slice(0,3).map(c=>`<b class="shop-category-pill">${esc(c)}</b>`).join('')}</div>
+        <div class="product-admin-meta"><span>${esc(p.priceMode==='hidden'?'Цена скрыта':p.priceMode==='text'?(p.priceTextRu||p.priceText||'Текстовая цена'):`${String(p.price??0)}${settings.currency||'$'}`)}</span><span>${p.active===false?'Скрыт':'Показывается'}</span><span>Фото: ${images.length}</span><span>Остаток: ${hasUnlimited?'∞':stock}</span>${cats.slice(0,3).map(c=>`<b class="shop-category-pill">${esc(c)}</b>`).join('')}</div>
       </div>
       <div class="product-admin-actions"><label class="check-control compact"><input type="checkbox" data-toggle-product-active="${esc(p.id)}" ${p.active!==false?'checked':''}> Показывать</label><button class="secondary-btn small" type="button" data-edit-product="${esc(p.id)}">Редактировать</button></div>
     </article>`;
@@ -452,11 +452,11 @@ function renderProductSizes(){
   const box=$('#productSizesEditor');if(!box)return;
   box.innerHTML=productSizesDraft.map((v,i)=>`<div class="size-stock-row" data-size-index="${i}">
     <label class="field"><span>Размер</span><input data-size-field="size" value="${esc(v.size)}" placeholder="S"></label>
-    <label class="field"><span>Количество, шт.</span><input data-size-field="stock" type="number" min="0" step="1" value="${Math.max(0,Number(v.stock)||0)}"></label>
+    <label class="field"><span>Количество, шт. (пусто = без лимита)</span><input data-size-field="stock" type="number" min="0" step="1" value="${v.stock===null?'':Math.max(0,Number(v.stock)||0)}" placeholder="без лимита"></label>
     <button class="danger-link" type="button" data-delete-size>Удалить</button>
   </div>`).join('')||'<div class="section-note">Размеры не добавлены.</div>';
 }
-$('#productSizesEditor')?.addEventListener('input',e=>{const row=e.target.closest('[data-size-index]');const f=e.target.dataset.sizeField;if(!row||!f)return;const i=Number(row.dataset.sizeIndex);productSizesDraft[i][f]=f==='stock'?Math.max(0,Math.floor(Number(e.target.value)||0)):e.target.value});
+$('#productSizesEditor')?.addEventListener('input',e=>{const row=e.target.closest('[data-size-index]');const f=e.target.dataset.sizeField;if(!row||!f)return;const i=Number(row.dataset.sizeIndex);productSizesDraft[i][f]=f==='stock'?(String(e.target.value).trim()===''?null:Math.max(0,Math.floor(Number(e.target.value)||0))):e.target.value});
 $('#productSizesEditor')?.addEventListener('click',e=>{if(!e.target.closest('[data-delete-size]'))return;const row=e.target.closest('[data-size-index]');productSizesDraft.splice(Number(row.dataset.sizeIndex),1);renderProductSizes()});
 $('#addProductSize')?.addEventListener('click',()=>{productSizesDraft.push({size:'',stock:0});renderProductSizes();$('#productSizesEditor')?.lastElementChild?.querySelector('input')?.focus()});
 
@@ -491,8 +491,8 @@ $('#productImagesUpload')?.addEventListener('change',async e=>{
 function productPayloadFromForm(){
   const original=$('#productOriginalId').value.trim();
   const name=$('#productNameEn').value.trim();let pid=original||slugify($('#productId').value||name)||uid('product');
-  const variants=productSizesDraft.map(v=>({size:String(v.size||'').trim(),stock:Math.max(0,Math.floor(Number(v.stock)||0))})).filter(v=>v.size);
-  const sizes=variants.filter(v=>v.stock>0).map(v=>v.size);
+  const variants=productSizesDraft.map(v=>({size:String(v.size||'').trim(),stock:v.stock===null||v.stock===undefined||v.stock===''?null:Math.max(0,Math.floor(Number(v.stock)||0))})).filter(v=>v.size);
+  const sizes=variants.filter(v=>v.stock===null||v.stock>0).map(v=>v.size);
   return {id:pid,name,nameRu:$('#productNameRu').value.trim(),price:Math.max(0,Number($('#productPriceAdmin').value)||0),priceMode:$('#productPriceMode').value||'number',priceText:$('#productPriceTextEn').value.trim(),priceTextRu:$('#productPriceTextRu').value.trim(),purchasable:$('#productPurchasable').checked,description:$('#productDescriptionEn').value.trim(),descriptionRu:$('#productDescriptionRu').value.trim(),fabric:$('#productFabricEn').value.trim(),fabricRu:$('#productFabricRu').value.trim(),image:productImagesDraft[0]||'',images:clone(productImagesDraft),categories:selectedProductCategories(),variants,sizes,active:$('#productActive').checked,sort:Math.max(0,Math.floor(Number($('#productSort').value)||0))};
 }
 $('#productEditorForm')?.addEventListener('submit',async e=>{

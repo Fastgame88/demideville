@@ -77,9 +77,11 @@ function ddApplyPageBackground(settings={}){
     body.dd-custom-page-bg .page,body.dd-custom-page-bg .shop-wrap,body.dd-custom-page-bg .product-page,body.dd-custom-page-bg .gallery-wrap,body.dd-custom-page-bg .about-wrap,body.dd-custom-page-bg .login-wrap,body.dd-custom-page-bg .cart-wrap,body.dd-custom-page-bg .checkout-wrap,body.dd-custom-page-bg .legal-page{background-color:transparent!important}
     body.shop-page.dd-custom-page-bg .shop-stage,body.shop-page.dd-custom-page-bg .shop-canvas,body.login-page.dd-custom-page-bg .login-canvas,body.cart-page.dd-custom-page-bg .cart-canvas-shell,body.cart-page.dd-custom-page-bg .cart-canvas,body.checkout-page.dd-custom-page-bg .checkout-stage{background:transparent!important}
     body.product-detail-page.dd-custom-page-bg #productPage.product-page{background:transparent!important}
+    body.login-page.dd-page-bg-configured .login-art{display:none!important}
     #ddPageBackground{position:fixed;inset:0;width:100vw;height:100dvh;object-fit:cover;object-position:center;z-index:0;pointer-events:none;user-select:none;opacity:0}
   `;
   const existing=document.getElementById('ddPageBackground');
+  document.body.classList.toggle('dd-page-bg-configured',!!url);
   if(!url){existing?.remove();document.body.classList.remove('dd-custom-page-bg');return}
   if(existing?.dataset.ddSource===url){
     if(existing.dataset.ddReady==='1')document.body.classList.add('dd-custom-page-bg');

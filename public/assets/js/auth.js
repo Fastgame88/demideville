@@ -1,7 +1,13 @@
 (async()=>{
   await renderChrome();
   const site=await SITE;
-  $('#loginArt').src=site.settings?.loginArt||'/assets/images/login-art.png';
+  const loginArt=$('#loginArt');
+  const customLoginBackground=window.ddResolvedPageBackground?window.ddResolvedPageBackground(site.settings||{},'login'):'';
+  if(loginArt){
+    loginArt.hidden=!!customLoginBackground;
+    if(!customLoginBackground)loginArt.src=site.settings?.loginArt||'/assets/images/login-art.png';
+    else loginArt.removeAttribute('src');
+  }
 
   // Never expose or prefill the administrator credentials on the customer page.
   const clearAdminAutofill=()=>{

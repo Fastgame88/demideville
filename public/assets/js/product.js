@@ -76,8 +76,10 @@
 
   const sel=$('#sizeSelect');const sizePicker=$('#sizePicker');const sizeToggle=$('#sizeToggle');const sizeMenu=$('#sizeMenu');
   const purchasable=window.ddProductPurchasable?window.ddProductPurchasable(p):true;
-  const variants=(window.ddProductVariants?.(p)||[]).filter(v=>v.stock===null||v.stock>0);
-  const sizes=variants.map(v=>String(v.size));
+  const normalizedVariants=window.ddProductVariants?.(p)||[];
+  const fallbackVariants=!normalizedVariants.length&&Array.isArray(p.sizes)?p.sizes.map(size=>({size:String(size||'').trim(),stock:null})).filter(v=>v.size):[];
+  const variants=(normalizedVariants.length?normalizedVariants:fallbackVariants).filter(v=>v.stock===null||v.stock===undefined||Number(v.stock)>0);
+  const sizes=[...new Set(variants.map(v=>String(v.size||'').trim()).filter(Boolean))];
   sel.innerHTML='<option value=""></option>'+sizes.map(x=>`<option value="${esc(x)}">${esc(x)}</option>`).join('');
   sizeMenu.innerHTML=sizes.map((x,i)=>`<button class="size-option" type="button" role="option" data-size="${esc(x)}"><span class="size-option-content"><span class="size-option-index">${i+1}</span><span class="size-option-value">( ${esc(x)} )</span></span></button>`).join('');
   sizeToggle.textContent=sizes.length?(lang==='ru'?'Выберите размер':'Select your size'):(lang==='ru'?'Нет в наличии':'Out of stock');
@@ -89,7 +91,7 @@
   sizeMenu.addEventListener('click',e=>{const b=e.target.closest('.size-option');if(!b)return;const value=b.dataset.size||'';sel.value=value;sizeToggle.textContent=value|| (lang==='ru'?'Выберите размер':'Select your size');$$('.size-option',sizeMenu).forEach(x=>x.classList.toggle('selected',x===b));setSizeMenu(false)});
   document.addEventListener('click',e=>{if(!e.target.closest('#sizePicker'))setSizeMenu(false)});
 
-  function chosen(){if(!sel.value){setSizeMenu(true);return false}return true}
+  function chosen(){if(!sel.value){setSizeMenu(true);showToast(lang==='ru'?'Выберите размер':'Select a size');return false}return true}
   function stockAllowsOneMore(){
     const stock=window.ddProductStock?window.ddProductStock(p,sel.value):Infinity;if(!Number.isFinite(stock))return true;
     const inCart=cartGet().filter(x=>String(x.productId)===String(p.id)&&normalizeCartSize(x.size)===normalizeCartSize(sel.value)).reduce((a,x)=>a+(Number(x.qty)||1),0);
