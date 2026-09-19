@@ -183,27 +183,3 @@ body.shared-chrome-page>#sharedSupportLayer .shared-support-window .support-chat
 }
 body.dd-custom-page-bg{isolation:isolate!important}
 body.dd-custom-page-bg>#ddPageBackground{z-index:-1!important}
-
-/* SUPPORT email-only content adjustment — 18.09.2026.
-   Do not change the support window/button dimensions. */
-.home #supportLayer .support-mobile-intro,
-body.shared-chrome-page>#sharedSupportLayer .shared-support-window .support-mobile-intro{
-  font-size:18px!important;
-  line-height:1.28!important;
-}
-.home #supportLayer .support-contact-email,
-body.shared-chrome-page>#sharedSupportLayer .shared-support-window .support-contact-email{
-  font-size:21px!important;
-  font-weight:700!important;
-}
-@media(max-width:900px){
-  .home #supportLayer .support-mobile-intro,
-  body.shared-chrome-page>#sharedSupportLayer .shared-support-window .support-mobile-intro{
-    font-size:16px!important;
-    line-height:1.3!important;
-  }
-  .home #supportLayer .support-contact-email,
-  body.shared-chrome-page>#sharedSupportLayer .shared-support-window .support-contact-email{
-    font-size:20px!important;
-  }
-}

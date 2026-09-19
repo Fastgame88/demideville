@@ -135,22 +135,11 @@ async function initDbStore(){
   const pgSslMode=String(process.env.PGSSL||'auto').toLowerCase();const isRailwayPrivate=/\.railway\.internal(?::|\/|$)/i.test(DATABASE_URL);const ssl=pgSslMode==='disable'||(pgSslMode==='auto'&&isRailwayPrivate)?false:{rejectUnauthorized:false};
   PG_POOL=new Pool({connectionString:DATABASE_URL,ssl,max:Number(process.env.PGPOOL_MAX||5),idleTimeoutMillis:30000,connectionTimeoutMillis:10000});
   await PG_POOL.query(`CREATE TABLE IF NOT EXISTS app_state (id integer PRIMARY KEY, data jsonb NOT NULL, updated_at timestamptz NOT NULL DEFAULT now())`);
-  await PG_POOL.query(`CREATE TABLE IF NOT EXISTS media_files (name text PRIMARY KEY, mime text NOT NULL, data bytea NOT NULL, size bigint NOT NULL, updated_at timestamptz NOT NULL DEFAULT now())`);
   const row=await PG_POOL.query('SELECT data FROM app_state WHERE id=1');
   if(row.rows[0]?.data){DB_CACHE=ensureDbShape(row.rows[0].data);}
   else{
     DB_CACHE=loadJsonDbFromDisk();
     await PG_POOL.query('INSERT INTO app_state(id,data,updated_at) VALUES(1,$1::jsonb,now()) ON CONFLICT(id) DO UPDATE SET data=EXCLUDED.data, updated_at=now()',[JSON.stringify(DB_CACHE)]);
-  }
-  // One-time safety migration: if this archive already contains files in public/uploads,
-  // copy them into PostgreSQL so a future Railway redeploy cannot remove them.
-  if(fs.existsSync(UPLOAD_DIR)){
-    for(const entry of fs.readdirSync(UPLOAD_DIR,{withFileTypes:true})){
-      if(!entry.isFile())continue;
-      const name=entry.name;const file=path.join(UPLOAD_DIR,name);const data=fs.readFileSync(file);
-      const ext=path.extname(name).toLowerCase();const mime=({'.jpg':'image/jpeg','.jpeg':'image/jpeg','.png':'image/png','.gif':'image/gif','.svg':'image/svg+xml','.webp':'image/webp','.mp4':'video/mp4','.webm':'video/webm','.mov':'video/quicktime'})[ext]||'application/octet-stream';
-      await PG_POOL.query('INSERT INTO media_files(name,mime,data,size,updated_at) VALUES($1,$2,$3,$4,now()) ON CONFLICT(name) DO NOTHING',[name,mime,data,data.length]);
-    }
   }
   console.log('PostgreSQL storage enabled.');
 }
@@ -373,7 +362,7 @@ async function handleApi(req,res,u){
   }
   if(m==='GET'&&p==='/api/admin/state'){const a=needUser(req,res,true);if(!a)return;return sendJson(res,200,{settings:a.db.settings,products:a.db.products,gallery:a.db.gallery,sections:a.db.sections,orders:a.db.orders,supportMessages:Array.isArray(a.db.supportMessages)?a.db.supportMessages:[],users:a.db.users.map(sanitizeUser),coupons:(Array.isArray(a.db.coupons)?a.db.coupons:[]).map(sanitizeCoupon)});}
   if(m==='PUT'&&p==='/api/admin/settings'){const a=needUser(req,res,true);if(!a)return;const b=await readJson(req);if(b.shopPageSize!=null)b.shopPageSize=Math.max(1,Math.min(8,Math.floor(Number(b.shopPageSize)||8)));if(Array.isArray(b.checkoutCountries)){b.checkoutCountries=[...new Set(b.checkoutCountries.map(x=>String(x||'').trim()).filter(x=>x&&!/^(russia|belarus)$/i.test(x)))];if(!b.checkoutCountries.length)b.checkoutCountries=[...DEFAULT_CHECKOUT_COUNTRIES]}if(b.pageBackgrounds!=null&&(!b.pageBackgrounds||typeof b.pageBackgrounds!=='object'||Array.isArray(b.pageBackgrounds)))b.pageBackgrounds={};a.db.settings={...a.db.settings,...b};await saveDb(a.db);return sendJson(res,200,a.db.settings);}
-  if(m==='POST'&&p==='/api/admin/upload'){const a=needUser(req,res,true);if(!a)return;const uploadLimit=Math.max(5,Number(process.env.MAX_UPLOAD_MB||60))*1024*1024*1.45;const b=await readJson(req,uploadLimit),match=String(b.dataUrl||'').match(/^data:((?:image|video)\/[a-zA-Z0-9.+-]+);base64,(.+)$/);if(!match)return sendJson(res,400,{error:'Invalid image/video data'});const mime=match[1];let ext=(mime.split('/')[1]||'bin').replace('jpeg','jpg').replace('quicktime','mov').replace(/[^a-z0-9]/gi,'');if(mime==='video/mp4')ext='mp4';if(mime==='video/webm')ext='webm';const safe=String(b.filename||'media').replace(/[^a-zA-Z0-9._-]/g,'-').replace(/\.[^.]+$/,'').slice(0,60)||'media',name=`${Date.now()}-${safe}.${ext}`,data=Buffer.from(match[2],'base64');if(USE_POSTGRES&&PG_POOL){await PG_POOL.query('INSERT INTO media_files(name,mime,data,size,updated_at) VALUES($1,$2,$3,$4,now()) ON CONFLICT(name) DO UPDATE SET mime=EXCLUDED.mime,data=EXCLUDED.data,size=EXCLUDED.size,updated_at=now()',[name,mime,data,data.length]);}else{fs.mkdirSync(UPLOAD_DIR,{recursive:true});fs.writeFileSync(path.join(UPLOAD_DIR,name),data)}return sendJson(res,200,{url:`/uploads/${name}`});}
+  if(m==='POST'&&p==='/api/admin/upload'){const a=needUser(req,res,true);if(!a)return;const uploadLimit=Math.max(5,Number(process.env.MAX_UPLOAD_MB||60))*1024*1024*1.45;const b=await readJson(req,uploadLimit),match=String(b.dataUrl||'').match(/^data:((?:image|video)\/[a-zA-Z0-9.+-]+);base64,(.+)$/);if(!match)return sendJson(res,400,{error:'Invalid image/video data'});const mime=match[1];let ext=(mime.split('/')[1]||'bin').replace('jpeg','jpg').replace('quicktime','mov').replace(/[^a-z0-9]/gi,'');if(mime==='video/mp4')ext='mp4';if(mime==='video/webm')ext='webm';const safe=String(b.filename||'media').replace(/[^a-zA-Z0-9._-]/g,'-').replace(/\.[^.]+$/,'').slice(0,60)||'media',name=`${Date.now()}-${safe}.${ext}`;fs.mkdirSync(UPLOAD_DIR,{recursive:true});fs.writeFileSync(path.join(UPLOAD_DIR,name),Buffer.from(match[2],'base64'));return sendJson(res,200,{url:`/uploads/${name}`});}
   if(m==='POST'&&p==='/api/admin/change-password'){const a=needUser(req,res,true);if(!a)return;const b=await readJson(req);if(String(b.newPassword||'').length<8)return sendJson(res,400,{error:'New password must be at least 8 characters.'});if(!verifyPassword(String(b.currentPassword||''),a.user.passwordHash))return sendJson(res,400,{error:'Current password is wrong.'});a.user.passwordHash=hashPassword(b.newPassword);await saveDb(a.db);return sendJson(res,200,{ok:true});}
   const crud=p.match(/^\/api\/admin\/(products|gallery|sections)(?:\/([^/]+))?$/);
   if(crud){
@@ -442,38 +431,9 @@ async function handleApi(req,res,u){
 
 const MIME={'.html':'text/html; charset=utf-8','.css':'text/css; charset=utf-8','.js':'application/javascript; charset=utf-8','.json':'application/json; charset=utf-8','.jpg':'image/jpeg','.jpeg':'image/jpeg','.png':'image/png','.gif':'image/gif','.svg':'image/svg+xml','.webp':'image/webp','.ico':'image/x-icon','.woff':'font/woff','.woff2':'font/woff2','.ttf':'font/ttf','.mp4':'video/mp4','.webm':'video/webm','.mov':'video/quicktime'};
 const TEXT_EXT=new Set(['.html','.css','.js','.json','.svg']);
-async function serveStatic(req,res,u){
+function serveStatic(req,res,u){
   let rel=decodeURIComponent(u.pathname);if(rel==='/')rel='/index.html';if(rel==='/admin')rel='/admin/index.html';if(!path.extname(rel))rel += '.html';
   const isUpload=rel.startsWith('/uploads/');
-
-  // Uploaded images/videos are stored in PostgreSQL when DATABASE_URL is set.
-  // URLs stay exactly the same (/uploads/...), so the existing frontend/admin code does not change.
-  if(isUpload&&USE_POSTGRES&&PG_POOL){
-    const name=path.posix.basename(rel.slice('/uploads/'.length));
-    if(!name||name!==rel.slice('/uploads/'.length)||name.includes('..')){res.writeHead(403);return res.end('Forbidden')}
-    const result=await PG_POOL.query('SELECT mime,data,size,updated_at FROM media_files WHERE name=$1',[name]);
-    const row=result.rows[0];
-    if(!row){
-      const nf=path.join(PUBLIC,'404.html');const b=fs.readFileSync(nf);
-      res.writeHead(404,{'Content-Type':'text/html; charset=utf-8','Cache-Control':'no-store','Content-Length':b.length});return res.end(b)
-    }
-    const data=Buffer.isBuffer(row.data)?row.data:Buffer.from(row.data);const size=Number(row.size)||data.length;
-    const updated=row.updated_at?new Date(row.updated_at):new Date();const etag=`W/"${size.toString(16)}-${Math.floor(updated.getTime()).toString(16)}"`;
-    const ext=path.extname(name).toLowerCase();const headers={'Content-Type':row.mime||MIME[ext]||'application/octet-stream','ETag':etag,'Last-Modified':updated.toUTCString(),'Cache-Control':'public, max-age=31536000, immutable'};
-    if(req.headers['if-none-match']===etag&&!req.headers.range){res.writeHead(304,headers);return res.end()}
-    const isVideo=['.mp4','.webm','.mov'].includes(ext)||String(row.mime||'').startsWith('video/');
-    if(isVideo){
-      headers['Accept-Ranges']='bytes';const range=String(req.headers.range||'').match(/^bytes=(\d*)-(\d*)$/);
-      if(range){
-        let from=range[1]?Number(range[1]):0,to=range[2]?Number(range[2]):size-1;
-        if(!range[1]&&range[2]){const tail=Math.max(0,Number(range[2])||0);from=Math.max(0,size-tail);to=size-1}
-        from=Math.max(0,Math.min(size-1,from));to=Math.max(from,Math.min(size-1,to));headers['Content-Range']=`bytes ${from}-${to}/${size}`;headers['Content-Length']=to-from+1;
-        res.writeHead(206,headers);if(req.method==='HEAD')return res.end();return res.end(data.subarray(from,to+1));
-      }
-    }
-    headers['Content-Length']=size;res.writeHead(200,headers);if(req.method==='HEAD')return res.end();return res.end(data)
-  }
-
   const base=isUpload?UPLOAD_DIR:PUBLIC;const relative=isUpload?rel.slice('/uploads/'.length):rel;
   const file=path.normalize(path.join(base,relative));const safeBase=path.normalize(base+path.sep);if(file!==path.normalize(base)&&!file.startsWith(safeBase)){res.writeHead(403);return res.end('Forbidden')}
   fs.stat(file,(err,st)=>{
@@ -511,6 +471,6 @@ async function serveStatic(req,res,u){
   });
 }
 
-const server=http.createServer(async(req,res)=>{try{const u=new URL(req.url,`http://${req.headers.host||'localhost'}`);if(u.pathname.startsWith('/api/'))return await handleApi(req,res,u);return await serveStatic(req,res,u)}catch(e){console.error(e);if(!res.headersSent)sendJson(res,500,{error:'Server error'});else res.end()}});
+const server=http.createServer(async(req,res)=>{try{const u=new URL(req.url,`http://${req.headers.host||'localhost'}`);if(u.pathname.startsWith('/api/'))return await handleApi(req,res,u);return serveStatic(req,res,u)}catch(e){console.error(e);if(!res.headersSent)sendJson(res,500,{error:'Server error'});else res.end()}});
 initDbStore().then(()=>server.listen(PORT,()=>console.log(`DEMI DEVILLE running: http://localhost:${PORT}`))).catch(err=>{console.error('Database initialization failed:',err);process.exit(1)});
 process.on('SIGTERM',async()=>{try{await DB_SAVE_QUEUE;await PG_POOL?.end()}catch{}process.exit(0)});
