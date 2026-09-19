@@ -169,3 +169,14 @@ body.shared-chrome-page>#sharedSupportLayer .shared-support-window .support-chat
 }
 body.dd-custom-page-bg{isolation:isolate!important}
 body.dd-custom-page-bg>#ddPageBackground{z-index:-1!important}
+
+/* 19.09.2026 — mobile SUPPORT close button position only.
+   Keep the existing button size/design; place it diagonally above-left of the support window. */
+@media (max-width:900px){
+  .home #supportLayer .support-window>.support-close,
+  body.shared-chrome-page>#sharedSupportLayer .shared-support-window>.support-close{
+    left:0!important;
+    top:0!important;
+    transform:translate(-100%,-100%)!important;
+  }
+}
