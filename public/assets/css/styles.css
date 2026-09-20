@@ -7316,3 +7316,69 @@ html.legal-root body.privacy-page .legal-page{
   max-height:none!important;
   overflow:visible!important;
 }
+
+
+/* ===== SUPPORT REBUILT 2026-09-21: isolated shared component ===== */
+.dd-support-root{position:relative;z-index:2147482000;font-family:var(--dd-support-window-font,"DD Oswald","Arial Narrow",Arial,sans-serif)}
+.dd-support-button{
+  position:fixed;right:22px;bottom:25px;z-index:2147482000;
+  width:145px;height:48px;padding:0;border:0;background:#000;color:#fff;
+  display:flex;align-items:center;justify-content:center;
+  font-family:var(--dd-support-button-font,"Benzin Semibold","Benzin-Semibold","Arial Black",Arial,sans-serif);
+  font-size:17px;font-weight:700;line-height:1;letter-spacing:-.55px;cursor:pointer;
+  transform:scale(var(--dd-support-scale,1));transform-origin:right bottom;
+}
+.dd-support-layer{
+  position:fixed;inset:0;z-index:2147482100;opacity:0;visibility:hidden;pointer-events:none;
+  transition:opacity .14s ease,visibility 0s linear .18s;
+}
+.dd-support-layer.open{opacity:1;visibility:visible;transition-delay:0s}
+.dd-support-window{
+  position:absolute;right:22px;bottom:25px;width:380px;height:592px;pointer-events:auto;
+  transform:scale(var(--dd-support-scale,1)) translateY(10px);transform-origin:right bottom;
+  transition:transform .2s ease;
+}
+.dd-support-layer.open .dd-support-window{transform:scale(var(--dd-support-scale,1)) translateY(0)}
+.dd-support-panel{
+  position:absolute;right:0;bottom:0;width:380px;height:545px;box-sizing:border-box;
+  border:3px solid #111;background:#fff;overflow:hidden;
+}
+.dd-support-close{
+  position:absolute;left:-47px;top:0;width:47px;height:47px;box-sizing:border-box;
+  border:3px solid #111;background:#fff;color:#000;padding:0;margin:0;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;font-family:Arial,sans-serif;font-size:34px;font-weight:400;line-height:1;
+}
+.dd-support-brand{
+  height:59px;box-sizing:border-box;padding:9px 12px 0;
+  display:flex;align-items:flex-start;justify-content:center;text-align:center;
+  background:#fff;color:#000;font-family:var(--benzin-semibold,"Arial Black",Arial,sans-serif);
+  font-size:31px;font-weight:900;line-height:1;letter-spacing:-1.2px;white-space:nowrap;
+}
+.dd-support-body{
+  position:relative;height:486px;box-sizing:border-box;padding:18px 12px 14px;
+  background-color:#fff;background-image:url('/assets/images/support-cross-pattern.png');
+  background-repeat:repeat;background-size:55px 61px;
+}
+.dd-support-greeting,.dd-support-email{
+  position:relative;z-index:1;width:100%;min-height:72px;box-sizing:border-box;padding:12px 14px;
+  display:flex;align-items:center;justify-content:center;text-align:center;
+  background:#000;color:#fff;text-decoration:none;overflow-wrap:anywhere;
+  font-family:var(--dd-support-window-font,"DD Oswald","Arial Narrow",Arial,sans-serif);
+  font-size:18px;font-weight:600;line-height:1.25;
+}
+.dd-support-email{margin-top:12px;font-weight:700}
+
+@media (max-width:900px){
+  .dd-support-button{right:11px;bottom:19px;width:120px;height:42px;font-size:15px;transform:none}
+  .dd-support-window{
+    right:12px;bottom:12px;width:min(310px,calc(100vw - 54px));height:min(470px,calc(100dvh - 24px));
+    transform:translateY(8px);transform-origin:right bottom;
+  }
+  .dd-support-layer.open .dd-support-window{transform:translateY(0)}
+  .dd-support-panel{width:100%;height:calc(100% - 38px);border-width:2px}
+  .dd-support-close{left:-38px;top:0;width:38px;height:38px;border-width:2px;font-size:28px}
+  .dd-support-brand{height:50px;padding-top:9px;font-size:22px;letter-spacing:-.8px}
+  .dd-support-body{height:calc(100% - 50px);padding:14px 10px;background-size:44px 49px}
+  .dd-support-greeting,.dd-support-email{min-height:62px;padding:10px;font-size:15px}
+  .dd-support-email{margin-top:10px}
+}

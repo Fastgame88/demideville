@@ -6,6 +6,7 @@
   if(currentUser){const loginGroup=(menuConfig.groups||[]).find(g=>g.id==='login');if(loginGroup){loginGroup.labelEn='ACCOUNT';loginGroup.labelRu='АККАУНТ';loginGroup.href='/account.html';loginGroup.items=(loginGroup.items||[]).map(item=>item.id==='register'?{...item,enabled:false}:item.id==='account'?{...item,href:'/account.html',showMobile:false}:item)}}
   window.ddApplyMenuRuntimeStyles?.(s);
   window.ddApplySupportRuntimeStyles?.(s);
+  window.ddMountFreshSupport?.(s);
   const clampPct=(value,fallback=35)=>{const n=Number(value);return Number.isFinite(n)?Math.max(0,Math.min(100,n)):fallback};
   const legacyOverlay=clampPct(s.homeOverlayOpacity,35);
   const desktopOverlay=clampPct(s.homeDesktopOverlayOpacity,legacyOverlay);

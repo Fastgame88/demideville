@@ -427,6 +427,63 @@ async function renderChrome({home=false}={}){
   if(!home)mountSharedChrome(site,menu,currentUser);
 }
 
+function mountFreshSupport(settings={}){
+  // Remove every legacy support button/window before mounting the new shared SUPPORT.
+  $$('#shopSupportOpen, #supportOpen, #sharedSupportOpen, #ddSupportOpen, [data-support], #shopSupportLayer, #supportLayer, #sharedSupportLayer, #ddSupportLayer').forEach(el=>el.remove());
+  const oldRoots=$$('.shared-support-root, .dd-support-root');oldRoots.forEach(el=>el.remove());
+
+  const cfg=supportConfig(settings,'en');
+  const brand=String(settings.brand||'DEMI DEVILLE').trim()||'DEMI DEVILLE';
+  const greeting=String(settings.supportGreetingEn||'Thanks for stopping by! How can I help you?').trim()||'Thanks for stopping by! How can I help you?';
+  const buttonText=String(settings.supportButtonTextEn||cfg.buttonText||'SUPPORT').trim()||'SUPPORT';
+
+  const root=document.createElement('div');
+  root.className='dd-support-root';
+  root.innerHTML=`<button id="ddSupportOpen" class="dd-support-button" type="button" aria-haspopup="dialog" aria-controls="ddSupportLayer">${esc(buttonText)}</button>
+    <div id="ddSupportLayer" class="dd-support-layer" aria-hidden="true">
+      <div class="dd-support-window" role="dialog" aria-modal="false" aria-label="${esc(brand)} support">
+        <button id="ddSupportClose" class="dd-support-close" type="button" aria-label="Close support">×</button>
+        <div class="dd-support-panel">
+          <div class="dd-support-brand">${esc(brand)}</div>
+          <div class="dd-support-body">
+            <div class="dd-support-greeting">${esc(greeting)}</div>
+            <a class="dd-support-email" href="mailto:support@demideville.com">support@demideville.com</a>
+          </div>
+        </div>
+      </div>
+    </div>`;
+  document.body.appendChild(root);
+
+  const button=$('#ddSupportOpen'),layer=$('#ddSupportLayer'),windowEl=$('.dd-support-window'),close=$('#ddSupportClose');
+  let timer=0;
+  const setOpen=open=>{
+    clearTimeout(timer);
+    layer?.classList.toggle('open',open);
+    layer?.setAttribute('aria-hidden',String(!open));
+    button?.setAttribute('aria-expanded',String(open));
+  };
+  const delayedClose=()=>{clearTimeout(timer);timer=setTimeout(()=>setOpen(false),320)};
+  button?.addEventListener('mouseenter',()=>setOpen(true));
+  button?.addEventListener('focus',()=>setOpen(true));
+  button?.addEventListener('click',()=>setOpen(true));
+  button?.addEventListener('mouseleave',delayedClose);
+  windowEl?.addEventListener('mouseenter',()=>clearTimeout(timer));
+  windowEl?.addEventListener('mouseleave',delayedClose);
+  close?.addEventListener('click',e=>{e.preventDefault();e.stopPropagation();setOpen(false)});
+  document.addEventListener('keydown',e=>{if(e.key==='Escape')setOpen(false)});
+
+  const fit=()=>{
+    const vw=window.visualViewport?.width||innerWidth;
+    const vh=window.visualViewport?.height||innerHeight;
+    if(vw<=900){document.documentElement.style.setProperty('--dd-support-scale','1');return}
+    const scale=Math.min(1,vw/1920,vh/1080);
+    document.documentElement.style.setProperty('--dd-support-scale',String(scale));
+  };
+  fit();addEventListener('resize',fit,{passive:true});window.visualViewport?.addEventListener('resize',fit,{passive:true});
+  return root;
+}
+window.ddMountFreshSupport=mountFreshSupport;
+
 function flyoutItemsHtml(items,lang){
   return (items||[]).filter(x=>x.enabled!==false).map(item=>`${item.separatorBefore?'<span class="shared-header-flyout-gap"></span>':''}${menuItemHtml(item,lang)}`).join('');
 }
@@ -452,35 +509,7 @@ function mountSharedChrome(site,menu=getMenuConfig(site.settings||{}),currentUse
     }
   }
 
-  $$('#shopSupportOpen, #supportOpen, [data-support], #shopSupportLayer, #supportLayer').forEach(el=>el.remove());
-  const tr=text=>window.ddTranslate?.(text)||text;
-  const supportCfg=supportConfig(site.settings||{},lang);
-  ddWarmMedia(supportCfg.backgroundImage);
-  applySupportRuntimeStyles(site.settings||{});
-  const shell=document.createElement('div');
-  shell.className='shared-support-root';
-  shell.innerHTML=`<button id="sharedSupportOpen" class="support-btn shared-support-button" type="button">${esc(supportCfg.buttonText)}</button>
-    <div id="sharedSupportLayer" class="support-layer shared-support-layer" aria-hidden="true">
-      <div class="support-window shared-support-window" role="dialog" aria-label="DEMI DEVILLE support">
-        <button id="sharedSupportClose" class="support-close" type="button" aria-label="${tr('Close support')}">×</button>
-        <div class="support-panel">
-          <div class="support-brand">DEMI DEVILLE</div>
-          <div class="support-chat-body support-email-body">
-            ${ddIsVideo(supportCfg.backgroundImage)?`<video class="support-background-video" src="${esc(supportCfg.backgroundImage)}" autoplay muted loop playsinline preload="auto"></video>`:''}
-            <div class="support-mobile-intro">${esc(supportCfg.greeting)}</div>
-            <a class="support-contact-email" href="mailto:support@demideville.com" style="position:absolute;left:12px;right:12px;top:92px;min-height:72px;padding:12px;display:flex;align-items:center;justify-content:center;box-sizing:border-box;background:${esc(supportCfg.fieldBg||'#000000')};color:${esc(supportCfg.fieldColor||'#ffffff')};font:inherit;font-size:18px;font-weight:700;line-height:1.25;text-align:center;text-decoration:none;overflow-wrap:anywhere">support@demideville.com</a>
-          </div>
-        </div>
-      </div>
-    </div>`;
-  document.body.append(...shell.childNodes);
-  const button=$('#sharedSupportOpen'),layer=$('#sharedSupportLayer'),windowEl=$('.shared-support-window');
-  const closeButton=$('#sharedSupportClose');
-  let timer=0;
-  const setOpen=open=>{clearTimeout(timer);layer.classList.toggle('open',open);layer.setAttribute('aria-hidden',String(!open))};
-  const delayedClose=()=>{clearTimeout(timer);timer=setTimeout(()=>setOpen(false),320)};
-  button.addEventListener('mouseenter',()=>setOpen(true));button.addEventListener('focus',()=>setOpen(true));button.addEventListener('mouseleave',delayedClose);button.addEventListener('click',()=>setOpen(true));
-  windowEl.addEventListener('mouseenter',()=>clearTimeout(timer));windowEl.addEventListener('mouseleave',delayedClose);closeButton.addEventListener('click',e=>{e.preventDefault();e.stopPropagation();setOpen(false)});document.addEventListener('keydown',e=>{if(e.key==='Escape')setOpen(false)});
+  mountFreshSupport(site.settings||{});
   const fit=()=>{if(innerWidth<=900)return;const h=window.visualViewport?.height||innerHeight;const sx=innerWidth/1920,sy=h/1080,s=Math.min(sx,sy);document.body.style.setProperty('--shared-chrome-x',sx);document.body.style.setProperty('--shared-chrome-y',sy);document.body.style.setProperty('--shared-chrome-y-inverse',1/sy);document.body.style.setProperty('--shared-support-scale',s);document.body.style.setProperty('--shared-support-right',`${22*s}px`);document.body.style.setProperty('--shared-support-bottom',`${25*s}px`)};
   fit();addEventListener('resize',fit,{passive:true});window.visualViewport?.addEventListener('resize',fit,{passive:true});
 }
