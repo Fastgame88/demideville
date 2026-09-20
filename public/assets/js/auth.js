@@ -4,9 +4,29 @@
   const loginArt=$('#loginArt');
   const customLoginBackground=window.ddResolvedPageBackground?window.ddResolvedPageBackground(site.settings||{},'login'):'';
   if(loginArt){
-    loginArt.hidden=!!customLoginBackground;
-    if(!customLoginBackground)loginArt.src=site.settings?.loginArt||'/assets/images/login-art.png';
-    else loginArt.removeAttribute('src');
+    const bundledLoginArt='/assets/images/login-art.png';
+    loginArt.alt='';
+    loginArt.hidden=true;
+    if(!customLoginBackground){
+      const configuredLoginArt=String(site.settings?.loginArt||bundledLoginArt).trim()||bundledLoginArt;
+      let usingFallback=configuredLoginArt===bundledLoginArt;
+      const reveal=()=>{
+        loginArt.hidden=false;
+      };
+      loginArt.addEventListener('load',reveal,{once:true});
+      loginArt.addEventListener('error',()=>{
+        /* Keep the configured URL untouched in settings. If that file is temporarily
+           unavailable, render the bundled artwork instead of flashing a broken image. */
+        if(!usingFallback){
+          usingFallback=true;
+          loginArt.src=bundledLoginArt;
+        }else{
+          loginArt.hidden=true;
+        }
+      });
+      loginArt.src=configuredLoginArt;
+      if(loginArt.complete&&loginArt.naturalWidth)reveal();
+    }
   }
 
   // Never expose or prefill the administrator credentials on the customer page.

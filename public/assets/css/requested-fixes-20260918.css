@@ -310,3 +310,157 @@ body.product-detail-page #productImage{
   }
 }
 
+
+
+/* 2026-09-20 — narrow SHOP stability only.
+   When the browser crosses into the <=900px layout, keep every card in normal
+   document flow. Media may scale down to fit its column, but X/Y are never
+   distorted, the source is never cropped, and the caption always starts after
+   the real rendered media height. */
+@media (max-width:900px){
+  html body.shop-page,
+  html body.shop-page .shop-stage,
+  html body.shop-page .shop-canvas,
+  html body.shop-page .shop-wrap{
+    height:auto!important;
+    max-height:none!important;
+    overflow:visible!important;
+  }
+  html body.shop-page{
+    min-height:100dvh!important;
+    overflow-x:hidden!important;
+    overflow-y:auto!important;
+  }
+  html body.shop-page .shop-stage,
+  html body.shop-page .shop-canvas{
+    min-height:100dvh!important;
+  }
+  html body.shop-page .shop-wrap{
+    min-height:calc(100dvh - 64px)!important;
+  }
+  html body.shop-page .product-grid,
+  html body.shop-page .product-grid[data-count="1"],
+  html body.shop-page .product-grid[data-count="2"]{
+    position:static!important;
+    width:100%!important;
+    height:auto!important;
+    min-height:0!important;
+    display:grid!important;
+    grid-template-columns:repeat(2,minmax(0,1fr))!important;
+    grid-template-rows:none!important;
+    grid-auto-rows:max-content!important;
+    align-items:start!important;
+    align-content:start!important;
+    row-gap:30px!important;
+    overflow:visible!important;
+  }
+  html body.shop-page .product-card,
+  html body.shop-page .product-card:nth-child(n+5),
+  html body.shop-page .product-grid[data-count="1"] .product-card,
+  html body.shop-page .product-grid[data-count="2"] .product-card{
+    position:relative!important;
+    display:flex!important;
+    flex-direction:column!important;
+    align-items:center!important;
+    justify-content:flex-start!important;
+    width:100%!important;
+    max-width:100%!important;
+    height:auto!important;
+    min-height:0!important;
+    overflow:visible!important;
+  }
+  html body.shop-page .product-card .media,
+  html body.shop-page .product-card:nth-child(n+5) .media,
+  html body.shop-page .product-card-1 .media,
+  html body.shop-page .product-card-2 .media,
+  html body.shop-page .product-card-3 .media,
+  html body.shop-page .product-card-4 .media,
+  html body.shop-page .product-grid[data-count="1"] .media,
+  html body.shop-page .product-grid[data-count="2"] .media{
+    position:relative!important;
+    display:flex!important;
+    align-items:flex-start!important;
+    justify-content:center!important;
+    width:100%!important;
+    height:auto!important;
+    min-height:0!important;
+    max-height:none!important;
+    aspect-ratio:auto!important;
+    overflow:visible!important;
+    flex:0 0 auto!important;
+  }
+  html body.shop-page .product-card .product-art,
+  html body.shop-page .product-card:nth-child(n+5) .product-art,
+  html body.shop-page .product-card-1 .product-art,
+  html body.shop-page .product-card-2 .product-art,
+  html body.shop-page .product-card-3 .product-art,
+  html body.shop-page .product-card-4 .product-art,
+  html body.shop-page .product-grid[data-count="1"] .product-art,
+  html body.shop-page .product-grid[data-count="2"] .product-art{
+    position:static!important;
+    display:block!important;
+    width:auto!important;
+    height:auto!important;
+    max-width:100%!important;
+    max-height:none!important;
+    aspect-ratio:auto!important;
+    object-fit:contain!important;
+    object-position:center top!important;
+    transform:none!important;
+    flex:0 0 auto!important;
+  }
+  html body.shop-page .product-live-copy,
+  html body.shop-page .product-card.has-reference-copy>.product-live-copy{
+    position:static!important;
+    display:block!important;
+    width:100%!important;
+    height:auto!important;
+    margin:10px 0 0!important;
+    padding:0 3px!important;
+    transform:none!important;
+    flex:0 0 auto!important;
+    overflow:visible!important;
+  }
+  html body.shop-page .product-name,
+  html body.shop-page .product-price{
+    position:static!important;
+    display:block!important;
+    transform:none!important;
+  }
+}
+
+/* Narrow SHOP final guard: older mobile count-specific rules used fixed 165–245px
+   media frames for 3/4 products. Override those exact selectors so natural media
+   height participates in the grid row and captions can never sit on the artwork. */
+@media (max-width:900px){
+  html body.shop-page .product-grid[data-count] .product-card,
+  html body.shop-page .product-grid[data-count] .product-card:nth-child(n+5){
+    height:auto!important;
+    min-height:0!important;
+  }
+  html body.shop-page .product-grid[data-count] .product-card .media,
+  html body.shop-page .product-grid[data-count] .product-card:nth-child(n+5) .media{
+    width:100%!important;
+    height:auto!important;
+    min-height:0!important;
+    max-height:none!important;
+    aspect-ratio:auto!important;
+    overflow:visible!important;
+  }
+  html body.shop-page .product-grid[data-count] .product-card .product-art,
+  html body.shop-page .product-grid[data-count] .product-card:nth-child(n+5) .product-art{
+    width:auto!important;
+    height:auto!important;
+    max-width:100%!important;
+    max-height:none!important;
+    aspect-ratio:auto!important;
+    object-fit:contain!important;
+    object-position:center top!important;
+    transform:none!important;
+  }
+  html body.shop-page .product-grid[data-count] .product-card .product-live-copy{
+    position:static!important;
+    margin-top:10px!important;
+    transform:none!important;
+  }
+}
