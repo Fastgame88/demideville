@@ -640,3 +640,181 @@ body.product-detail-page #productImage{
     transform:none!important;
   }
 }
+
+
+/* 2026-09-21 — final fixed-size SHOP / PRODUCT layout correction.
+   Product media and copy keep their physical pixel size while the browser is resized.
+   SHOP reflows fixed-width cards instead of stretching/overlapping them. */
+@media (min-width:901px){
+  html body.shop-page .product-grid,
+  html body.shop-page .product-grid[data-count="1"],
+  html body.shop-page .product-grid[data-count="2"]{
+    left:0!important;
+    right:auto!important;
+    top:190px!important;
+    bottom:auto!important;
+    width:100vw!important;
+    height:auto!important;
+    min-height:0!important;
+    display:grid!important;
+    grid-template-columns:repeat(auto-fit,minmax(306px,306px))!important;
+    grid-template-rows:none!important;
+    grid-auto-rows:max-content!important;
+    justify-content:space-evenly!important;
+    align-items:start!important;
+    align-content:start!important;
+    justify-items:center!important;
+    column-gap:0!important;
+    row-gap:64px!important;
+    overflow:visible!important;
+    transform:scale(var(--shop-inverse-scale,1))!important;
+    transform-origin:0 0!important;
+  }
+  html body.shop-page .product-card,
+  html body.shop-page .product-card:nth-child(n+5),
+  html body.shop-page .product-grid[data-count="1"] .product-card,
+  html body.shop-page .product-grid[data-count="2"] .product-card{
+    position:relative!important;
+    left:auto!important;
+    top:auto!important;
+    width:306px!important;
+    min-width:306px!important;
+    max-width:306px!important;
+    height:auto!important;
+    min-height:0!important;
+    margin:0!important;
+    display:flex!important;
+    flex-direction:column!important;
+    align-items:center!important;
+    justify-content:flex-start!important;
+    overflow:visible!important;
+  }
+  html body.shop-page .product-card .media,
+  html body.shop-page .product-card:nth-child(n+5) .media,
+  html body.shop-page .product-card-1 .media,
+  html body.shop-page .product-card-2 .media,
+  html body.shop-page .product-card-3 .media,
+  html body.shop-page .product-card-4 .media{
+    width:306px!important;
+    min-width:306px!important;
+    max-width:306px!important;
+    height:auto!important;
+    min-height:0!important;
+    max-height:none!important;
+    display:flex!important;
+    align-items:flex-start!important;
+    justify-content:center!important;
+    overflow:visible!important;
+    flex:0 0 auto!important;
+  }
+  html body.shop-page .product-card .product-art,
+  html body.shop-page .product-card:nth-child(n+5) .product-art,
+  html body.shop-page .product-card-1 .product-art,
+  html body.shop-page .product-card-2 .product-art,
+  html body.shop-page .product-card-3 .product-art,
+  html body.shop-page .product-card-4 .product-art{
+    display:block!important;
+    width:auto!important;
+    height:auto!important;
+    max-width:306px!important;
+    max-height:none!important;
+    object-fit:contain!important;
+    object-position:center top!important;
+    transform:none!important;
+    flex:0 0 auto!important;
+  }
+  html body.shop-page .product-live-copy,
+  html body.shop-page .product-card.has-reference-copy>.product-live-copy{
+    position:static!important;
+    display:block!important;
+    width:306px!important;
+    min-width:306px!important;
+    max-width:306px!important;
+    height:auto!important;
+    margin:12px 0 0!important;
+    padding:0 4px!important;
+    box-sizing:border-box!important;
+    transform:none!important;
+    overflow:visible!important;
+    flex:0 0 auto!important;
+  }
+  html body.shop-page .product-name{
+    font-size:17px!important;
+    line-height:1.12!important;
+    white-space:normal!important;
+    overflow-wrap:normal!important;
+  }
+  html body.shop-page .product-price{
+    font-size:16px!important;
+    line-height:1.12!important;
+    white-space:normal!important;
+  }
+
+  body.product-detail-page .product-visual{
+    left:var(--product-visual-left,208px)!important;
+    top:var(--product-visual-top,185px)!important;
+    width:543px!important;
+    height:643px!important;
+    margin:0!important;
+    padding:0!important;
+    display:flex!important;
+    align-items:flex-start!important;
+    justify-content:center!important;
+    transform:scale(var(--product-inverse-scale,1))!important;
+    transform-origin:0 0!important;
+  }
+  body.product-detail-page .product-visual>img#productImage,
+  body.product-detail-page .product-visual>video#productImage{
+    display:block!important;
+    width:auto!important;
+    height:auto!important;
+    max-width:543px!important;
+    max-height:643px!important;
+    margin:0 auto!important;
+    object-fit:contain!important;
+    object-position:center top!important;
+    transform:none!important;
+  }
+  body.product-detail-page .product-info{
+    left:var(--product-info-left,860px)!important;
+    top:var(--product-info-top,230px)!important;
+    width:560px!important;
+    min-width:560px!important;
+    max-width:560px!important;
+    margin:0!important;
+    padding:0!important;
+    transform:scale(var(--product-inverse-scale,1))!important;
+    transform-origin:0 0!important;
+  }
+  body.product-detail-page .product-info h1,
+  body.product-detail-page .product-info .big-price,
+  body.product-detail-page .product-info .field-label,
+  body.product-detail-page .product-info .size-picker,
+  body.product-detail-page .product-info .btn-black,
+  body.product-detail-page .product-info .accordion{
+    width:100%!important;
+    max-width:560px!important;
+    box-sizing:border-box!important;
+  }
+  body.product-detail-page .product-info h1{
+    white-space:normal!important;
+    overflow-wrap:normal!important;
+    word-break:normal!important;
+  }
+}
+
+@media (min-width:901px) and (max-width:1250px){
+  body.product-detail-page .product-info{
+    width:500px!important;
+    min-width:500px!important;
+    max-width:500px!important;
+  }
+  body.product-detail-page .product-info h1,
+  body.product-detail-page .product-info .big-price,
+  body.product-detail-page .product-info .field-label,
+  body.product-detail-page .product-info .size-picker,
+  body.product-detail-page .product-info .btn-black,
+  body.product-detail-page .product-info .accordion{
+    max-width:500px!important;
+  }
+}

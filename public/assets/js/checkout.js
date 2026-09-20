@@ -76,6 +76,16 @@
   }
   draw();
 
+  const checkoutParams=new URLSearchParams(location.search);
+  const returnedStripeSession=String(checkoutParams.get('stripe_session_id')||'').trim();
+  if(returnedStripeSession){
+    try{
+      const r=await fetch(`/api/stripe/confirm?session_id=${encodeURIComponent(returnedStripeSession)}`,{headers:{...authHeaders()}});const d=await r.json().catch(()=>({}));
+      if(!r.ok)throw new Error(d.error||'Could not confirm payment');
+      if(d.paid){cartSet([]);const success=$('#orderSuccess');if(success){success.innerHTML=`Payment received. Order <strong>${esc(d.order?.number||'')}</strong> created.`;success.classList.add('show')}history.replaceState(null,'','/checkout.html')}
+    }catch(err){console.error('Stripe confirmation failed:',err)}
+  }
+
   $('#mobileOrderToggle')?.addEventListener('click',e=>{
     const open=document.body.classList.toggle('mobile-order-open');
     e.currentTarget.setAttribute('aria-expanded',String(open));
@@ -112,14 +122,19 @@
         phone:f.get('phone')
       }
     };
-    const r=await fetch('/api/orders',{method:'POST',headers:{'Content-Type':'application/json',...authHeaders()},body:JSON.stringify(body)});
-    const d=await r.json().catch(()=>({}));
-    if(!r.ok)return alert(window.ddTranslate?.(d.error||'Could not create order')||d.error||'Could not create order');
-    cartSet([]);
-    const s=$('#orderSuccess');
-    s.innerHTML=`Order <strong>${esc(d.order?.number||'')}</strong> created.`;
-    s.classList.add('show');
-    e.target.querySelector('button[type=submit]').disabled=true;
+    const useStripe=['card','applepay','googlepay','stripe'].includes(String(pay||'').toLowerCase());
+    const endpoint=useStripe?'/api/stripe/checkout':'/api/orders';
+    const submit=e.target.querySelector('button[type=submit]');if(submit)submit.disabled=true;
+    try{
+      const r=await fetch(endpoint,{method:'POST',headers:{'Content-Type':'application/json',...authHeaders()},body:JSON.stringify(body)});
+      const d=await r.json().catch(()=>({}));
+      if(!r.ok)throw new Error(d.error||'Could not create order');
+      if(useStripe){if(!d.url)throw new Error('Stripe checkout URL was not returned.');location.href=d.url;return}
+      cartSet([]);
+      const s=$('#orderSuccess');
+      s.innerHTML=`Order <strong>${esc(d.order?.number||'')}</strong> created.`;
+      s.classList.add('show');
+    }catch(err){if(submit)submit.disabled=false;alert(window.ddTranslate?.(err.message||'Could not create order')||err.message||'Could not create order')}
   });
 
   /* Header and support are provided by renderChrome() in common.js. */
