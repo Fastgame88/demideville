@@ -566,11 +566,9 @@ body.product-detail-page #productImage{
     object-position:center top!important;
   }
 
-  /* Product detail: counter-scale the two content columns. This keeps the
-     543px media and all copy/buttons at the same physical size while the
-     browser window is stretched or narrowed. */
-  body.product-detail-page .product-visual,
-  body.product-detail-page .product-info{
+  /* Product detail: only the media is counter-scaled.
+     The information controls keep the original master layout sizing/position. */
+  body.product-detail-page .product-visual{
     transform:scale(var(--product-inverse-scale,1))!important;
     transform-origin:0 0!important;
   }
@@ -774,47 +772,5 @@ body.product-detail-page #productImage{
     object-fit:contain!important;
     object-position:center top!important;
     transform:none!important;
-  }
-  body.product-detail-page .product-info{
-    left:var(--product-info-left,860px)!important;
-    top:var(--product-info-top,230px)!important;
-    width:560px!important;
-    min-width:560px!important;
-    max-width:560px!important;
-    margin:0!important;
-    padding:0!important;
-    transform:scale(var(--product-inverse-scale,1))!important;
-    transform-origin:0 0!important;
-  }
-  body.product-detail-page .product-info h1,
-  body.product-detail-page .product-info .big-price,
-  body.product-detail-page .product-info .field-label,
-  body.product-detail-page .product-info .size-picker,
-  body.product-detail-page .product-info .btn-black,
-  body.product-detail-page .product-info .accordion{
-    width:100%!important;
-    max-width:560px!important;
-    box-sizing:border-box!important;
-  }
-  body.product-detail-page .product-info h1{
-    white-space:normal!important;
-    overflow-wrap:normal!important;
-    word-break:normal!important;
-  }
-}
-
-@media (min-width:901px) and (max-width:1250px){
-  body.product-detail-page .product-info{
-    width:500px!important;
-    min-width:500px!important;
-    max-width:500px!important;
-  }
-  body.product-detail-page .product-info h1,
-  body.product-detail-page .product-info .big-price,
-  body.product-detail-page .product-info .field-label,
-  body.product-detail-page .product-info .size-picker,
-  body.product-detail-page .product-info .btn-black,
-  body.product-detail-page .product-info .accordion{
-    max-width:500px!important;
   }
 }
