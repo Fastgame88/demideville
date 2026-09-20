@@ -464,3 +464,71 @@ body.product-detail-page #productImage{
     transform:none!important;
   }
 }
+
+/* 2026-09-20 — fixed SHOP / PRODUCT media size while narrowing the browser.
+   Do not enlarge product media when the <=900px layout becomes active.
+   Keep the same desktop cap and fixed caption typography; only shrink further
+   when the physical viewport is genuinely too small to contain the media. */
+@media (max-width:900px){
+  html body.shop-page .product-card .product-art,
+  html body.shop-page .product-card:nth-child(n+5) .product-art,
+  html body.shop-page .product-card-1 .product-art,
+  html body.shop-page .product-card-2 .product-art,
+  html body.shop-page .product-card-3 .product-art,
+  html body.shop-page .product-card-4 .product-art,
+  html body.shop-page .product-grid[data-count="1"] .product-art,
+  html body.shop-page .product-grid[data-count="2"] .product-art{
+    width:auto!important;
+    height:auto!important;
+    max-width:min(306px,100%)!important;
+    max-height:none!important;
+    object-fit:contain!important;
+    object-position:center top!important;
+    transform:none!important;
+  }
+  html body.shop-page .product-name{
+    font-size:17px!important;
+    line-height:1.08!important;
+    letter-spacing:-.35px!important;
+  }
+  html body.shop-page .product-price{
+    font-size:16px!important;
+    line-height:1.08!important;
+    letter-spacing:-.35px!important;
+  }
+
+  body.product-detail-page .product-visual{
+    display:flex!important;
+    flex-direction:column!important;
+    align-items:center!important;
+    justify-content:flex-start!important;
+  }
+  body.product-detail-page .product-visual>img#productImage,
+  body.product-detail-page .product-visual>video#productImage{
+    width:auto!important;
+    height:auto!important;
+    max-width:min(543px,calc(100vw - 32px))!important;
+    max-height:none!important;
+    margin-left:auto!important;
+    margin-right:auto!important;
+    object-fit:contain!important;
+    object-position:center top!important;
+    transform:none!important;
+    flex:0 0 auto!important;
+  }
+}
+
+/* Keep the product photo itself at its source/display size on desktop as well.
+   The 1920 master layout can move around it, but the garment is never stretched
+   wider or taller by viewport-size rules. */
+@media (min-width:901px){
+  body.product-detail-page .product-visual>img#productImage,
+  body.product-detail-page .product-visual>video#productImage{
+    width:auto!important;
+    height:auto!important;
+    max-width:543px!important;
+    max-height:none!important;
+    object-fit:contain!important;
+    object-position:center top!important;
+  }
+}
