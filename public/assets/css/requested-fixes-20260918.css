@@ -774,3 +774,64 @@ body.product-detail-page #productImage{
     transform:none!important;
   }
 }
+
+/* 2026-09-21 — PRODUCT info block compact position tweak only.
+   Keep media/layout logic intact; move the right controls closer to the garment,
+   lift them slightly, narrow the column, and reduce its typography by 2px. */
+@media (min-width:901px){
+  body.product-detail-page .product-info{
+    left:1115px!important;
+    top:225px!important;
+    width:540px!important;
+  }
+
+  body.product-detail-page .product-info h1,
+  body.product-detail-page .big-price,
+  body.product-detail-page .product-info .rule,
+  body.product-detail-page .field-label,
+  body.product-detail-page .size-picker,
+  body.product-detail-page .size-toggle,
+  body.product-detail-page .size-menu,
+  body.product-detail-page .btn-black,
+  body.product-detail-page .accordion,
+  body.product-detail-page .acc-item{
+    width:540px!important;
+  }
+
+  body.product-detail-page .product-info h1{
+    font-size:23px!important;
+    line-height:23px!important;
+  }
+  body.product-detail-page .big-price{
+    font-size:23px!important;
+    line-height:23px!important;
+  }
+  body.product-detail-page .field-label,
+  body.product-detail-page .acc-trigger{
+    font-size:15px!important;
+  }
+  body.product-detail-page .size-toggle,
+  body.product-detail-page .btn-black{
+    font-size:15px!important;
+  }
+  body.product-detail-page .acc-content{
+    font-size:14px!important;
+  }
+  body.product-detail-page .size-option,
+  body.product-detail-page .size-option-index,
+  body.product-detail-page .size-option-value{
+    font-size:18px!important;
+  }
+
+  /* Override Benzin fallback metric inflation for the same compact sizing. */
+  body.product-detail-page.product-benzin-fallback .product-info h1{
+    font-size:23px!important;
+  }
+  body.product-detail-page.product-benzin-fallback .big-price{
+    font-size:23px!important;
+  }
+  body.product-detail-page.product-benzin-fallback .field-label,
+  body.product-detail-page.product-benzin-fallback .acc-trigger{
+    font-size:15px!important;
+  }
+}
