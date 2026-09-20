@@ -532,3 +532,111 @@ body.product-detail-page #productImage{
     object-position:center top!important;
   }
 }
+
+
+/* 2026-09-21 — freeze actual SHOP / PRODUCT media + copy size while resizing.
+   Desktop master canvases are scaled to fit the browser. Counter-scale only the
+   product area so garments and their text keep the same physical pixel size.
+   Positions may move with the responsive canvas, but image/text size does not. */
+@media (min-width:901px){
+  html body.shop-page .product-grid,
+  html body.shop-page .product-grid[data-count="1"],
+  html body.shop-page .product-grid[data-count="2"]{
+    transform:scale(var(--shop-inverse-scale,1))!important;
+    transform-origin:0 0!important;
+    width:100vw!important;
+  }
+
+  /* Keep the storefront media at its design size instead of inheriting the
+     1920-canvas scale. Natural source ratio is still preserved. */
+  html body.shop-page .product-card .product-art,
+  html body.shop-page .product-card:nth-child(n+5) .product-art,
+  html body.shop-page .product-card-1 .product-art,
+  html body.shop-page .product-card-2 .product-art,
+  html body.shop-page .product-card-3 .product-art,
+  html body.shop-page .product-card-4 .product-art,
+  html body.shop-page .product-grid[data-count="1"] .product-art,
+  html body.shop-page .product-grid[data-count="2"] .product-art{
+    width:auto!important;
+    height:auto!important;
+    max-width:306px!important;
+    max-height:none!important;
+    transform:none!important;
+    object-fit:contain!important;
+    object-position:center top!important;
+  }
+
+  /* Product detail: counter-scale the two content columns. This keeps the
+     543px media and all copy/buttons at the same physical size while the
+     browser window is stretched or narrowed. */
+  body.product-detail-page .product-visual,
+  body.product-detail-page .product-info{
+    transform:scale(var(--product-inverse-scale,1))!important;
+    transform-origin:0 0!important;
+  }
+
+  /* Vertically center the fixed 543×643 image area in the 1080px master.
+     Horizontal position stays centered in the left product column. */
+  body.product-detail-page .product-visual{
+    left:var(--product-visual-left,208px)!important;
+    top:var(--product-visual-top,218px)!important;
+    width:543px!important;
+    height:643px!important;
+    align-items:flex-start!important;
+    justify-content:center!important;
+  }
+  body.product-detail-page .product-visual>img#productImage,
+  body.product-detail-page .product-visual>video#productImage{
+    width:auto!important;
+    height:auto!important;
+    max-width:543px!important;
+    max-height:none!important;
+    margin:0 auto!important;
+    object-fit:contain!important;
+    object-position:center top!important;
+    transform:none!important;
+  }
+}
+
+/* Narrow/mobile canvas is already unscaled. Keep the same fixed storefront
+   media cap and fixed typography instead of resizing them to the column width. */
+@media (max-width:900px){
+  html body.shop-page .product-card .product-art,
+  html body.shop-page .product-card:nth-child(n+5) .product-art,
+  html body.shop-page .product-card-1 .product-art,
+  html body.shop-page .product-card-2 .product-art,
+  html body.shop-page .product-card-3 .product-art,
+  html body.shop-page .product-card-4 .product-art,
+  html body.shop-page .product-grid[data-count="1"] .product-art,
+  html body.shop-page .product-grid[data-count="2"] .product-art{
+    width:auto!important;
+    height:auto!important;
+    max-width:306px!important;
+    max-height:none!important;
+  }
+  html body.shop-page .product-name{
+    font-size:17px!important;
+    line-height:1.08!important;
+  }
+  html body.shop-page .product-price{
+    font-size:16px!important;
+    line-height:1.08!important;
+  }
+}
+
+/* Final narrow selector guard: older data-count rules have higher specificity.
+   Keep the same 306px storefront media cap even after the mobile grid activates. */
+@media (max-width:900px){
+  html body.shop-page .product-grid[data-count] .product-card .product-art,
+  html body.shop-page .product-grid[data-count] .product-card:nth-child(n+5) .product-art,
+  html body.shop-page .product-grid[data-count="1"] .product-card .product-art,
+  html body.shop-page .product-grid[data-count="2"] .product-card .product-art{
+    width:auto!important;
+    height:auto!important;
+    max-width:306px!important;
+    max-height:none!important;
+    object-fit:contain!important;
+    object-position:center top!important;
+    transform:none!important;
+  }
+}
