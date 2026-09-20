@@ -258,3 +258,55 @@ body.product-detail-page .dd-product-zoom{
     white-space:nowrap!important;
   }
 }
+
+/* 2026-09-20 — original product-media proportions + non-squashing resize.
+   Uploaded files are stored byte-for-byte by /api/admin/upload; these rules make
+   the storefront display the source aspect ratio instead of forcing a 4:3-like
+   frame or a viewport-height cap. */
+body.shop-page .product-card .media,
+body.shop-page .product-card .product-art,
+body.product-detail-page .product-visual,
+body.product-detail-page #productImage{
+  aspect-ratio:auto!important;
+}
+body.shop-page .product-card .product-art{
+  width:auto!important;
+  height:auto!important;
+  max-height:none!important;
+  object-fit:contain!important;
+  object-position:center top!important;
+}
+body.product-detail-page #productImage{
+  width:auto!important;
+  height:auto!important;
+  max-height:none!important;
+  object-fit:contain!important;
+  object-position:center top!important;
+}
+@media (min-width:901px){
+  /* Keep only a width bound so portrait/landscape sources retain their real ratio. */
+  body.shop-page .product-card .product-art{
+    max-width:306px!important;
+  }
+  body.product-detail-page #productImage{
+    max-width:555px!important;
+    max-height:none!important;
+  }
+}
+@media (max-width:900px){
+  body.shop-page .product-card .product-art{
+    max-width:100%!important;
+    max-height:none!important;
+  }
+  body.product-detail-page .product-visual{
+    height:auto!important;
+    max-height:none!important;
+  }
+  body.product-detail-page #productImage{
+    width:auto!important;
+    height:auto!important;
+    max-width:min(82vw,520px)!important;
+    max-height:none!important;
+  }
+}
+

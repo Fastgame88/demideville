@@ -175,8 +175,13 @@
       footer?.style.removeProperty('bottom');
       return;
     }
-    const h=(window.visualViewport&&window.visualViewport.height)||innerHeight;
-    const scale=Math.min(innerWidth/1920,h/1080);const scaleX=innerWidth/1920;const scaleY=h/1080;
+    /* Preserve the 1920px storefront proportions when the browser window is resized.
+       The old implementation scaled X from viewport width and Y from viewport height,
+       which visibly squashed product photos whenever the window became shorter.
+       Use one width-driven scale on both axes; a short viewport now scrolls instead. */
+    const scale=Math.max(0.01,innerWidth/1920);
+    const scaleX=scale;
+    const scaleY=scale;
     canvas.style.setProperty('--shop-scale',String(scale));canvas.style.setProperty('--shop-scale-x',String(scaleX));canvas.style.setProperty('--shop-scale-y',String(scaleY));canvas.style.setProperty('--shop-inverse-scale',String(1/scale));
 
     /* Measure the actual rendered bottom of every card, not only the grid box.
