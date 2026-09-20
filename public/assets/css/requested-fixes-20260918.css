@@ -776,11 +776,11 @@ body.product-detail-page #productImage{
 }
 
 /* 2026-09-21 — PRODUCT info block compact position tweak only.
-   Keep media/layout logic intact; move the right controls closer to the garment,
-   lift them slightly, narrow the column, and reduce its typography by 2px. */
+   Keep media/layout logic intact; keep the compact sizing/typography, lift the controls slightly,
+   and restore their previous right-side position. */
 @media (min-width:901px){
   body.product-detail-page .product-info{
-    left:1115px!important;
+    left:1214px!important;
     top:225px!important;
     width:540px!important;
   }
