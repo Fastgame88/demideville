@@ -88,8 +88,8 @@
     const count=Math.max(1,pageItems.length);
     /* Desktop SHOP is always a stable 4 x 2 storefront. The first row fills
        left-to-right with four products before the second row starts. */
-    const desktopColumns=4;
-    const desktopRows=2;
+    const desktopColumns=Math.max(1,Math.min(4,count));
+    const desktopRows=Math.max(1,Math.ceil(count/desktopColumns));
     const desktopMedia=305;
     const desktopGap=95;
     const desktopCardWidth=355;
@@ -182,7 +182,7 @@
     const scale=Math.max(0.01,innerWidth/1920);
     const scaleX=scale;
     const scaleY=scale;
-    canvas.style.setProperty('--shop-scale',String(scale));canvas.style.setProperty('--shop-scale-x',String(scaleX));canvas.style.setProperty('--shop-scale-y',String(scaleY));canvas.style.setProperty('--shop-inverse-scale',String(1/scale));
+    canvas.style.setProperty('--shop-scale',String(scale));canvas.style.setProperty('--shop-scale-x',String(scaleX));canvas.style.setProperty('--shop-scale-y',String(scaleY));canvas.style.removeProperty('--shop-inverse-scale');
 
     /* Measure the actual rendered bottom of every card, not only the grid box.
        Portrait media can extend the second row past the old 1080px canvas. */
