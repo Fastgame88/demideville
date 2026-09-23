@@ -1376,3 +1376,120 @@ body.product-detail-page #productImage{
     transform:translateX(-50%)!important;
   }
 }
+
+
+/* 2026-09-23 — FINAL desktop SHOP header responsiveness.
+   Do NOT scale the desktop header/copy as a 1920px raster canvas. The header
+   lives at the real viewport size; type/gaps/logo/cart get real responsive
+   dimensions. This preserves glyph/logo proportions at every desktop width.
+   Mobile <=900px is intentionally untouched. */
+@media (min-width:901px){
+  html body.shop-page.shared-chrome-page > #desktopHeader.site-header{
+    position:fixed!important;
+    left:0!important;
+    top:0!important;
+    right:0!important;
+    width:100vw!important;
+    height:clamp(60px,4.583vw,88px)!important;
+    min-width:0!important;
+    margin:0!important;
+    padding:0 clamp(16px,1.458vw,28px)!important;
+    box-sizing:border-box!important;
+    display:flex!important;
+    align-items:flex-start!important;
+    overflow:visible!important;
+    transform:none!important;
+    transform-origin:initial!important;
+  }
+
+  html body.shop-page.shared-chrome-page > #desktopHeader .nav-side,
+  html body.shop-page.shared-chrome-page > #desktopHeader .nav-side.right{
+    position:static!important;
+    left:auto!important;
+    right:auto!important;
+    top:auto!important;
+    bottom:auto!important;
+    display:flex!important;
+    flex:0 0 auto!important;
+    align-items:center!important;
+    margin:clamp(17px,1.51vw,29px) 0 0!important;
+    padding:0!important;
+    gap:clamp(18px,3.43vw,66px)!important;
+    transform:none!important;
+    line-height:1!important;
+  }
+  html body.shop-page.shared-chrome-page > #desktopHeader .nav-side.right{
+    margin-left:clamp(16px,2vw,38px)!important;
+    gap:clamp(18px,3.33vw,64px)!important;
+  }
+
+  /* Live desktop words: resize the font itself; never stretch/squash a PNG. */
+  html body.shop-page.shared-chrome-page > #desktopHeader .nav-side>a:not(.global-cart-icon){
+    position:relative!important;
+    display:block!important;
+    flex:0 0 auto!important;
+    width:auto!important;
+    min-width:0!important;
+    height:auto!important;
+    min-height:0!important;
+    margin:0!important;
+    padding:0!important;
+    background:none!important;
+    background-image:none!important;
+    color:#050505!important;
+    font-family:Arial,Helvetica,sans-serif!important;
+    font-size:clamp(14px,1.042vw,20px)!important;
+    font-weight:400!important;
+    font-style:normal!important;
+    font-stretch:normal!important;
+    line-height:1!important;
+    letter-spacing:0!important;
+    white-space:nowrap!important;
+    text-indent:0!important;
+    transform:none!important;
+    filter:none!important;
+    text-rendering:geometricPrecision!important;
+  }
+
+  /* The brand keeps the exact 326:28 source proportion at every width. */
+  html body.shop-page.shared-chrome-page > #desktopHeader .brand{
+    position:absolute!important;
+    left:50%!important;
+    top:clamp(18px,1.51vw,29px)!important;
+    width:clamp(216px,16.979vw,326px)!important;
+    min-width:0!important;
+    height:clamp(18.55px,1.458vw,28px)!important;
+    min-height:0!important;
+    margin:0!important;
+    padding:0!important;
+    transform:translateX(-50%)!important;
+    transform-origin:center center!important;
+    background:url('/assets/images/shop-brand.png') center/100% 100% no-repeat!important;
+    color:transparent!important;
+    font-size:0!important;
+    line-height:0!important;
+    letter-spacing:0!important;
+    text-indent:-9999px!important;
+    overflow:hidden!important;
+    white-space:nowrap!important;
+  }
+
+  /* Cart participates in the right-side row instead of using a fixed 1920px X. */
+  html body.shop-page.shared-chrome-page > #desktopHeader .global-cart-icon{
+    position:static!important;
+    left:auto!important;
+    right:auto!important;
+    top:auto!important;
+    bottom:auto!important;
+    display:block!important;
+    flex:0 0 auto!important;
+    width:clamp(22px,2.083vw,40px)!important;
+    min-width:clamp(22px,2.083vw,40px)!important;
+    height:clamp(24.75px,2.344vw,45px)!important;
+    min-height:0!important;
+    margin:clamp(10px,.729vw,14px) 0 0 auto!important;
+    padding:0!important;
+    transform:none!important;
+    background:url('/assets/images/cart-icon-psd.png') center/100% 100% no-repeat!important;
+  }
+}
