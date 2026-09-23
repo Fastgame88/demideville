@@ -1493,3 +1493,16 @@ body.product-detail-page #productImage{
     background:url('/assets/images/cart-icon-psd.png') center/100% 100% no-repeat!important;
   }
 }
+
+
+/* 2026-09-23 — SHOP desktop cart spacing ONLY.
+   Keep every current header/logo/menu rule untouched; only reserve a clear
+   horizontal gap between the cart icon and INSTAGRAM. Mobile is untouched. */
+@media (min-width:901px){
+  html body.shop-page.shared-chrome-page > #desktopHeader .global-cart-icon{
+    margin-right:clamp(26px,2vw,40px)!important;
+  }
+  html body.shop-page.shared-chrome-page > #desktopHeader .nav-side.right{
+    margin-left:0!important;
+  }
+}
