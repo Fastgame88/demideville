@@ -1318,3 +1318,36 @@ body.product-detail-page #productImage{
     transform-origin:0 0!important;
   }
 }
+
+/* 2026-09-23 — desktop SHOP typography weight + cart spacing only.
+   Match the lighter mobile copy (DD Oswald 400) on desktop without changing
+   layout/responsiveness. Keep mobile <=900px untouched. */
+@media (min-width:901px){
+  html body.shop-page #desktopHeader.site-header .nav-side>a:not(.global-cart-icon){
+    font-family:"DD Oswald","Arial Narrow",Arial,sans-serif!important;
+    font-weight:400!important;
+    font-style:normal!important;
+    letter-spacing:0!important;
+  }
+
+  html body.shop-page #desktopHeader.site-header .brand{
+    font-family:"DD Oswald","Arial Narrow",Arial,sans-serif!important;
+    font-weight:600!important;
+    letter-spacing:-1px!important;
+  }
+
+  /* Product labels use the same lighter face as mobile instead of Impact. */
+  html body.shop-page .product-name,
+  html body.shop-page .product-price{
+    font-family:"DD Oswald","Arial Narrow",Arial,sans-serif!important;
+    font-weight:400!important;
+    font-stretch:normal!important;
+    letter-spacing:0!important;
+  }
+
+  /* Keep a clear gap between the cart icon and INSTAGRAM. */
+  html body.shop-page #desktopHeader.site-header .global-cart-icon{
+    left:auto!important;
+    right:500px!important;
+  }
+}
