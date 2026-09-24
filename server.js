@@ -136,13 +136,23 @@ async function initDbStore(){
   const pgSslMode=String(process.env.PGSSL||'auto').toLowerCase();const isRailwayPrivate=/\.railway\.internal(?::|\/|$)/i.test(DATABASE_URL);const ssl=pgSslMode==='disable'||(pgSslMode==='auto'&&isRailwayPrivate)?false:{rejectUnauthorized:false};
   PG_POOL=new Pool({connectionString:DATABASE_URL,ssl,max:Number(process.env.PGPOOL_MAX||5),idleTimeoutMillis:30000,connectionTimeoutMillis:10000});
   await PG_POOL.query(`CREATE TABLE IF NOT EXISTS app_state (id integer PRIMARY KEY, data jsonb NOT NULL, updated_at timestamptz NOT NULL DEFAULT now())`);
+  await PG_POOL.query(`CREATE TABLE IF NOT EXISTS media_assets (
+    name text PRIMARY KEY,
+    mime text NOT NULL,
+    data bytea NOT NULL,
+    size bigint NOT NULL,
+    sha256 text NOT NULL,
+    created_at timestamptz NOT NULL DEFAULT now(),
+    updated_at timestamptz NOT NULL DEFAULT now()
+  )`);
   const row=await PG_POOL.query('SELECT data FROM app_state WHERE id=1');
   if(row.rows[0]?.data){DB_CACHE=ensureDbShape(row.rows[0].data);}
   else{
     DB_CACHE=loadJsonDbFromDisk();
     await PG_POOL.query('INSERT INTO app_state(id,data,updated_at) VALUES(1,$1::jsonb,now()) ON CONFLICT(id) DO UPDATE SET data=EXCLUDED.data, updated_at=now()',[JSON.stringify(DB_CACHE)]);
   }
-  console.log('PostgreSQL storage enabled.');
+  await migrateLocalUploadsToPostgres();
+  console.log('PostgreSQL storage enabled (including persistent media).');
 }
 async function saveDb(db){
   DB_CACHE=ensureDbShape(db);
@@ -155,6 +165,66 @@ async function saveDb(db){
   fs.writeFileSync(DB_PATH,JSON.stringify(DB_CACHE,null,2));
   try{DB_CACHE_MTIME=fs.statSync(DB_PATH).mtimeMs}catch{DB_CACHE_MTIME=-1}
 }
+function mediaMimeFromName(name){
+  const ext=path.extname(String(name||'')).toLowerCase();
+  return ({'.jpg':'image/jpeg','.jpeg':'image/jpeg','.png':'image/png','.gif':'image/gif','.webp':'image/webp','.svg':'image/svg+xml','.mp4':'video/mp4','.webm':'video/webm','.mov':'video/quicktime'})[ext]||'application/octet-stream';
+}
+async function persistUploadedMedia(name,mime,buffer){
+  if(USE_POSTGRES&&PG_POOL){
+    const sha256=crypto.createHash('sha256').update(buffer).digest('hex');
+    await PG_POOL.query(`INSERT INTO media_assets(name,mime,data,size,sha256,created_at,updated_at)
+      VALUES($1,$2,$3,$4,$5,now(),now())
+      ON CONFLICT(name) DO UPDATE SET mime=EXCLUDED.mime,data=EXCLUDED.data,size=EXCLUDED.size,sha256=EXCLUDED.sha256,updated_at=now()`,
+      [name,mime,buffer,buffer.length,sha256]);
+  }
+  // Keep a local copy as a fast cache for the current process. On Railway this
+  // directory may be ephemeral; PostgreSQL above is the durable source of truth.
+  try{fs.mkdirSync(UPLOAD_DIR,{recursive:true});fs.writeFileSync(path.join(UPLOAD_DIR,name),buffer)}catch(err){console.warn('Local upload cache write failed:',err.message)}
+}
+async function migrateLocalUploadsToPostgres(){
+  if(!USE_POSTGRES||!PG_POOL)return;
+  let names=[];try{names=fs.readdirSync(UPLOAD_DIR)}catch{return}
+  for(const name of names){
+    const full=path.join(UPLOAD_DIR,name);let st;try{st=fs.statSync(full)}catch{continue}if(!st.isFile())continue;
+    try{
+      const existing=await PG_POOL.query('SELECT 1 FROM media_assets WHERE name=$1',[name]);
+      if(existing.rowCount)continue;
+      const buffer=fs.readFileSync(full),mime=mediaMimeFromName(name),sha256=crypto.createHash('sha256').update(buffer).digest('hex');
+      await PG_POOL.query('INSERT INTO media_assets(name,mime,data,size,sha256,created_at,updated_at) VALUES($1,$2,$3,$4,$5,now(),now()) ON CONFLICT(name) DO NOTHING',[name,mime,buffer,buffer.length,sha256]);
+    }catch(err){console.warn('Upload migration skipped for',name,err.message)}
+  }
+}
+async function servePersistentUpload(req,res,u){
+  if(!USE_POSTGRES||!PG_POOL)return false;
+  let pathname;try{pathname=decodeURIComponent(u.pathname)}catch{return false}
+  if(!pathname.startsWith('/uploads/'))return false;
+  const name=pathname.slice('/uploads/'.length);
+  if(!name||name.includes('/')||name.includes('\\')||name==='.'||name==='..')return false;
+  let result;
+  try{result=await PG_POOL.query('SELECT mime,data,size,sha256,updated_at FROM media_assets WHERE name=$1',[name])}catch(err){console.error('Persistent media read failed:',err.message);return false}
+  const row=result.rows[0];if(!row)return false;
+  const data=Buffer.isBuffer(row.data)?row.data:Buffer.from(row.data||'');
+  const size=Number(row.size)||data.length;
+  const etag=`"${String(row.sha256||crypto.createHash('sha256').update(data).digest('hex'))}"`;
+  const headers={
+    'Content-Type':String(row.mime||mediaMimeFromName(name)),
+    'Cache-Control':'public, max-age=31536000, immutable',
+    'ETag':etag,
+    'Last-Modified':new Date(row.updated_at||Date.now()).toUTCString(),
+    'Accept-Ranges':'bytes'
+  };
+  if(req.headers['if-none-match']===etag&&!req.headers.range){res.writeHead(304,headers);res.end();return true}
+  const range=String(req.headers.range||'').match(/^bytes=(\d*)-(\d*)$/);
+  if(range&&size>0){
+    let start=range[1]?Number(range[1]):0,end=range[2]?Number(range[2]):size-1;
+    if(!range[1]&&range[2]){const tail=Math.max(0,Number(range[2])||0);start=Math.max(0,size-tail);end=size-1}
+    start=Math.max(0,Math.min(size-1,start));end=Math.max(start,Math.min(size-1,end));
+    headers['Content-Range']=`bytes ${start}-${end}/${size}`;headers['Content-Length']=end-start+1;
+    res.writeHead(206,headers);if(req.method==='HEAD')res.end();else res.end(data.subarray(start,end+1));return true;
+  }
+  headers['Content-Length']=size;res.writeHead(200,headers);if(req.method==='HEAD')res.end();else res.end(data);return true;
+}
+
 function sanitizeUser(u) { return { id:u.id, name:u.name, email:u.email, role:u.role, newsletter:!!u.newsletter, createdAt:u.createdAt }; }
 function normalizeCouponCode(value){return String(value||'').trim().toUpperCase().replace(/\s+/g,'').slice(0,32)}
 function sanitizeCoupon(c){return {id:c.id,code:c.code,userId:c.userId,percent:Number(c.percent)||0,active:c.active!==false,createdAt:c.createdAt||'',note:String(c.note||'')}}
@@ -394,7 +464,18 @@ async function handleApi(req,res,u){
   }
   if(m==='GET'&&p==='/api/admin/state'){const a=needUser(req,res,true);if(!a)return;return sendJson(res,200,{settings:a.db.settings,products:a.db.products,gallery:a.db.gallery,sections:a.db.sections,orders:a.db.orders,supportMessages:Array.isArray(a.db.supportMessages)?a.db.supportMessages:[],users:a.db.users.map(sanitizeUser),coupons:(Array.isArray(a.db.coupons)?a.db.coupons:[]).map(sanitizeCoupon)});}
   if(m==='PUT'&&p==='/api/admin/settings'){const a=needUser(req,res,true);if(!a)return;const b=await readJson(req);if(b.shopPageSize!=null)b.shopPageSize=Math.max(1,Math.min(8,Math.floor(Number(b.shopPageSize)||8)));if(Array.isArray(b.checkoutCountries)){b.checkoutCountries=[...new Set(b.checkoutCountries.map(x=>String(x||'').trim()).filter(x=>x&&!/^(russia|belarus)$/i.test(x)))];if(!b.checkoutCountries.length)b.checkoutCountries=[...DEFAULT_CHECKOUT_COUNTRIES]}if(b.pageBackgrounds!=null&&(!b.pageBackgrounds||typeof b.pageBackgrounds!=='object'||Array.isArray(b.pageBackgrounds)))b.pageBackgrounds={};a.db.settings={...a.db.settings,...b};await saveDb(a.db);return sendJson(res,200,a.db.settings);}
-  if(m==='POST'&&p==='/api/admin/upload'){const a=needUser(req,res,true);if(!a)return;const uploadLimit=Math.max(5,Number(process.env.MAX_UPLOAD_MB||60))*1024*1024*1.45;const b=await readJson(req,uploadLimit),match=String(b.dataUrl||'').match(/^data:((?:image|video)\/[a-zA-Z0-9.+-]+);base64,(.+)$/);if(!match)return sendJson(res,400,{error:'Invalid image/video data'});const mime=match[1];let ext=(mime.split('/')[1]||'bin').replace('jpeg','jpg').replace('quicktime','mov').replace(/[^a-z0-9]/gi,'');if(mime==='video/mp4')ext='mp4';if(mime==='video/webm')ext='webm';const safe=String(b.filename||'media').replace(/[^a-zA-Z0-9._-]/g,'-').replace(/\.[^.]+$/,'').slice(0,60)||'media',name=`${Date.now()}-${safe}.${ext}`;fs.mkdirSync(UPLOAD_DIR,{recursive:true});fs.writeFileSync(path.join(UPLOAD_DIR,name),Buffer.from(match[2],'base64'));return sendJson(res,200,{url:`/uploads/${name}`});}
+  if(m==='POST'&&p==='/api/admin/upload'){
+    const a=needUser(req,res,true);if(!a)return;
+    const uploadLimit=Math.max(5,Number(process.env.MAX_UPLOAD_MB||60))*1024*1024*1.45;
+    const b=await readJson(req,uploadLimit),match=String(b.dataUrl||'').match(/^data:((?:image|video)\/[a-zA-Z0-9.+-]+);base64,(.+)$/);
+    if(!match)return sendJson(res,400,{error:'Invalid image/video data'});
+    const mime=match[1];let ext=(mime.split('/')[1]||'bin').replace('jpeg','jpg').replace('quicktime','mov').replace(/[^a-z0-9]/gi,'');
+    if(mime==='video/mp4')ext='mp4';if(mime==='video/webm')ext='webm';
+    const safe=String(b.filename||'media').replace(/[^a-zA-Z0-9._-]/g,'-').replace(/\.[^.]+$/,'').slice(0,60)||'media',name=`${Date.now()}-${safe}.${ext}`;
+    const buffer=Buffer.from(match[2],'base64');
+    try{await persistUploadedMedia(name,mime,buffer)}catch(err){console.error('Persistent upload failed:',err);return sendJson(res,500,{error:'Could not save media permanently. Please try again.'})}
+    return sendJson(res,200,{url:`/uploads/${name}`,persistent:!!(USE_POSTGRES&&PG_POOL)});
+  }
   if(m==='POST'&&p==='/api/admin/change-password'){const a=needUser(req,res,true);if(!a)return;const b=await readJson(req);if(String(b.newPassword||'').length<8)return sendJson(res,400,{error:'New password must be at least 8 characters.'});if(!verifyPassword(String(b.currentPassword||''),a.user.passwordHash))return sendJson(res,400,{error:'Current password is wrong.'});a.user.passwordHash=hashPassword(b.newPassword);await saveDb(a.db);return sendJson(res,200,{ok:true});}
   const crud=p.match(/^\/api\/admin\/(products|gallery|sections)(?:\/([^/]+))?$/);
   if(crud){
@@ -503,6 +584,6 @@ function serveStatic(req,res,u){
   });
 }
 
-const server=http.createServer(async(req,res)=>{try{const u=new URL(req.url,`http://${req.headers.host||'localhost'}`);if(u.pathname.startsWith('/api/'))return await handleApi(req,res,u);return serveStatic(req,res,u)}catch(e){console.error(e);if(!res.headersSent)sendJson(res,500,{error:'Server error'});else res.end()}});
+const server=http.createServer(async(req,res)=>{try{const u=new URL(req.url,`http://${req.headers.host||'localhost'}`);if(u.pathname.startsWith('/api/'))return await handleApi(req,res,u);if(u.pathname.startsWith('/uploads/')&&await servePersistentUpload(req,res,u))return;return serveStatic(req,res,u)}catch(e){console.error(e);if(!res.headersSent)sendJson(res,500,{error:'Server error'});else res.end()}});
 initDbStore().then(()=>server.listen(PORT,()=>console.log(`DEMI DEVILLE running: http://localhost:${PORT}`))).catch(err=>{console.error('Database initialization failed:',err);process.exit(1)});
 process.on('SIGTERM',async()=>{try{await DB_SAVE_QUEUE;await PG_POOL?.end()}catch{}process.exit(0)});
