@@ -438,7 +438,8 @@ function mountFreshSupport(settings={}){
   const buttonText=String(settings.supportButtonTextEn||cfg.buttonText||'SUPPORT').trim()||'SUPPORT';
 
   const root=document.createElement('div');
-  root.className='dd-support-root';
+  const isHomeSupport=!!document.querySelector('.home');
+  root.className=`dd-support-root${isHomeSupport?' dd-support-home':''}`;
   root.innerHTML=`<button id="ddSupportOpen" class="dd-support-button" type="button" aria-haspopup="dialog" aria-controls="ddSupportLayer">${esc(buttonText)}</button>
     <div id="ddSupportLayer" class="dd-support-layer" aria-hidden="true">
       <div class="dd-support-window" role="dialog" aria-modal="false" aria-label="${esc(brand)} support">
