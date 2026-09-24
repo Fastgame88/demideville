@@ -9,14 +9,14 @@ body.shop-page .product-grid{
   align-items:start!important;
 }
 body.shop-page .product-card,
-body.shop-page .product-card:nth-child(n+5),
+body.shop-page .product-card:nth-child(n/**/+5),
 body.shop-page .product-grid[data-count="1"] .product-card,
 body.shop-page .product-grid[data-count="2"] .product-card{
   height:auto!important;
   min-height:0!important;
 }
 body.shop-page .product-card .media,
-body.shop-page .product-card:nth-child(n+5) .media,
+body.shop-page .product-card:nth-child(n/**/+5) .media,
 body.shop-page .product-card-1 .media,
 body.shop-page .product-card-2 .media,
 body.shop-page .product-card-3 .media,
@@ -33,7 +33,7 @@ body.shop-page .product-grid[data-count="2"] .media{
   justify-content:center!important;
 }
 body.shop-page .product-card .product-art,
-body.shop-page .product-card:nth-child(n+5) .product-art,
+body.shop-page .product-card:nth-child(n/**/+5) .product-art,
 body.shop-page .product-card-1 .product-art,
 body.shop-page .product-card-2 .product-art,
 body.shop-page .product-card-3 .product-art,
@@ -79,7 +79,7 @@ body.product-detail-page .product-visual>video#productImage{
 
 @media (min-width:901px){
   body.shop-page .product-card .product-art,
-  body.shop-page .product-card:nth-child(n+5) .product-art,
+  body.shop-page .product-card:nth-child(n/**/+5) .product-art,
   body.shop-page .product-grid[data-count="1"] .product-art,
   body.shop-page .product-grid[data-count="2"] .product-art{
     max-width:306px!important;
@@ -146,7 +146,7 @@ body.product-detail-page .product-visual>video#productImage{
     align-content:start!important;
   }
   body.shop-page .product-card,
-  body.shop-page .product-card:nth-child(n+5){
+  body.shop-page .product-card:nth-child(n/**/+5){
     align-self:start!important;
     height:auto!important;
     min-height:0!important;
@@ -355,7 +355,7 @@ body.product-detail-page #productImage{
     overflow:visible!important;
   }
   html body.shop-page .product-card,
-  html body.shop-page .product-card:nth-child(n+5),
+  html body.shop-page .product-card:nth-child(n/**/+5),
   html body.shop-page .product-grid[data-count="1"] .product-card,
   html body.shop-page .product-grid[data-count="2"] .product-card{
     position:relative!important;
@@ -370,7 +370,7 @@ body.product-detail-page #productImage{
     overflow:visible!important;
   }
   html body.shop-page .product-card .media,
-  html body.shop-page .product-card:nth-child(n+5) .media,
+  html body.shop-page .product-card:nth-child(n/**/+5) .media,
   html body.shop-page .product-card-1 .media,
   html body.shop-page .product-card-2 .media,
   html body.shop-page .product-card-3 .media,
@@ -390,7 +390,7 @@ body.product-detail-page #productImage{
     flex:0 0 auto!important;
   }
   html body.shop-page .product-card .product-art,
-  html body.shop-page .product-card:nth-child(n+5) .product-art,
+  html body.shop-page .product-card:nth-child(n/**/+5) .product-art,
   html body.shop-page .product-card-1 .product-art,
   html body.shop-page .product-card-2 .product-art,
   html body.shop-page .product-card-3 .product-art,
@@ -434,12 +434,12 @@ body.product-detail-page #productImage{
    height participates in the grid row and captions can never sit on the artwork. */
 @media (max-width:900px){
   html body.shop-page .product-grid[data-count] .product-card,
-  html body.shop-page .product-grid[data-count] .product-card:nth-child(n+5){
+  html body.shop-page .product-grid[data-count] .product-card:nth-child(n/**/+5){
     height:auto!important;
     min-height:0!important;
   }
   html body.shop-page .product-grid[data-count] .product-card .media,
-  html body.shop-page .product-grid[data-count] .product-card:nth-child(n+5) .media{
+  html body.shop-page .product-grid[data-count] .product-card:nth-child(n/**/+5) .media{
     width:100%!important;
     height:auto!important;
     min-height:0!important;
@@ -448,7 +448,7 @@ body.product-detail-page #productImage{
     overflow:visible!important;
   }
   html body.shop-page .product-grid[data-count] .product-card .product-art,
-  html body.shop-page .product-grid[data-count] .product-card:nth-child(n+5) .product-art{
+  html body.shop-page .product-grid[data-count] .product-card:nth-child(n/**/+5) .product-art{
     width:auto!important;
     height:auto!important;
     max-width:100%!important;
@@ -471,7 +471,7 @@ body.product-detail-page #productImage{
    when the physical viewport is genuinely too small to contain the media. */
 @media (max-width:900px){
   html body.shop-page .product-card .product-art,
-  html body.shop-page .product-card:nth-child(n+5) .product-art,
+  html body.shop-page .product-card:nth-child(n/**/+5) .product-art,
   html body.shop-page .product-card-1 .product-art,
   html body.shop-page .product-card-2 .product-art,
   html body.shop-page .product-card-3 .product-art,
@@ -550,7 +550,7 @@ body.product-detail-page #productImage{
   /* Keep the storefront media at its design size instead of inheriting the
      1920-canvas scale. Natural source ratio is still preserved. */
   html body.shop-page .product-card .product-art,
-  html body.shop-page .product-card:nth-child(n+5) .product-art,
+  html body.shop-page .product-card:nth-child(n/**/+5) .product-art,
   html body.shop-page .product-card-1 .product-art,
   html body.shop-page .product-card-2 .product-art,
   html body.shop-page .product-card-3 .product-art,
@@ -600,7 +600,7 @@ body.product-detail-page #productImage{
    media cap and fixed typography instead of resizing them to the column width. */
 @media (max-width:900px){
   html body.shop-page .product-card .product-art,
-  html body.shop-page .product-card:nth-child(n+5) .product-art,
+  html body.shop-page .product-card:nth-child(n/**/+5) .product-art,
   html body.shop-page .product-card-1 .product-art,
   html body.shop-page .product-card-2 .product-art,
   html body.shop-page .product-card-3 .product-art,
@@ -626,7 +626,7 @@ body.product-detail-page #productImage{
    Keep the same 306px storefront media cap even after the mobile grid activates. */
 @media (max-width:900px){
   html body.shop-page .product-grid[data-count] .product-card .product-art,
-  html body.shop-page .product-grid[data-count] .product-card:nth-child(n+5) .product-art,
+  html body.shop-page .product-grid[data-count] .product-card:nth-child(n/**/+5) .product-art,
   html body.shop-page .product-grid[data-count="1"] .product-card .product-art,
   html body.shop-page .product-grid[data-count="2"] .product-card .product-art{
     width:auto!important;
@@ -669,7 +669,7 @@ body.product-detail-page #productImage{
     transform-origin:0 0!important;
   }
   html body.shop-page .product-card,
-  html body.shop-page .product-card:nth-child(n+5),
+  html body.shop-page .product-card:nth-child(n/**/+5),
   html body.shop-page .product-grid[data-count="1"] .product-card,
   html body.shop-page .product-grid[data-count="2"] .product-card{
     position:relative!important;
@@ -688,7 +688,7 @@ body.product-detail-page #productImage{
     overflow:visible!important;
   }
   html body.shop-page .product-card .media,
-  html body.shop-page .product-card:nth-child(n+5) .media,
+  html body.shop-page .product-card:nth-child(n/**/+5) .media,
   html body.shop-page .product-card-1 .media,
   html body.shop-page .product-card-2 .media,
   html body.shop-page .product-card-3 .media,
@@ -706,7 +706,7 @@ body.product-detail-page #productImage{
     flex:0 0 auto!important;
   }
   html body.shop-page .product-card .product-art,
-  html body.shop-page .product-card:nth-child(n+5) .product-art,
+  html body.shop-page .product-card:nth-child(n/**/+5) .product-art,
   html body.shop-page .product-card-1 .product-art,
   html body.shop-page .product-card-2 .product-art,
   html body.shop-page .product-card-3 .product-art,
@@ -870,7 +870,7 @@ body.product-detail-page #productImage{
   }
 
   html body.shop-page .product-card,
-  html body.shop-page .product-card:nth-child(n+5),
+  html body.shop-page .product-card:nth-child(n/**/+5),
   html body.shop-page .product-grid[data-count="1"] .product-card,
   html body.shop-page .product-grid[data-count="2"] .product-card{
     position:relative!important;
@@ -891,7 +891,7 @@ body.product-detail-page #productImage{
   }
 
   html body.shop-page .product-card .media,
-  html body.shop-page .product-card:nth-child(n+5) .media,
+  html body.shop-page .product-card:nth-child(n/**/+5) .media,
   html body.shop-page .product-card-1 .media,
   html body.shop-page .product-card-2 .media,
   html body.shop-page .product-card-3 .media,
@@ -911,7 +911,7 @@ body.product-detail-page #productImage{
   }
 
   html body.shop-page .product-card .product-art,
-  html body.shop-page .product-card:nth-child(n+5) .product-art,
+  html body.shop-page .product-card:nth-child(n/**/+5) .product-art,
   html body.shop-page .product-card-1 .product-art,
   html body.shop-page .product-card-2 .product-art,
   html body.shop-page .product-card-3 .product-art,
@@ -1000,7 +1000,7 @@ body.product-detail-page #productImage{
   }
 
   html body.shop-page .product-card,
-  html body.shop-page .product-card:nth-child(n+5),
+  html body.shop-page .product-card:nth-child(n/**/+5),
   html body.shop-page .product-grid[data-count="1"] .product-card,
   html body.shop-page .product-grid[data-count="2"] .product-card{
     position:relative!important;
@@ -1023,7 +1023,7 @@ body.product-detail-page #productImage{
   }
 
   html body.shop-page .product-card .media,
-  html body.shop-page .product-card:nth-child(n+5) .media,
+  html body.shop-page .product-card:nth-child(n/**/+5) .media,
   html body.shop-page .product-card-1 .media,
   html body.shop-page .product-card-2 .media,
   html body.shop-page .product-card-3 .media,
@@ -1045,7 +1045,7 @@ body.product-detail-page #productImage{
   }
 
   html body.shop-page .product-card .product-art,
-  html body.shop-page .product-card:nth-child(n+5) .product-art,
+  html body.shop-page .product-card:nth-child(n/**/+5) .product-art,
   html body.shop-page .product-card-1 .product-art,
   html body.shop-page .product-card-2 .product-art,
   html body.shop-page .product-card-3 .product-art,
@@ -1137,9 +1137,9 @@ body.product-detail-page #productImage{
   }
 
   html body.shop-page .product-card,
-  html body.shop-page .product-card:nth-child(n+5),
+  html body.shop-page .product-card:nth-child(n/**/+5),
   html body.shop-page .product-grid[data-count] .product-card,
-  html body.shop-page .product-grid[data-count] .product-card:nth-child(n+5){
+  html body.shop-page .product-grid[data-count] .product-card:nth-child(n/**/+5){
     position:relative!important;
     left:auto!important;
     top:auto!important;
@@ -1160,9 +1160,9 @@ body.product-detail-page #productImage{
   }
 
   html body.shop-page .product-card .media,
-  html body.shop-page .product-card:nth-child(n+5) .media,
+  html body.shop-page .product-card:nth-child(n/**/+5) .media,
   html body.shop-page .product-grid[data-count] .product-card .media,
-  html body.shop-page .product-grid[data-count] .product-card:nth-child(n+5) .media,
+  html body.shop-page .product-grid[data-count] .product-card:nth-child(n/**/+5) .media,
   html body.shop-page .product-card-1 .media,
   html body.shop-page .product-card-2 .media,
   html body.shop-page .product-card-3 .media,
@@ -1183,9 +1183,9 @@ body.product-detail-page #productImage{
   }
 
   html body.shop-page .product-card .product-art,
-  html body.shop-page .product-card:nth-child(n+5) .product-art,
+  html body.shop-page .product-card:nth-child(n/**/+5) .product-art,
   html body.shop-page .product-grid[data-count] .product-card .product-art,
-  html body.shop-page .product-grid[data-count] .product-card:nth-child(n+5) .product-art,
+  html body.shop-page .product-grid[data-count] .product-card:nth-child(n/**/+5) .product-art,
   html body.shop-page .product-card-1 .product-art,
   html body.shop-page .product-card-2 .product-art,
   html body.shop-page .product-card-3 .product-art,
@@ -1363,7 +1363,7 @@ body.product-detail-page #productImage{
     min-width:326px!important;
     height:28px!important;
     min-height:28px!important;
-    background:url('/assets/images/shop-brand.png') center/326px 28px no-repeat!important;
+    background:url("/assets/images/shop-brand.png") center/326px 28px no-repeat!important;
     color:transparent!important;
     font-size:0!important;
     line-height:0!important;
@@ -1464,7 +1464,7 @@ body.product-detail-page #productImage{
     padding:0!important;
     transform:translateX(-50%)!important;
     transform-origin:center center!important;
-    background:url('/assets/images/shop-brand.png') center/100% 100% no-repeat!important;
+    background:url("/assets/images/shop-brand.png") center/100% 100% no-repeat!important;
     color:transparent!important;
     font-size:0!important;
     line-height:0!important;
@@ -1490,7 +1490,7 @@ body.product-detail-page #productImage{
     margin:clamp(10px,.729vw,14px) 0 0 auto!important;
     padding:0!important;
     transform:none!important;
-    background:url('/assets/images/cart-icon-psd.png') center/100% 100% no-repeat!important;
+    background:url("/assets/images/cart-icon-psd.png") center/100% 100% no-repeat!important;
   }
 }
 

@@ -3,25 +3,10 @@
 .home:after{
   background:rgba(0,0,0,var(--home-desktop-overlay-opacity,.35))!important;
 }
-.home.home-font-desktop-custom .home-center,
-.home.home-font-desktop-custom .home-center *,
-.home.home-font-desktop-custom .home-tools,
-.home.home-font-desktop-custom .home-tools *,
-.home.home-font-desktop-custom #supportLayer,
-.home.home-font-desktop-custom #supportLayer *{
-  font-family:var(--home-desktop-font)!important;
-}
+
 @media(max-width:900px){
   .home:after{
     background:rgba(0,0,0,var(--home-mobile-overlay-opacity,.35))!important;
   }
-  .home.home-font-mobile-custom #homeMenuOpen,
-  .home.home-font-mobile-custom #homeMobileMenu,
-  .home.home-font-mobile-custom #homeMobileMenu *,
-  .home.home-font-mobile-custom .home-tools,
-  .home.home-font-mobile-custom .home-tools *,
-  .home.home-font-mobile-custom #supportLayer,
-  .home.home-font-mobile-custom #supportLayer *{
-    font-family:var(--home-mobile-font)!important;
-  }
+  
 }

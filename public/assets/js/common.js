@@ -428,26 +428,30 @@ async function renderChrome({home=false}={}){
 }
 
 function mountFreshSupport(settings={}){
-  // Remove every legacy support button/window before mounting the new shared SUPPORT.
-  $$('#shopSupportOpen, #supportOpen, #sharedSupportOpen, #ddSupportOpen, [data-support], #shopSupportLayer, #supportLayer, #sharedSupportLayer, #ddSupportLayer').forEach(el=>el.remove());
-  const oldRoots=$$('.shared-support-root, .dd-support-root');oldRoots.forEach(el=>el.remove());
+  // Canonical storefront SUPPORT: purge every legacy instance first, then mount exactly one root.
+  const legacySelectors=[
+    '#shopSupportOpen','#supportOpen','#sharedSupportOpen','#ddSupportOpen',
+    '#shopSupportLayer','#supportLayer','#sharedSupportLayer','#ddSupportLayer',
+    '.shop-support-root','.shared-support-root','.dd-support-root',
+    '.shop-support-window','.login-support-layer','.gallery-support-layer'
+  ];
+  document.querySelectorAll(legacySelectors.join(',')).forEach(el=>el.remove());
 
-  const cfg=supportConfig(settings,'en');
+  const lang=menuLang();
+  const cfg=supportConfig(settings,lang);
   const brand=String(settings.brand||'DEMI DEVILLE').trim()||'DEMI DEVILLE';
-  const greeting=String(settings.supportGreetingEn||'Thanks for stopping by! How can I help you?').trim()||'Thanks for stopping by! How can I help you?';
-  const buttonText=String(settings.supportButtonTextEn||cfg.buttonText||'SUPPORT').trim()||'SUPPORT';
-
   const root=document.createElement('div');
   const isHomeSupport=!!document.querySelector('.home');
+  root.id='ddSupportRoot';
   root.className=`dd-support-root${isHomeSupport?' dd-support-home':''}`;
-  root.innerHTML=`<button id="ddSupportOpen" class="dd-support-button" type="button" aria-haspopup="dialog" aria-controls="ddSupportLayer">${esc(buttonText)}</button>
+  root.innerHTML=`<button id="ddSupportOpen" class="dd-support-button" type="button" aria-haspopup="dialog" aria-controls="ddSupportLayer" aria-expanded="false">${esc(cfg.buttonText||'SUPPORT')}</button>
     <div id="ddSupportLayer" class="dd-support-layer" aria-hidden="true">
       <div class="dd-support-window" role="dialog" aria-modal="false" aria-label="${esc(brand)} support">
         <button id="ddSupportClose" class="dd-support-close" type="button" aria-label="Close support">×</button>
         <div class="dd-support-panel">
           <div class="dd-support-brand">${esc(brand)}</div>
           <div class="dd-support-body">
-            <div class="dd-support-greeting">${esc(greeting)}</div>
+            <div class="dd-support-greeting">${esc(cfg.greeting)}</div>
             <a class="dd-support-email" href="mailto:support@demideville.com">support@demideville.com</a>
           </div>
         </div>
@@ -455,35 +459,84 @@ function mountFreshSupport(settings={}){
     </div>`;
   document.body.appendChild(root);
 
-  const button=$('#ddSupportOpen'),layer=$('#ddSupportLayer'),windowEl=$('.dd-support-window'),close=$('#ddSupportClose');
+  const button=root.querySelector('#ddSupportOpen');
+  const layer=root.querySelector('#ddSupportLayer');
+  const windowEl=root.querySelector('.dd-support-window');
+  const close=root.querySelector('#ddSupportClose');
+  const body=root.querySelector('.dd-support-body');
+
+  // Preserve the admin-configured SUPPORT background without creating a second window.
+  const supportBg=cfg.backgroundImage||'/assets/images/support-cross-pattern.png';
+  window.ddWarmMedia?.(supportBg);
+  if(body&&window.ddIsVideo?.(supportBg)){
+    const video=document.createElement('video');
+    video.className='dd-support-background-video';
+    video.src=supportBg;
+    video.autoplay=true;video.muted=true;video.loop=true;video.playsInline=true;video.preload='auto';
+    video.addEventListener('error',()=>{video.remove();root.style.setProperty('--dd-support-bg-image',"url('/assets/images/support-cross-pattern.png')")},{once:true});
+    body.prepend(video);
+    video.play().catch(()=>{});
+  }else if(body&&supportBg&&!String(supportBg).startsWith('data:')){
+    const probe=new Image();
+    probe.onerror=()=>root.style.setProperty('--dd-support-bg-image',"url('/assets/images/support-cross-pattern.png')");
+    probe.src=supportBg;
+  }
+
   let timer=0;
   const setOpen=open=>{
     clearTimeout(timer);
-    layer?.classList.toggle('open',open);
-    layer?.setAttribute('aria-hidden',String(!open));
-    button?.setAttribute('aria-expanded',String(open));
+    layer.classList.toggle('open',open);
+    layer.setAttribute('aria-hidden',String(!open));
+    button.setAttribute('aria-expanded',String(open));
   };
   const delayedClose=()=>{clearTimeout(timer);timer=setTimeout(()=>setOpen(false),320)};
-  button?.addEventListener('mouseenter',()=>setOpen(true));
-  button?.addEventListener('focus',()=>setOpen(true));
-  button?.addEventListener('click',()=>setOpen(true));
-  button?.addEventListener('mouseleave',delayedClose);
-  windowEl?.addEventListener('mouseenter',()=>clearTimeout(timer));
-  windowEl?.addEventListener('mouseleave',delayedClose);
-  close?.addEventListener('click',e=>{e.preventDefault();e.stopPropagation();setOpen(false)});
+  button.addEventListener('mouseenter',()=>setOpen(true));
+  button.addEventListener('focus',()=>setOpen(true));
+  button.addEventListener('click',()=>setOpen(true));
+  button.addEventListener('mouseleave',delayedClose);
+  windowEl.addEventListener('mouseenter',()=>clearTimeout(timer));
+  windowEl.addEventListener('mouseleave',delayedClose);
+  close.addEventListener('click',e=>{e.preventDefault();e.stopPropagation();setOpen(false)});
+  layer.addEventListener('pointerdown',e=>{if(e.target===layer)setOpen(false)});
   document.addEventListener('keydown',e=>{if(e.key==='Escape')setOpen(false)});
 
-  const fit=()=>{
+  const refreshPosition=()=>{
     const vw=window.visualViewport?.width||innerWidth;
     const vh=window.visualViewport?.height||innerHeight;
-    if(vw<=900){document.documentElement.style.setProperty('--dd-support-scale','1');return}
-    const scale=Math.min(1,vw/1920,vh/1080);
+    const scale=vw<=900?1:Math.max(.72,Math.min(1,vw/1920,vh/1080));
     document.documentElement.style.setProperty('--dd-support-scale',String(scale));
+    if(isHomeSupport){
+      const langToggle=document.querySelector('#langToggle');
+      if(langToggle){
+        const r=langToggle.getBoundingClientRect();
+        const gap=8;
+        const right=Math.max(11,vw-r.left+gap);
+        const bottom=Math.max(10,vh-r.bottom);
+        root.style.setProperty('--dd-support-home-right',`${right}px`);
+        root.style.setProperty('--dd-support-home-bottom',`${bottom}px`);
+      }
+    }
   };
-  fit();addEventListener('resize',fit,{passive:true});window.visualViewport?.addEventListener('resize',fit,{passive:true});
+  root._ddRefreshSupportPosition=refreshPosition;
+  refreshPosition();
+  addEventListener('resize',refreshPosition,{passive:true});
+  window.visualViewport?.addEventListener('resize',refreshPosition,{passive:true});
   return root;
 }
+function updateFreshSupport(settings={},lang=menuLang()){
+  const root=document.querySelector('#ddSupportRoot');if(!root)return;
+  const cfg=supportConfig(settings,lang);
+  const button=root.querySelector('#ddSupportOpen');
+  const greeting=root.querySelector('.dd-support-greeting');
+  if(button)button.textContent=cfg.buttonText||'SUPPORT';
+  if(greeting)greeting.textContent=cfg.greeting||'Thanks for stopping by! How can I help you?';
+}
+function refreshFreshSupportPosition(){
+  document.querySelector('#ddSupportRoot')?._ddRefreshSupportPosition?.();
+}
 window.ddMountFreshSupport=mountFreshSupport;
+window.ddUpdateFreshSupport=updateFreshSupport;
+window.ddRefreshSupportPosition=refreshFreshSupportPosition;
 
 function flyoutItemsHtml(items,lang){
   return (items||[]).filter(x=>x.enabled!==false).map(item=>`${item.separatorBefore?'<span class="shared-header-flyout-gap"></span>':''}${menuItemHtml(item,lang)}`).join('');

@@ -23,11 +23,6 @@
   const hero=$('#heroImage');
   const title=$('#heroTitle');
   const mobileBrand=$('#mobileBrand');
-  const supportOpen=$('#supportOpen');
-  const supportLayer=$('#supportLayer');
-  const supportWindow=$('.support-window');
-  const supportClose=$('#supportClose');
-  const supportGreeting=$('#supportGreeting');
   const mobileMenu=$('#homeMobileMenu');
   const menuOpen=$('#homeMenuOpen');
   const langToggle=$('#langToggle');
@@ -92,24 +87,14 @@
     document.querySelectorAll('[data-i18n]').forEach(el=>{const k=el.dataset.i18n;if(dict[lang][k])el.textContent=dict[lang][k]});
     document.querySelectorAll('[data-i18n-placeholder]').forEach(el=>{const k=el.dataset.i18nPlaceholder;if(dict[lang][k])el.placeholder=dict[lang][k]});
     const cfg=window.ddSupportConfig?window.ddSupportConfig(s,lang):{buttonText:dict[lang].support,greeting:dict[lang].greeting,emailPlaceholder:dict[lang].yourEmail,messagePlaceholder:dict[lang].yourMessage,send:dict[lang].send};
-    if(supportOpen)supportOpen.textContent=cfg.buttonText;
-    if(supportGreeting)supportGreeting.textContent=cfg.greeting;
     if(menuOpen)menuOpen.textContent=lang==='ru'?'МЕНЮ':'MENU';
     if(langToggle)langToggle.textContent=lang==='en'?'EN / RU':'RU / EN';
     localStorage.setItem('demi-lang',lang);
+    window.ddUpdateFreshSupport?.(s,lang);
+    window.ddRefreshSupportPosition?.();
   }
   applyLang();
 
-  // SUPPORT keeps the existing layout; when admin selects a video it is used only as the panel background.
-  window.ddWarmMedia?.(s.supportBackgroundImage||'/assets/images/support-cross-pattern.png');
-  if(supportWindow){
-    const chatBody=supportWindow.querySelector('.support-chat-body');
-    chatBody?.querySelector('.support-background-video')?.remove();
-    if(chatBody&&window.ddIsVideo?.(s.supportBackgroundImage)){
-      const bg=document.createElement('video');bg.className='support-background-video';bg.src=s.supportBackgroundImage;bg.autoplay=true;bg.muted=true;bg.loop=true;bg.playsInline=true;bg.preload='auto';
-      chatBody.prepend(bg);bg.play().catch(()=>{});
-    }
-  }
 
   const setMenu=open=>{if(!mobileMenu)return;mobileMenu.classList.toggle('open',open);mobileMenu.setAttribute('aria-hidden',String(!open));document.body.classList.toggle('mobile-menu-open',open)};
   menuOpen?.addEventListener('click',()=>setMenu(!mobileMenu?.classList.contains('open')));
@@ -130,12 +115,6 @@
   }
   bindDesktopFlyouts();
 
-  let hideTimer=0;
-  const setSupport=open=>{clearTimeout(hideTimer);supportLayer?.classList.toggle('open',open);supportLayer?.setAttribute('aria-hidden',String(!open))};
-  const delayedClose=()=>{clearTimeout(hideTimer);hideTimer=setTimeout(()=>setSupport(false),380)};
-  supportOpen?.addEventListener('mouseenter',()=>setSupport(true));supportOpen?.addEventListener('focus',()=>setSupport(true));supportOpen?.addEventListener('mouseleave',delayedClose);supportOpen?.addEventListener('click',()=>setSupport(true));
-  supportWindow?.addEventListener('mouseenter',()=>clearTimeout(hideTimer));supportWindow?.addEventListener('mouseleave',delayedClose);
-  supportClose?.addEventListener('click',e=>{e.preventDefault();e.stopPropagation();clearTimeout(hideTimer);setSupport(false)});
-  document.addEventListener('keydown',e=>{if(e.key==='Escape'){setMenu(false);setSupport(false)}});
+  document.addEventListener('keydown',e=>{if(e.key==='Escape')setMenu(false)});
 
 })();

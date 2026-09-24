@@ -1,5 +1,4 @@
-/* Single SHOP reference for the desktop header, menus and SUPPORT on all
-   storefront pages except the home page. Change dimensions here once. */
+
 @media (min-width:901px){
   body.shared-chrome-page>#desktopHeader.site-header{
     position:fixed!important;left:0!important;top:0!important;right:auto!important;
@@ -15,33 +14,33 @@
     display:flex!important;align-items:flex-start!important;margin:0!important;padding:0!important;
     gap:66px!important;font-size:0!important;line-height:1!important;transform:none!important;
   }
-  body.shared-chrome-page>#desktopHeader .nav-side:not(.right){left:28px!important;right:auto!important;justify-content:flex-start!important}
-  body.shared-chrome-page>#desktopHeader .nav-side.right{left:auto!important;right:28px!important;gap:64px!important;justify-content:flex-end!important}
+  body.shared-chrome-page>#desktopHeader .nav-side:not(.right){left:28px!important;right:auto!important;justify-content:flex-start!important;}
+  body.shared-chrome-page>#desktopHeader .nav-side.right{left:auto!important;right:28px!important;gap:64px!important;justify-content:flex-end!important;}
   body.shared-chrome-page>#desktopHeader .nav-side>a:not(.global-cart-icon){
     position:relative!important;z-index:606!important;display:block!important;flex:0 0 auto!important;
     height:17px!important;margin:0!important;padding:0!important;
     background-repeat:no-repeat!important;background-position:left top!important;background-size:100% 100%!important;
     color:transparent!important;font-size:0!important;line-height:0!important;text-decoration:none!important;
   }
-  body.shared-chrome-page>#desktopHeader .nav-side:not(.right)>a:nth-child(1){width:53px!important;background-image:url('/assets/images/shop-nav-shop.png')!important}
-  body.shared-chrome-page>#desktopHeader .nav-side:not(.right)>a:nth-child(2){width:95px!important;background-image:url('/assets/images/shop-nav-gallery.png')!important}
-  body.shared-chrome-page>#desktopHeader .nav-side:not(.right)>a:nth-child(3){width:69px!important;background-image:url('/assets/images/shop-nav-about.png')!important}
-  body.shared-chrome-page>#desktopHeader .nav-side.right>a:nth-child(1){width:120px!important;background-image:url('/assets/images/shop-nav-instagram.png')!important}
-  body.shared-chrome-page>#desktopHeader .nav-side.right>a:nth-child(2){width:95px!important;background-image:url('/assets/images/shop-nav-contact.png')!important}
-  body.shared-chrome-page>#desktopHeader .nav-side.right>a:nth-child(3){width:65px!important;background-image:url('/assets/images/shop-nav-login.png')!important}
-  body.shared-chrome-page>#desktopHeader .nav-side:not(.right)>a:nth-child(n+4){width:auto!important;height:auto!important;background:none!important;color:#111!important;font:400 15px/18px Arial,sans-serif!important}
-  body.shared-chrome-page>#desktopHeader .nav-side>a.is-flyout-active{filter:invert(1)!important}
+  body.shared-chrome-page>#desktopHeader .nav-side:not(.right)>a:nth-child(1){width:53px!important;background-image:url("/assets/images/shop-nav-shop.png")!important;}
+  body.shared-chrome-page>#desktopHeader .nav-side:not(.right)>a:nth-child(2){width:95px!important;background-image:url("/assets/images/shop-nav-gallery.png")!important;}
+  body.shared-chrome-page>#desktopHeader .nav-side:not(.right)>a:nth-child(3){width:69px!important;background-image:url("/assets/images/shop-nav-about.png")!important;}
+  body.shared-chrome-page>#desktopHeader .nav-side.right>a:nth-child(1){width:120px!important;background-image:url("/assets/images/shop-nav-instagram.png")!important;}
+  body.shared-chrome-page>#desktopHeader .nav-side.right>a:nth-child(2){width:95px!important;background-image:url("/assets/images/shop-nav-contact.png")!important;}
+  body.shared-chrome-page>#desktopHeader .nav-side.right>a:nth-child(3){width:65px!important;background-image:url("/assets/images/shop-nav-login.png")!important;}
+  body.shared-chrome-page>#desktopHeader .nav-side:not(.right)>a:nth-child(n/**/+4){width:auto!important;height:auto!important;background:none!important;color:#111!important;font:400 15px/18px Arial,sans-serif!important;}
+  body.shared-chrome-page>#desktopHeader .nav-side>a.is-flyout-active{filter:invert(1)!important;}
   body.shared-chrome-page>#desktopHeader .brand{
     position:absolute!important;z-index:607!important;left:50%!important;top:29px!important;
     width:326px!important;height:28px!important;margin:0!important;padding:0!important;
-    transform:translateX(-50%)!important;background:url('/assets/images/shop-brand.png') center/326px 28px no-repeat!important;
+    transform:translateX(-50%)!important;background:url("/assets/images/shop-brand.png") center/326px 28px no-repeat!important;
     color:transparent!important;font-size:0!important;line-height:0!important;
   }
   body.shared-chrome-page>#desktopHeader .global-cart-icon{
     position:absolute!important;display:block!important;z-index:608!important;
     left:1417px!important;top:14px!important;width:40px!important;height:45px!important;min-width:40px!important;
     margin:0!important;padding:0!important;transform:none!important;filter:none!important;
-    background:url('/assets/images/cart-icon-psd.png') 0 0/40px 45px no-repeat!important;
+    background:url("/assets/images/cart-icon-psd.png") 0 0/40px 45px no-repeat!important;
   }
   body.shared-chrome-page>#desktopHeader .shared-header-flyout{
     position:absolute!important;z-index:601!important;display:block!important;overflow:hidden!important;
@@ -65,18 +64,18 @@
     font:400 17px/27px "Benzin Regular","Benzin-Regular","Arial Narrow",Arial,sans-serif!important;
     letter-spacing:-.3px!important;
   }
-  body.shared-chrome-page>#desktopHeader .shared-header-flyout-left nav{left:29px!important;top:71px!important;align-items:flex-start!important;text-align:left!important}
-  body.shared-chrome-page>#desktopHeader .shared-header-flyout-right nav{right:29px!important;top:71px!important;align-items:flex-end!important;text-align:right!important}
-  body.shared-chrome-page>#desktopHeader .shared-header-flyout-gap{display:block!important;height:22px!important}
-  body.shared-chrome-page>#desktopHeader .shared-header-flyout a{position:relative!important;display:block!important;width:max-content!important;color:#fff!important;text-decoration:none!important}
+  body.shared-chrome-page>#desktopHeader .shared-header-flyout-left nav{left:29px!important;top:71px!important;align-items:flex-start!important;text-align:left!important;}
+  body.shared-chrome-page>#desktopHeader .shared-header-flyout-right nav{right:29px!important;top:71px!important;align-items:flex-end!important;text-align:right!important;}
+  body.shared-chrome-page>#desktopHeader .shared-header-flyout-gap{display:block!important;height:22px!important;}
+  body.shared-chrome-page>#desktopHeader .shared-header-flyout a{position:relative!important;display:block!important;width:max-content!important;color:#fff!important;text-decoration:none!important;}
   body.shared-chrome-page>#desktopHeader .shared-header-flyout a::after{
     content:"";position:absolute;left:0;right:0;bottom:1px;height:1px;background:currentColor;
     transform:scaleX(0);transition:transform .22s cubic-bezier(.2,.8,.2,1);pointer-events:none;
   }
-  body.shared-chrome-page>#desktopHeader .shared-header-flyout-left a::after{transform-origin:left center}
-  body.shared-chrome-page>#desktopHeader .shared-header-flyout-right a::after{transform-origin:right center}
+  body.shared-chrome-page>#desktopHeader .shared-header-flyout-left a::after{transform-origin:left center;}
+  body.shared-chrome-page>#desktopHeader .shared-header-flyout-right a::after{transform-origin:right center;}
   body.shared-chrome-page>#desktopHeader .shared-header-flyout a:hover::after,
-  body.shared-chrome-page>#desktopHeader .shared-header-flyout a:focus-visible::after{transform:scaleX(1)}
+  body.shared-chrome-page>#desktopHeader .shared-header-flyout a:focus-visible::after{transform:scaleX(1);}
   html[lang="ru"] body.shared-chrome-page>#desktopHeader .nav-side>a:not(.global-cart-icon){
     background-image:none!important;width:auto!important;height:auto!important;color:#111!important;
     font:600 20px/26px "Benzin Regular","Benzin-Regular",Arial,sans-serif!important;white-space:nowrap!important;
@@ -85,97 +84,36 @@
     left:50%!important;transform:translateX(-50%) scaleY(var(--shared-chrome-y-inverse,1))!important;
     transform-origin:center center!important;
   }
-  html[lang="ru"] body.shared-chrome-page>#desktopHeader .nav-side>a.is-flyout-active{color:#fff!important;filter:none!important}
+  html[lang="ru"] body.shared-chrome-page>#desktopHeader .nav-side>a.is-flyout-active{color:#fff!important;filter:none!important;}
 }
 
-/* SUPPORT is outside every page canvas. Its popup is above the closed button. */
-body.shared-chrome-page>#sharedSupportOpen.shared-support-button{
-  position:fixed!important;z-index:700!important;left:auto!important;top:auto!important;
-  right:var(--shared-support-right,22px)!important;bottom:var(--shared-support-bottom,25px)!important;
-  width:145px!important;min-width:145px!important;height:48px!important;margin:0!important;padding:0!important;
-  border:0!important;border-radius:0!important;background:#050505!important;color:#fff!important;
-  font:700 17px/48px "Benzin Semibold","Benzin-Semibold","Arial Black",Arial,sans-serif!important;
-  letter-spacing:-.65px!important;text-align:center!important;display:block!important;
-  transform:scale(var(--shared-support-scale,1))!important;transform-origin:right bottom!important;
-}
-body.shared-chrome-page>#sharedSupportLayer.shared-support-layer{
-  position:fixed!important;inset:0!important;z-index:701!important;
-  display:block!important;opacity:0;visibility:hidden;pointer-events:none;
-  transition:opacity .16s ease,visibility 0s linear .22s;
-}
-body.shared-chrome-page>#sharedSupportLayer.shared-support-layer.open{
-  opacity:1!important;visibility:visible!important;pointer-events:auto!important;transition-delay:0s!important;
-}
-body.shared-chrome-page>#sharedSupportLayer .shared-support-window,
-body.shared-chrome-page>#sharedSupportLayer.open .shared-support-window{
-  position:absolute!important;left:auto!important;top:auto!important;
-  right:var(--shared-support-right,22px)!important;bottom:var(--shared-support-bottom,25px)!important;
-  width:368px!important;height:592px!important;overflow:visible!important;
-  transform:scale(var(--shared-support-scale,1))!important;transform-origin:right bottom!important;
-}
-body.shared-chrome-page>#sharedSupportLayer:not(.open) .shared-support-window{
-  transform:scale(var(--shared-support-scale,1)) translateY(10px)!important;
-}
-body.shared-chrome-page>#sharedSupportLayer .shared-support-window .support-panel{
-  position:absolute!important;right:0!important;bottom:0!important;width:368px!important;height:545px!important;
-  min-height:0!important;box-sizing:border-box!important;border:5px solid #111!important;background:#fff!important;
-}
-body.shared-chrome-page>#sharedSupportLayer .shared-support-window .support-close{
-  position:absolute!important;left:-47px!important;top:0!important;width:47px!important;height:47px!important;
-  box-sizing:border-box!important;border:5px solid #111!important;background:#fff!important;color:#111!important;
-  font:300 40px/36px Arial,sans-serif!important;padding:0 0 5px!important;z-index:3!important;
-}
-body.shared-chrome-page>#sharedSupportLayer .shared-support-window .support-brand{
-  display:flex!important;align-items:flex-start!important;justify-content:center!important;
-  width:100%!important;height:59px!important;padding:9px 12px 0!important;
-  background:none!important;color:#000!important;
-  font:900 31px/1 "Benzin Semibold","Benzin-Semibold","Arial Black",Arial,sans-serif!important;
-  letter-spacing:-1.25px!important;text-align:center!important;
-}
-body.shared-chrome-page>#sharedSupportLayer .shared-support-window .support-chat-body{
-  height:486px!important;padding:16px 12px 13px!important;
-}
-body.shared-chrome-page>#sharedSupportLayer .shared-support-window .support-form-heading{
-  display:flex!important;align-items:center!important;justify-content:center!important;
-  width:216px!important;height:68px!important;margin:0 auto!important;border-radius:7px!important;
-  font-size:15px!important;
-}
-body.shared-chrome-page>#sharedSupportLayer .shared-support-window .support-form{
-  position:absolute!important;display:flex!important;flex-direction:column!important;
-  left:12px!important;right:12px!important;top:111px!important;bottom:16px!important;gap:0!important;
-}
-body.shared-chrome-page>#sharedSupportLayer .shared-support-window .support-form-input{
-  height:46px!important;padding:10px 11px!important;margin:0 0 24px!important;font-size:14px!important;
-}
-body.shared-chrome-page>#sharedSupportLayer .shared-support-window .support-form-message{
-  height:116px!important;padding:10px 11px!important;margin:0!important;font-size:14px!important;
-}
-body.shared-chrome-page>#sharedSupportLayer .shared-support-window .support-form-submit{
-  height:48px!important;margin-top:auto!important;margin-bottom:0!important;font-size:15px!important;
-}
-body.shared-chrome-page>#sharedSupportLayer .shared-support-window .support-form-status:empty{display:none!important}
-body.shared-chrome-page>#sharedSupportLayer .shared-support-window .support-form-status:not(:empty){min-height:28px!important;padding:5px 2px 0!important}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 @media (max-width:900px){
   body.shared-chrome-page #mobileHeader.mobile-header{
     display:grid!important;position:relative!important;width:100%!important;height:84px!important;
     background:#fff!important;color:#000!important;z-index:50!important;
   }
-  body.shared-chrome-page #mobileMenu.mobile-menu{z-index:710!important}
-  body.shared-chrome-page>#sharedSupportOpen.shared-support-button{
-    right:12px!important;bottom:15px!important;width:120px!important;min-width:120px!important;
-    height:42px!important;font-size:14px!important;line-height:42px!important;transform:none!important;
-  }
-  body.shared-chrome-page>#sharedSupportLayer .shared-support-window,
-  body.shared-chrome-page>#sharedSupportLayer.open .shared-support-window{
-    right:12px!important;bottom:15px!important;width:min(368px,calc(100vw - 60px))!important;
-    height:min(592px,calc(100dvh - 70px))!important;transform:none!important;
-  }
-  body.shared-chrome-page>#sharedSupportLayer .shared-support-window .support-panel{
-    width:100%!important;height:calc(100% - 47px)!important;
-  }
-  body.shared-chrome-page>#sharedSupportLayer .shared-support-window .support-chat-body{height:calc(100% - 59px)!important}
-  body.shared-chrome-page>#sharedSupportLayer .shared-support-window .support-close{
-    left:-42px!important;width:42px!important;height:42px!important;font-size:35px!important;line-height:31px!important;
-  }
+  body.shared-chrome-page #mobileMenu.mobile-menu{z-index:710!important;}
+  
+  
+  
+  
+  
 }
-html[lang="ru"] body.shared-chrome-page>#sharedSupportOpen.shared-support-button{font-size:14px!important;letter-spacing:-.3px!important}
+
