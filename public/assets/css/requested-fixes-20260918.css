@@ -1521,3 +1521,151 @@ body.product-detail-page #productImage{
     letter-spacing:0!important;
   }
 }
+
+
+/* =========================================================
+   2026-09-26 — shared desktop responsive chrome + uniform media scaling.
+   Requested: every internal page must behave like SHOP on desktop:
+   no horizontal/vertical squashing of navigation, logo, icons or scaled page media.
+   Mobile <=900px is intentionally left untouched.
+   ========================================================= */
+@media (min-width:901px){
+  /* One real viewport-width header on every shared-chrome page. */
+  html body.shared-chrome-page > #desktopHeader.site-header{
+    position:fixed!important;
+    left:0!important;
+    top:0!important;
+    right:0!important;
+    width:100vw!important;
+    height:clamp(60px,4.583vw,88px)!important;
+    min-width:0!important;
+    min-height:0!important;
+    margin:0!important;
+    padding:0 clamp(16px,1.458vw,28px)!important;
+    box-sizing:border-box!important;
+    display:flex!important;
+    align-items:flex-start!important;
+    overflow:visible!important;
+    background:transparent!important;
+    transform:none!important;
+    transform-origin:initial!important;
+  }
+
+  html body.shared-chrome-page > #desktopHeader .nav-side,
+  html body.shared-chrome-page > #desktopHeader .nav-side.right{
+    position:static!important;
+    left:auto!important;
+    right:auto!important;
+    top:auto!important;
+    bottom:auto!important;
+    display:flex!important;
+    flex:0 0 auto!important;
+    align-items:center!important;
+    justify-content:flex-start!important;
+    margin:clamp(17px,1.51vw,29px) 0 0!important;
+    padding:0!important;
+    gap:clamp(18px,3.43vw,66px)!important;
+    font-size:initial!important;
+    line-height:1!important;
+    transform:none!important;
+  }
+  html body.shared-chrome-page > #desktopHeader .nav-side.right{
+    justify-content:flex-end!important;
+    margin-left:0!important;
+    gap:clamp(18px,3.33vw,64px)!important;
+  }
+
+  /* Same live SHOP typography everywhere. Resize font, never raster-stretch it. */
+  html body.shared-chrome-page > #desktopHeader .nav-side>a:not(.global-cart-icon){
+    position:relative!important;
+    display:block!important;
+    flex:0 0 auto!important;
+    width:auto!important;
+    min-width:0!important;
+    height:auto!important;
+    min-height:0!important;
+    margin:0!important;
+    padding:0!important;
+    background:none!important;
+    background-image:none!important;
+    color:#050505!important;
+    font-family:Arial,Helvetica,sans-serif!important;
+    font-size:clamp(14px,1.042vw,20px)!important;
+    font-weight:400!important;
+    font-style:normal!important;
+    font-stretch:normal!important;
+    line-height:1!important;
+    letter-spacing:0!important;
+    white-space:nowrap!important;
+    text-indent:0!important;
+    transform:none!important;
+    filter:none!important;
+    text-rendering:geometricPrecision!important;
+  }
+
+  /* Exact SHOP brand artwork, always preserving its 326:28 source ratio. */
+  html body.shared-chrome-page > #desktopHeader .brand{
+    position:absolute!important;
+    z-index:607!important;
+    left:50%!important;
+    top:clamp(18px,1.51vw,29px)!important;
+    width:clamp(216px,16.979vw,326px)!important;
+    min-width:0!important;
+    height:clamp(18.55px,1.458vw,28px)!important;
+    min-height:0!important;
+    margin:0!important;
+    padding:0!important;
+    transform:translateX(-50%)!important;
+    transform-origin:center center!important;
+    background:url("/assets/images/shop-brand.png") center/100% 100% no-repeat!important;
+    color:transparent!important;
+    font-size:0!important;
+    line-height:0!important;
+    letter-spacing:0!important;
+    text-indent:-9999px!important;
+    overflow:hidden!important;
+    white-space:nowrap!important;
+  }
+
+  /* Cart is a real flex item with a guaranteed SHOP-style gap before Instagram. */
+  html body.shared-chrome-page > #desktopHeader .global-cart-icon{
+    position:static!important;
+    left:auto!important;
+    right:auto!important;
+    top:auto!important;
+    bottom:auto!important;
+    display:block!important;
+    flex:0 0 auto!important;
+    width:clamp(22px,2.083vw,40px)!important;
+    min-width:clamp(22px,2.083vw,40px)!important;
+    height:clamp(24.75px,2.344vw,45px)!important;
+    min-height:0!important;
+    margin:clamp(10px,.729vw,14px) clamp(26px,2vw,40px) 0 auto!important;
+    padding:0!important;
+    transform:none!important;
+    filter:none!important;
+    background:url("/assets/images/cart-icon-psd.png") center/100% 100% no-repeat!important;
+  }
+
+  /* Shared fly-outs stay attached to the real viewport header and use SHOP typography. */
+  html body.shared-chrome-page > #desktopHeader .shared-header-flyout-left{left:0!important;right:auto!important;}
+  html body.shared-chrome-page > #desktopHeader .shared-header-flyout-right{left:auto!important;right:0!important;}
+  html body.shared-chrome-page > #desktopHeader .shared-header-flyout nav,
+  html body.shared-chrome-page > #desktopHeader .shared-header-flyout a{
+    font-family:Arial,Helvetica,sans-serif!important;
+    font-weight:400!important;
+    font-stretch:normal!important;
+  }
+
+  /* Legacy reference canvases must scale uniformly. Width drives both axes,
+     exactly as SHOP does, so photos and text can never be squeezed. */
+  html body.login-page .login-canvas{
+    transform:translate(-50%,-50%) scale(var(--login-scale-x,1))!important;
+  }
+  html body.cart-page .cart-canvas{
+    transform:scale(var(--cart-scale-x,1))!important;
+  }
+  html body.product-detail-page #productPage.product-page{
+    transform:scale(var(--product-scale-x,1))!important;
+  }
+}
