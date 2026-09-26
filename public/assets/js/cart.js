@@ -127,10 +127,10 @@
     const sx=window.innerWidth/1920;
     const sy=h/1080;
     const s=Math.min(sx,sy);
-    document.body.style.setProperty('--gallery-header-scale-x',String(s));
-    document.body.style.setProperty('--gallery-header-scale-y',String(s));
-    document.body.style.setProperty('--cart-scale-x',String(s));
-    document.body.style.setProperty('--cart-scale-y',String(s));
+    document.body.style.setProperty('--gallery-header-scale-x',String(sx));
+    document.body.style.setProperty('--gallery-header-scale-y',String(sy));
+    document.body.style.setProperty('--cart-scale-x',String(sx));
+    document.body.style.setProperty('--cart-scale-y',String(sy));
   };
   fitCart();
   window.addEventListener('resize',fitCart,{passive:true});
