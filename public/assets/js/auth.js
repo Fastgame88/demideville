@@ -53,10 +53,9 @@
     // Stretch the finished 1098×616 LOGIN reference plane exactly to the
     // browser edges. This keeps the existing composition untouched while
     // removing every outer gap on desktop.
-    const scaleX=window.innerWidth/1098;
-    const scaleY=window.innerHeight/616;
-    canvas.style.setProperty('--login-scale-x',String(scaleX));
-    canvas.style.setProperty('--login-scale-y',String(scaleY));
+    const scale=Math.min(window.innerWidth/1098,window.innerHeight/616);
+    canvas.style.setProperty('--login-scale-x',String(scale));
+    canvas.style.setProperty('--login-scale-y',String(scale));
   };
   fitLoginCanvas();
   window.addEventListener('resize',fitLoginCanvas,{passive:true});

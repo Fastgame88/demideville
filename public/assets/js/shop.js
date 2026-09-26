@@ -200,21 +200,10 @@
     }
 
     const footerHeight=footer?.offsetHeight||70;
-    /* Keep pagination/legal at the physical bottom of the page, not at a
-       scaled 1080px design coordinate. When width shrinks, the old 1080px
-       footer rose upward; viewportDesignHeight cancels that effect. If the
-       products are taller, the footer still moves below the last card. */
-    const viewportHeight=(window.visualViewport&&window.visualViewport.height)||window.innerHeight||1080;
-    const viewportDesignHeight=viewportHeight/Math.max(scale,.0001);
-    const footerTop=Math.max(
-      Math.ceil(productsBottom+42),
-      Math.ceil(viewportDesignHeight-footerHeight-10)
-    );
-    const designHeight=Math.max(
-      Math.ceil(viewportDesignHeight),
-      Math.ceil(footerTop+footerHeight+10)
-    );
-    const stageHeight=Math.max(viewportHeight,Math.ceil(designHeight*scale));
+    const defaultFooterTop=1080-footerHeight-10;
+    const footerTop=Math.max(defaultFooterTop,Math.ceil(productsBottom+42));
+    const designHeight=Math.max(1080,Math.ceil(footerTop+footerHeight+34));
+    const stageHeight=Math.ceil(designHeight*scale);
 
     if(footer){footer.style.top=`${footerTop}px`;footer.style.bottom='auto'}
     canvas.style.height=`${designHeight}px`;

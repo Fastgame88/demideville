@@ -544,6 +544,13 @@ function flyoutItemsHtml(items,lang){
 /* All storefront pages except the home page use one shared header and support shell. */
 function mountSharedChrome(site,menu=getMenuConfig(site.settings||{}),currentUser=null){
   if(document.body.classList.contains('shared-chrome-page'))return;
+  /* Canonical chrome cleanup: there must be exactly one desktop header.
+     Older page-specific headers/flyouts are removed before the shared SHOP-style
+     header is mounted, preventing double/overlaid menus on PRODUCT/LOGIN/etc. */
+  const desktopHeaders=[...document.querySelectorAll('#desktopHeader, header.site-header')];
+  const canonicalDesktop=document.getElementById('desktopHeader')||desktopHeaders[0]||null;
+  desktopHeaders.forEach(el=>{if(el!==canonicalDesktop)el.remove()});
+  canonicalDesktop?.querySelectorAll('.shared-header-flyout,.gallery-header-flyout,.login-header-flyout,.shop-header-flyout').forEach(el=>el.remove());
   document.body.classList.add('shared-chrome-page');
   const lang=menuLang();
   const shopGroup=menu.groups.find(g=>g.id==='shop'&&g.enabled!==false);
