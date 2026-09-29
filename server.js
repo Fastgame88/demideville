@@ -13,6 +13,8 @@ const DB_PATH = path.join(ROOT, 'data', 'db.json');
 const UPLOAD_DIR = process.env.UPLOAD_DIR ? path.resolve(process.env.UPLOAD_DIR) : path.join(PUBLIC, 'uploads');
 const DATABASE_URL = String(process.env.DATABASE_URL || '').trim();
 const USE_POSTGRES = !!DATABASE_URL;
+// Local-only uploads must be explicitly enabled for development.
+const ALLOW_LOCAL_MEDIA = process.env.ALLOW_LOCAL_MEDIA === 'true';
 let PG_POOL = null;
 let DB_SAVE_QUEUE = Promise.resolve();
 const DEFAULT_CHECKOUT_COUNTRIES=['Albania','Andorra','Armenia','Austria','Azerbaijan','Belgium','Bosnia and Herzegovina','Bulgaria','Croatia','Cyprus','Czechia','Denmark','Estonia','Finland','France','Georgia','Germany','Greece','Hungary','Iceland','Ireland','Italy','Kazakhstan','Kosovo','Latvia','Liechtenstein','Lithuania','Luxembourg','Malta','Moldova','Monaco','Montenegro','Netherlands','North Macedonia','Norway','Poland','Portugal','Romania','San Marino','Serbia','Slovakia','Slovenia','Spain','Sweden','Switzerland','Turkey','Ukraine','United Kingdom','Vatican City'];
@@ -131,7 +133,7 @@ function loadDb(){
   return DB_CACHE;
 }
 async function initDbStore(){
-  if(!USE_POSTGRES){DB_CACHE=loadJsonDbFromDisk();return;}
+  if(!USE_POSTGRES){DB_CACHE=loadJsonDbFromDisk();console.warn('DATABASE_URL is missing: permanent media uploads are unavailable.');return;}
   const {Pool}=require('pg');
   const pgSslMode=String(process.env.PGSSL||'auto').toLowerCase();const isRailwayPrivate=/\.railway\.internal(?::|\/|$)/i.test(DATABASE_URL);const ssl=pgSslMode==='disable'||(pgSslMode==='auto'&&isRailwayPrivate)?false:{rejectUnauthorized:false};
   PG_POOL=new Pool({connectionString:DATABASE_URL,ssl,max:Number(process.env.PGPOOL_MAX||5),idleTimeoutMillis:30000,connectionTimeoutMillis:10000});
@@ -170,6 +172,7 @@ function mediaMimeFromName(name){
   return ({'.jpg':'image/jpeg','.jpeg':'image/jpeg','.png':'image/png','.gif':'image/gif','.webp':'image/webp','.svg':'image/svg+xml','.mp4':'video/mp4','.webm':'video/webm','.mov':'video/quicktime'})[ext]||'application/octet-stream';
 }
 async function persistUploadedMedia(name,mime,buffer){
+  if(!PG_POOL&&!ALLOW_LOCAL_MEDIA)throw new Error('PostgreSQL is required for persistent uploads');
   if(USE_POSTGRES&&PG_POOL){
     const sha256=crypto.createHash('sha256').update(buffer).digest('hex');
     await PG_POOL.query(`INSERT INTO media_assets(name,mime,data,size,sha256,created_at,updated_at)
@@ -179,19 +182,20 @@ async function persistUploadedMedia(name,mime,buffer){
   }
   // Keep a local copy as a fast cache for the current process. On Railway this
   // directory may be ephemeral; PostgreSQL above is the durable source of truth.
-  try{fs.mkdirSync(UPLOAD_DIR,{recursive:true});fs.writeFileSync(path.join(UPLOAD_DIR,name),buffer)}catch(err){console.warn('Local upload cache write failed:',err.message)}
+  try{fs.mkdirSync(UPLOAD_DIR,{recursive:true});fs.writeFileSync(path.join(UPLOAD_DIR,name),buffer)}catch(err){if(!PG_POOL)throw err;console.warn('Local upload cache write failed:',err.message)}
 }
 async function migrateLocalUploadsToPostgres(){
   if(!USE_POSTGRES||!PG_POOL)return;
-  let names=[];try{names=fs.readdirSync(UPLOAD_DIR)}catch{return}
-  for(const name of names){
-    const full=path.join(UPLOAD_DIR,name);let st;try{st=fs.statSync(full)}catch{continue}if(!st.isFile())continue;
-    try{
+  // Import both the configured cache and bundled legacy uploads, without replacing DB bytes.
+  for(const directory of new Set([UPLOAD_DIR,path.join(PUBLIC,'uploads')])){
+    let names=[];try{names=fs.readdirSync(directory)}catch{continue}
+    for(const name of names){
+      const full=path.join(directory,name);const st=fs.statSync(full);if(!st.isFile())continue;
       const existing=await PG_POOL.query('SELECT 1 FROM media_assets WHERE name=$1',[name]);
       if(existing.rowCount)continue;
       const buffer=fs.readFileSync(full),mime=mediaMimeFromName(name),sha256=crypto.createHash('sha256').update(buffer).digest('hex');
       await PG_POOL.query('INSERT INTO media_assets(name,mime,data,size,sha256,created_at,updated_at) VALUES($1,$2,$3,$4,$5,now(),now()) ON CONFLICT(name) DO NOTHING',[name,mime,buffer,buffer.length,sha256]);
-    }catch(err){console.warn('Upload migration skipped for',name,err.message)}
+    }
   }
 }
 async function servePersistentUpload(req,res,u){
@@ -201,7 +205,7 @@ async function servePersistentUpload(req,res,u){
   const name=pathname.slice('/uploads/'.length);
   if(!name||name.includes('/')||name.includes('\\')||name==='.'||name==='..')return false;
   let result;
-  try{result=await PG_POOL.query('SELECT mime,data,size,sha256,updated_at FROM media_assets WHERE name=$1',[name])}catch(err){console.error('Persistent media read failed:',err.message);return false}
+  try{result=await PG_POOL.query('SELECT mime,data,size,sha256,updated_at FROM media_assets WHERE name=$1',[name])}catch(err){console.error('Persistent media read failed:',err.message);sendJson(res,503,{error:'Media storage temporarily unavailable'});return true}
   const row=result.rows[0];if(!row)return false;
   const data=Buffer.isBuffer(row.data)?row.data:Buffer.from(row.data||'');
   const size=Number(row.size)||data.length;
@@ -218,7 +222,8 @@ async function servePersistentUpload(req,res,u){
   if(range&&size>0){
     let start=range[1]?Number(range[1]):0,end=range[2]?Number(range[2]):size-1;
     if(!range[1]&&range[2]){const tail=Math.max(0,Number(range[2])||0);start=Math.max(0,size-tail);end=size-1}
-    start=Math.max(0,Math.min(size-1,start));end=Math.max(start,Math.min(size-1,end));
+    if(start>=size||end<start||(!range[1]&&Number(range[2])===0)){res.writeHead(416,{'Content-Range':`bytes */${size}`});res.end();return true;}
+    end=Math.min(size-1,end);
     headers['Content-Range']=`bytes ${start}-${end}/${size}`;headers['Content-Length']=end-start+1;
     res.writeHead(206,headers);if(req.method==='HEAD')res.end();else res.end(data.subarray(start,end+1));return true;
   }
@@ -365,7 +370,7 @@ async function loadInboxMessages(limit=40){
 }
 async function handleApi(req,res,u){
   const p=u.pathname, m=req.method;
-  if(m==='GET'&&p==='/api/health') return sendJson(res,200,{ok:true,storage:USE_POSTGRES?'postgres':'json',time:now()});
+  if(m==='GET'&&p==='/api/health') return sendJson(res,200,{ok:true,storage:USE_POSTGRES?'postgres':'json',mediaStorage:PG_POOL?'postgres':ALLOW_LOCAL_MEDIA?'local':'unavailable',persistentMedia:!!PG_POOL,time:now()});
   if(m==='GET'&&p==='/api/site') return sendPublicSite(req,res,loadDb());
   if(m==='GET'&&p.startsWith('/api/products/')){const pid=decodeURIComponent(p.slice('/api/products/'.length)),prod=loadDb().products.find(x=>x.id===pid&&x.active!==false);return prod?sendJson(res,200,publicProduct(prod)):sendJson(res,404,{error:'Product not found'});}
   if(m==='POST'&&p==='/api/auth/register'){
@@ -466,12 +471,13 @@ async function handleApi(req,res,u){
   if(m==='PUT'&&p==='/api/admin/settings'){const a=needUser(req,res,true);if(!a)return;const b=await readJson(req);if(b.shopPageSize!=null)b.shopPageSize=Math.max(1,Math.min(8,Math.floor(Number(b.shopPageSize)||8)));if(Array.isArray(b.checkoutCountries)){b.checkoutCountries=[...new Set(b.checkoutCountries.map(x=>String(x||'').trim()).filter(x=>x&&!/^(russia|belarus)$/i.test(x)))];if(!b.checkoutCountries.length)b.checkoutCountries=[...DEFAULT_CHECKOUT_COUNTRIES]}if(b.pageBackgrounds!=null&&(!b.pageBackgrounds||typeof b.pageBackgrounds!=='object'||Array.isArray(b.pageBackgrounds)))b.pageBackgrounds={};a.db.settings={...a.db.settings,...b};await saveDb(a.db);return sendJson(res,200,a.db.settings);}
   if(m==='POST'&&p==='/api/admin/upload'){
     const a=needUser(req,res,true);if(!a)return;
+    if(!PG_POOL&&!ALLOW_LOCAL_MEDIA)return sendJson(res,503,{error:'Фото/відео не збережено: підключіть PostgreSQL через DATABASE_URL у змінних сервісу сайту. Це потрібно для збереження файлів після redeploy.'});
     const uploadLimit=Math.max(5,Number(process.env.MAX_UPLOAD_MB||60))*1024*1024*1.45;
     const b=await readJson(req,uploadLimit),match=String(b.dataUrl||'').match(/^data:((?:image|video)\/[a-zA-Z0-9.+-]+);base64,(.+)$/);
     if(!match)return sendJson(res,400,{error:'Invalid image/video data'});
     const mime=match[1];let ext=(mime.split('/')[1]||'bin').replace('jpeg','jpg').replace('quicktime','mov').replace(/[^a-z0-9]/gi,'');
     if(mime==='video/mp4')ext='mp4';if(mime==='video/webm')ext='webm';
-    const safe=String(b.filename||'media').replace(/[^a-zA-Z0-9._-]/g,'-').replace(/\.[^.]+$/,'').slice(0,60)||'media',name=`${Date.now()}-${safe}.${ext}`;
+    const safe=String(b.filename||'media').replace(/[^a-zA-Z0-9._-]/g,'-').replace(/\.[^.]+$/,'').slice(0,60)||'media',name=`${Date.now()}-${crypto.randomBytes(8).toString('hex')}-${safe}.${ext}`;
     const buffer=Buffer.from(match[2],'base64');
     try{await persistUploadedMedia(name,mime,buffer)}catch(err){console.error('Persistent upload failed:',err);return sendJson(res,500,{error:'Could not save media permanently. Please try again.'})}
     return sendJson(res,200,{url:`/uploads/${name}`,persistent:!!(USE_POSTGRES&&PG_POOL)});

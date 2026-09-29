@@ -54,7 +54,7 @@
     // browser edges. This keeps the existing composition untouched while
     // removing every outer gap on desktop.
     const scaleX=window.innerWidth/1098;
-    const scaleY=window.innerHeight/616;
+    const scaleY=scaleX;
     canvas.style.setProperty('--login-scale-x',String(scaleX));
     canvas.style.setProperty('--login-scale-y',String(scaleY));
   };

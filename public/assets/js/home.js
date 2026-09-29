@@ -117,4 +117,10 @@
 
   document.addEventListener('keydown',e=>{if(e.key==='Escape')setMenu(false)});
 
+  document.querySelectorAll('.home-mobile-header,#homeMobileMenu,.home-links').forEach(el=>el.remove());
+  for(const [tag,id,cls] of [['header','desktopHeader','site-header'],['div','mobileHeader','mobile-header'],['div','mobileMenu','mobile-menu']]){
+    const el=document.createElement(tag);el.id=id;el.className=cls;document.body.prepend(el);
+  }
+  await renderChrome();
+  langToggle?.addEventListener('click',()=>location.reload());
 })();

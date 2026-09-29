@@ -125,7 +125,7 @@
     }
     const h=(window.visualViewport&&window.visualViewport.height)||window.innerHeight;
     const sx=window.innerWidth/1920;
-    const sy=h/1080;
+    const sy=sx;
     const s=Math.min(sx,sy);
     document.body.style.setProperty('--gallery-header-scale-x',String(sx));
     document.body.style.setProperty('--gallery-header-scale-y',String(sy));
