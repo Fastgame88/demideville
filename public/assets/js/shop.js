@@ -200,14 +200,12 @@
     }
 
     const footerHeight=footer?.offsetHeight||70;
-    const viewportHeight=document.documentElement.clientHeight||innerHeight;
-    const minimumHeight=Math.max(1080,viewportHeight/scale);
-    const defaultFooterTop=minimumHeight-footerHeight-34;
+    const defaultFooterTop=1080-footerHeight-10;
     const footerTop=Math.max(defaultFooterTop,Math.ceil(productsBottom+42));
-    const designHeight=Math.max(minimumHeight,Math.ceil(footerTop+footerHeight+34));
+    const designHeight=Math.max(1080,Math.ceil(footerTop+footerHeight+34));
     const stageHeight=Math.ceil(designHeight*scale);
 
-    if(footer){footer.style.setProperty('top',`${footerTop}px`,'important');footer.style.setProperty('bottom','auto','important')}
+    if(footer){footer.style.top=`${footerTop}px`;footer.style.bottom='auto'}
     canvas.style.height=`${designHeight}px`;
     stage.style.setProperty('--shop-stage-height',`${stageHeight}px`);
     stage.style.setProperty('height',`${stageHeight}px`,'important');

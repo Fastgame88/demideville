@@ -16,9 +16,9 @@
 
   const fitChrome=()=>{
     if(window.innerWidth<=900){document.body.style.removeProperty('--gallery-header-scale-x');document.body.style.removeProperty('--gallery-header-scale-y');return}
-    const h=(window.visualViewport&&window.visualViewport.height)||window.innerHeight;
-    document.body.style.setProperty('--gallery-header-scale-x',String(window.innerWidth/1920));
-    document.body.style.setProperty('--gallery-header-scale-y',String(window.innerWidth/1920));
+    const s=Math.max(.01,window.innerWidth/1920);
+    document.body.style.setProperty('--gallery-header-scale-x',String(s));
+    document.body.style.setProperty('--gallery-header-scale-y',String(s));
   };
   let chromeFrame=0;
   const scheduleFitChrome=()=>{if(chromeFrame)return;chromeFrame=requestAnimationFrame(()=>{chromeFrame=0;fitChrome()})};

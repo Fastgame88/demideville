@@ -1521,3 +1521,130 @@ body.product-detail-page #productImage{
     letter-spacing:0!important;
   }
 }
+
+
+/* =========================================================
+   2026-09-29 — requested final resize/menu/footer corrections.
+   - Every non-home desktop page uses the same live, proportional SHOP header.
+   - No header axis is stretched separately when the viewport changes shape.
+   - Mobile SHOP pager/legal remain at the page end (not over the products).
+   ========================================================= */
+@media (min-width:901px){
+  html body.shared-chrome-page:not(.shop-page) > #desktopHeader.site-header{
+    position:fixed!important;
+    left:0!important;top:0!important;right:0!important;
+    width:100vw!important;height:clamp(60px,4.583vw,88px)!important;
+    min-width:0!important;min-height:0!important;
+    margin:0!important;padding:0 clamp(16px,1.458vw,28px)!important;
+    box-sizing:border-box!important;
+    display:flex!important;align-items:flex-start!important;
+    overflow:visible!important;background:transparent!important;
+    transform:none!important;transform-origin:initial!important;
+    z-index:900!important;
+  }
+  html body.shared-chrome-page:not(.shop-page) > #desktopHeader .nav-side,
+  html body.shared-chrome-page:not(.shop-page) > #desktopHeader .nav-side.right{
+    position:static!important;left:auto!important;right:auto!important;top:auto!important;bottom:auto!important;
+    display:flex!important;flex:0 0 auto!important;align-items:center!important;
+    margin:clamp(17px,1.51vw,29px) 0 0!important;padding:0!important;
+    gap:clamp(18px,3.43vw,66px)!important;
+    transform:none!important;line-height:1!important;
+  }
+  html body.shared-chrome-page:not(.shop-page) > #desktopHeader .nav-side.right{
+    margin-left:clamp(16px,2vw,38px)!important;
+    gap:clamp(18px,3.33vw,64px)!important;
+  }
+  html body.shared-chrome-page:not(.shop-page) > #desktopHeader .nav-side>a:not(.global-cart-icon){
+    position:relative!important;display:block!important;flex:0 0 auto!important;
+    width:auto!important;min-width:0!important;height:auto!important;min-height:0!important;
+    margin:0!important;padding:0!important;
+    background:none!important;background-image:none!important;
+    color:#050505!important;
+    font-family:Arial,Helvetica,sans-serif!important;
+    font-size:clamp(14px,1.042vw,20px)!important;font-weight:400!important;font-style:normal!important;font-stretch:normal!important;
+    line-height:1!important;letter-spacing:0!important;white-space:nowrap!important;
+    text-indent:0!important;transform:none!important;filter:none!important;
+    text-rendering:geometricPrecision!important;text-decoration:none!important;
+  }
+  html body.shared-chrome-page:not(.shop-page) > #desktopHeader .brand{
+    position:absolute!important;left:50%!important;top:clamp(18px,1.51vw,29px)!important;
+    width:clamp(216px,16.979vw,326px)!important;min-width:0!important;
+    height:clamp(18.55px,1.458vw,28px)!important;min-height:0!important;
+    margin:0!important;padding:0!important;
+    transform:translateX(-50%)!important;transform-origin:center center!important;
+    background:url("/assets/images/shop-brand.png") center/100% 100% no-repeat!important;
+    color:transparent!important;font-size:0!important;line-height:0!important;letter-spacing:0!important;
+    text-indent:-9999px!important;overflow:hidden!important;white-space:nowrap!important;
+  }
+  html body.shared-chrome-page:not(.shop-page) > #desktopHeader .global-cart-icon{
+    position:static!important;left:auto!important;right:auto!important;top:auto!important;bottom:auto!important;
+    display:block!important;flex:0 0 auto!important;
+    width:clamp(22px,2.083vw,40px)!important;min-width:clamp(22px,2.083vw,40px)!important;
+    height:clamp(24.75px,2.344vw,45px)!important;min-height:0!important;
+    margin:clamp(10px,.729vw,14px) 0 0 auto!important;padding:0!important;
+    transform:none!important;filter:none!important;
+    background:url("/assets/images/cart-icon-psd.png") center/100% 100% no-repeat!important;
+  }
+  /* Keep the same clear cart-to-INSTAGRAM spacing as SHOP. */
+  html body.shared-chrome-page:not(.shop-page) > #desktopHeader .global-cart-icon + .nav-side.right{
+    margin-left:clamp(28px,2.6vw,50px)!important;
+  }
+  html body.shared-chrome-page:not(.shop-page) > #desktopHeader .shared-header-flyout{
+    transform:none!important;
+  }
+}
+
+@media (max-width:900px){
+  html body.shop-page .shop-wrap{
+    display:flex!important;
+    flex-direction:column!important;
+    min-height:calc(100dvh - 84px)!important;
+    padding-bottom:0!important;
+  }
+  html body.shop-page .product-grid{flex:0 0 auto!important;}
+  html body.shop-page .shop-footer{
+    position:relative!important;
+    left:auto!important;right:auto!important;top:auto!important;bottom:auto!important;
+    flex:0 0 auto!important;
+    width:100%!important;height:auto!important;
+    margin:auto auto 0!important;
+    padding:32px 0 max(16px,env(safe-area-inset-bottom))!important;
+    transform:none!important;background:transparent!important;
+    overflow:visible!important;
+  }
+}
+
+/* 2026-09-29 — canonical SHOP desktop header override.
+   Older page-specific rules used raster menu words and stronger nth-child
+   selectors.  Match those selectors here so every internal page renders the
+   same live SHOP menu once, with no old artwork underneath it. */
+@media (min-width:901px){
+  html body.shared-chrome-page:not(.shop-page) > #desktopHeader.site-header .nav-side:not(.right),
+  html body.shared-chrome-page:not(.shop-page) > #desktopHeader.site-header .nav-side.right{
+    position:static!important;
+    left:auto!important;right:auto!important;top:auto!important;bottom:auto!important;
+  }
+  html body.shared-chrome-page:not(.shop-page) > #desktopHeader.site-header .nav-side.right{
+    margin-left:0!important;
+  }
+  html body.shared-chrome-page:not(.shop-page) > #desktopHeader.site-header .global-cart-icon{
+    margin:clamp(10px,.729vw,14px) clamp(26px,2vw,40px) 0 auto!important;
+  }
+  html body.shared-chrome-page:not(.shop-page) > #desktopHeader.site-header .nav-side > a:nth-child(n):not(.global-cart-icon){
+    position:relative!important;
+    display:block!important;
+    flex:0 0 auto!important;
+    width:auto!important;min-width:0!important;
+    height:auto!important;min-height:0!important;
+    margin:0!important;padding:0!important;
+    background:none!important;background-image:none!important;
+    background-color:transparent!important;
+    color:#050505!important;
+    font-family:Arial,Helvetica,sans-serif!important;
+    font-size:clamp(14px,1.042vw,20px)!important;
+    font-weight:400!important;font-style:normal!important;font-stretch:normal!important;
+    line-height:1!important;letter-spacing:0!important;white-space:nowrap!important;
+    text-indent:0!important;transform:none!important;filter:none!important;
+    text-rendering:geometricPrecision!important;text-decoration:none!important;
+  }
+}

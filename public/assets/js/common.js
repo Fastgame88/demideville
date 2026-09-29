@@ -564,7 +564,7 @@ function mountSharedChrome(site,menu=getMenuConfig(site.settings||{}),currentUse
   }
 
   mountFreshSupport(site.settings||{});
-  const fit=()=>{document.body.style.setProperty('--storefront-scale',String(innerWidth<=900?1:innerWidth/1920));if(innerWidth<=900)return;const h=window.visualViewport?.height||innerHeight;const sx=innerWidth/1920,sy=sx,s=sx;document.body.style.setProperty('--shared-chrome-x',sx);document.body.style.setProperty('--shared-chrome-y',sy);document.body.style.setProperty('--shared-chrome-y-inverse',1/sy);document.body.style.setProperty('--shared-support-scale',s);document.body.style.setProperty('--shared-support-right',`${22*s}px`);document.body.style.setProperty('--shared-support-bottom',`${25*s}px`)};
+  const fit=()=>{if(innerWidth<=900)return;const s=Math.max(.01,innerWidth/1920);document.body.style.setProperty('--shared-chrome-x',s);document.body.style.setProperty('--shared-chrome-y',s);document.body.style.setProperty('--shared-chrome-y-inverse',1/s);document.body.style.setProperty('--shared-support-scale',s);document.body.style.setProperty('--shared-support-right',`${22*s}px`);document.body.style.setProperty('--shared-support-bottom',`${25*s}px`)};
   fit();addEventListener('resize',fit,{passive:true});window.visualViewport?.addEventListener('resize',fit,{passive:true});
 }
 function addToCart(productId,size,qty=1){
